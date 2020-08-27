@@ -21,7 +21,6 @@ time, mark, audio, video {
 
 body {
     line-height:1.2;
-    /*display: flex;*/
     flex-direction: column;
     height: 100%;
 }
@@ -33,16 +32,13 @@ body {
 
 .top.menu > .logo {
     width: 300px;
-    /*background-size: auto 100px;*/
     background-size: contain;
     background-image: url('/static/img/wonderwall.png');
     background-repeat: no-repeat;
 }
 
 wall-app {
-    /*flex-grow: 2!important;*/
     display: flex;
-    /*grid-template-columns: 1fr 100px 3em;*/
     background-color: lightpink;
     height: 100%;
     width: 100%;
