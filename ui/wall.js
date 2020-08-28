@@ -31,6 +31,8 @@ class Editor extends HTMLElement {
         this.mode = 'brush'
         this.isPaint = false
         this.lastPointerPosition = null
+        this.scaleBy = 1.1
+        this.scale = 1
     }
     connectedCallback() {
         this.stage = new Stage({container: this, width: 800, height: 600})
@@ -124,6 +126,7 @@ class Editor extends HTMLElement {
         // this.stage.on('mousedown touchstart', _ => this.onMousedown())
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
+        this.stage.on('wheel', e => this.onWheel(e))
     }
     disconnectedCallback() {}
     onMousedown() {
@@ -146,6 +149,17 @@ class Editor extends HTMLElement {
         this.context.stroke()
         this.lastPointerPosition = pos
         this.layer.batchDraw()
+    }
+    onWheel(e) {
+        e.evt.preventDefault();
+        const oldScale = this.stage.scaleX();
+        const pointer = this.stage.getPointerPosition();
+        const mousePointTo = {x: (pointer.x - this.stage.x()) / oldScale, y: (pointer.y - this.stage.y()) / oldScale,};
+        const newScale = e.evt.deltaY > 0 ? oldScale * this.scaleBy : oldScale / this.scaleBy;
+        this.stage.scale({ x: newScale, y: newScale });
+        const newPos = {x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale};
+        this.stage.position(newPos);
+        this.stage.batchDraw();
     }
 }
 class App extends HTMLElement {
