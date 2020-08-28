@@ -76,6 +76,17 @@ wall-editor {
     background-color: lightgrey;
     border-top: 1px solid lightgrey;
 }
+textarea.wall {
+    position: absolute;
+    border: none;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    background: none;
+    outline: none;
+    resize: none;
+    transform-origin: left top;
+}
 .konvajs-content {
     background-color: white;
 }
