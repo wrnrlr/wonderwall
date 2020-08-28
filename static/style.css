@@ -74,4 +74,8 @@ wall-tools > [value="selection"] { background-image: url("data:image/svg+xml,%3C
 wall-editor {
     flex-grow: 2;
     background-color: lightgrey;
+    border-top: 1px solid lightgrey;
+}
+.konvajs-content {
+    background-color: white;
 }
