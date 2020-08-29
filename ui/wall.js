@@ -1,5 +1,5 @@
 import crel from 'crelt'
-import {Circle, Layer, Stage, Image, Text, Transformer} from 'konva'
+import {Circle, Layer, Stage, Image, Text, Transformer, Group, Rect} from 'konva'
 class Tools extends HTMLElement {
     static get observedAttributes() { return ['value'] }
     get value() { return this.getAttribute('value') }
@@ -33,102 +33,51 @@ class Editor extends HTMLElement {
         this.lastPointerPosition = null
         this.scaleBy = 1.1
         this.scale = 1
+        this.stageWidth = 900;
+        this.stageHeight = 400;
+        this.paperWidth = 900;
+        this.paperHeight = 400;
     }
     connectedCallback() {
-        this.stage = new Stage({container: this, width: 800, height: 600})
+        const container = document.querySelector('#wrapper');
+        const width = container.offsetWidth - 80, height = container.offsetHeight
+        // const width = 900, height = 400
+        this.stage = new Stage({container: this, width: width, height: height})
         this.layer = new Layer()
-        let circle = new Circle({x: this.stage.width() / 2, y: this.stage.height() / 2, radius: 70, fill: 'red', stroke: 'black', strokeWidth: 4})
-        this.layer.add(circle)
+        this.group = new Group({x: (width / 2) - (this.paperWidth / 2), y: (height / 2) - (this.paperHeight / 2), draggable: true});
+        const paper = new Rect({width: this.paperWidth, height: this.paperHeight, stroke: "black", fill: "white"});
+        this.group.add(paper);
+        this.layer.add(this.group)
         this.stage.add(this.layer)
-        const canvas = crel('canvas', {width: this.stage.width(), height: this.stage.height()})
-        this.image = new Image({image: canvas, x: 0, y: 0})
-        this.layer.add(this.image)
-        this.textLayer = new Layer();
-        this.stage.add(this.textLayer);
-        this.textNode = new Text({text: 'Some text here', x: 50, y: 80, fontSize: 20, draggable: true, width: 200})
-        this.textLayer.add(this.textNode);
-        this.tr = new Transformer({
-            node: this.textNode, enabledAnchors: ['middle-left', 'middle-right'],
-            boundBoxFunc (oldBox, newBox) {
-                newBox.width = Math.max(30, newBox.width)
-                return newBox}})
-        this.textNode.on('transform', () => {this.textNode.setAttrs({width: this.textNode.width() * this.textNode.scaleX(), scaleX: 1});})
-        this.textLayer.add(this.tr);
-        this.stage.draw()
-        this.context = canvas.getContext('2d')
-        this.context.strokeStyle = '#df4b26';
-        this.context.lineJoin = 'round';
-        this.context.lineWidth = 5;
-        this.textNode.on('click', () => {
-            console.log('dbclick textNode')
-            let n = this.textNode
-            this.textNode.hide(); this.tr.hide(); this.textLayer.draw();
-            // create textarea over canvas with absolute position first we need to find position for textarea how to find it? at first lets find position of text node relative to the stage
-            let textPosition = n.absolutePosition();
-            // then lets find position of stage container on the page:
-            let stageBox = this.stage.container().getBoundingClientRect();
-            // so position of textarea will be the sum of positions above:
-            let areaPosition = {x: stageBox.left + textPosition.x, y: stageBox.top + textPosition.y};
-            let textarea = createTextarea(n, areaPosition)
-            document.body.appendChild(textarea);
-            let rotation = n.rotation()
-            let transform = '';
-            if (rotation) { transform += 'rotateZ(' + rotation + 'deg)';}
-            let px = 0;
-            // also we need to slightly move textarea on firefox because it jumps a bit
-            let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-            if (isFirefox) {px += 2 + Math.round(n.fontSize() / 20);}
-            transform += 'translateY(-' + px + 'px)';
-            textarea.style.transform = transform;
-            // reset height
-            textarea.style.height = 'auto';
-            // after browsers resized it we can set actual value
-            textarea.style.height = textarea.scrollHeight + 3 + 'px';
-            textarea.focus();
-            let removeTextarea = () => {
-                textarea.parentNode.removeChild(textarea);
-                window.removeEventListener('click', handleOutsideClick);
-                n.show();
-                this.tr.show();
-                this.tr.forceUpdate();
-                this.textLayer.draw();}
-            function setTextareaWidth(newWidth) {
-                if (!newWidth) {newWidth = n.placeholder.length * n.fontSize();}
-                // some extra fixes on different browsers
-                let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-                if (isSafari || isFirefox) { newWidth = Math.ceil(newWidth);}
-                let isEdge = document.documentMode || /Edge/.test(navigator.userAgent);
-                if (isEdge) { newWidth += 1;}
-                textarea.style.width = newWidth + 'px';
-            }
-            textarea.addEventListener('keydown',  (e) => {
-                // hide on enter but don't hide on shift + enter
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    n.text(textarea.value);
-                    removeTextarea()
-                } else if (e.key === 'Esc') { removeTextarea() }
-            });
-            textarea.addEventListener('keydown', function (e) {
-                let scale = n.getAbsoluteScale().x;
-                setTextareaWidth(n.width() * scale);
-                textarea.style.height = 'auto';
-                textarea.style.height = textarea.scrollHeight + n.fontSize() + 'px';
-            });
-            function handleOutsideClick(e) {
-                if (e.target !== textarea) {
-                    n.text(textarea.value);
-                    removeTextarea();
-                }
-            }
-            setTimeout(() => { window.addEventListener('click', handleOutsideClick); });
-        });
-        // this.stage.on('mousedown touchstart', _ => this.onMousedown())
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
-        this.stage.on('wheel', e => this.onWheel(e))
+        container.addEventListener('wheel', e => this.onWheel(e))
+        // this.group.on('wheel', e => this.onWheel(e))
+        window.addEventListener('resize', _ => this.onResize())
+        // this.stage.on('mousedown touchstart', _ => this.onMousedown())
+        // this.onResize()
+    }
+    getRelativePointerPosition(node) {
+        var transform = node.getAbsoluteTransform().copy();
+        // to detect relative position we need to invert transform
+        transform.invert();
+        // get pointer (say mouse or touch) position
+        var pos = node.getStage().getPointerPosition();
+        // now we can find relative point
+        return transform.point(pos);
     }
     disconnectedCallback() {}
+    onResize() {
+        const container = document.querySelector('#wrapper');
+        console.log('available width: ' + container.scrollWidth)
+        var containerWidth = container.offsetWidth - 80;
+        var containerHeight = container.offsetHeight - 80;
+        var scale = containerWidth / this.stageWidth;
+        this.stage.width(this.stageWidth * scale );
+        this.stage.height(this.stageHeight * scale);
+        this.stage.scale({ x: scale, y: scale });
+        this.stage.draw();
+    }
     onMousedown() {
         this.isPaint = true
         this.lastPointerPosition = this.stage.getPointerPosition()
@@ -151,15 +100,78 @@ class Editor extends HTMLElement {
         this.layer.batchDraw()
     }
     onWheel(e) {
-        e.evt.preventDefault();
         const oldScale = this.stage.scaleX();
         const pointer = this.stage.getPointerPosition();
-        const mousePointTo = {x: (pointer.x - this.stage.x()) / oldScale, y: (pointer.y - this.stage.y()) / oldScale,};
-        const newScale = e.evt.deltaY > 0 ? oldScale * this.scaleBy : oldScale / this.scaleBy;
+        const mousePointTo = {x: (pointer.x - this.stage.x()) / oldScale, y: (pointer.y - this.stage.y()) / oldScale};
+        const newScale = e.deltaY > 0 ? oldScale * this.scaleBy : oldScale / this.scaleBy;
         this.stage.scale({ x: newScale, y: newScale });
         const newPos = {x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale};
         this.stage.position(newPos);
         this.stage.batchDraw();
+    }
+    onTextClick() {
+        console.log('dbclick textNode')
+        let n = this.textNode
+        this.textNode.hide(); this.tr.hide(); this.textLayer.draw();
+        // create textarea over canvas with absolute position first we need to find position for textarea how to find it? at first lets find position of text node relative to the stage
+        let textPosition = n.absolutePosition();
+        // then lets find position of stage container on the page:
+        let stageBox = this.stage.container().getBoundingClientRect();
+        // so position of textarea will be the sum of positions above:
+        let areaPosition = {x: stageBox.left + textPosition.x, y: stageBox.top + textPosition.y};
+        let textarea = createTextarea(n, areaPosition)
+        document.body.appendChild(textarea);
+        let rotation = n.rotation()
+        let transform = '';
+        if (rotation) { transform += 'rotateZ(' + rotation + 'deg)';}
+        let px = 0;
+        // also we need to slightly move textarea on firefox because it jumps a bit
+        let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+        if (isFirefox) {px += 2 + Math.round(n.fontSize() / 20);}
+        transform += 'translateY(-' + px + 'px)';
+        textarea.style.transform = transform;
+        // reset height
+        textarea.style.height = 'auto';
+        // after browsers resized it we can set actual value
+        textarea.style.height = textarea.scrollHeight + 3 + 'px';
+        textarea.focus();
+        let removeTextarea = () => {
+            textarea.parentNode.removeChild(textarea);
+            window.removeEventListener('click', handleOutsideClick);
+            n.show();
+            this.tr.show();
+            this.tr.forceUpdate();
+            this.textLayer.draw();}
+        function setTextareaWidth(newWidth) {
+            if (!newWidth) {newWidth = n.placeholder.length * n.fontSize();}
+            // some extra fixes on different browsers
+            let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            if (isSafari || isFirefox) { newWidth = Math.ceil(newWidth);}
+            let isEdge = document.documentMode || /Edge/.test(navigator.userAgent);
+            if (isEdge) { newWidth += 1;}
+            textarea.style.width = newWidth + 'px';
+        }
+        textarea.addEventListener('keydown',  (e) => {
+            // hide on enter but don't hide on shift + enter
+            if (e.key === 'Enter' && !e.shiftKey) {
+                n.text(textarea.value);
+                removeTextarea()
+            } else if (e.key === 'Esc') { removeTextarea() }
+        });
+        textarea.addEventListener('keydown', function (e) {
+            let scale = n.getAbsoluteScale().x;
+            setTextareaWidth(n.width() * scale);
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + n.fontSize() + 'px';
+        });
+        function handleOutsideClick(e) {
+            if (e.target !== textarea) {
+                n.text(textarea.value);
+                removeTextarea();
+            }
+        }
+        setTimeout(() => { window.addEventListener('click', handleOutsideClick); });
     }
 }
 class App extends HTMLElement {
@@ -167,7 +179,7 @@ class App extends HTMLElement {
         this.$editor = crel('wall-editor')
         this.$tools = crel('wall-tools', {})
         this.$tools.addEventListener('value', e => this.toolValue(e))
-        this.appendChild(this.$editor)
+        this.appendChild(crel('div', {id: 'wrapper'}, this.$editor))
         this.appendChild(crel('div', {class:'options menu'}))
         this.appendChild(this.$tools)
     }
