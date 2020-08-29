@@ -74,6 +74,7 @@ class Editor extends HTMLElement {
         const pos = node.getStage().getPointerPosition();
         return transform.point(pos);
     }
+    getPointerPosition() { return this.getRelativePointerPosition(this.group)}
     create(state) {
         this.layer.destroyChildren();
         this.state.forEach((item,key) => {
@@ -116,18 +117,18 @@ class Editor extends HTMLElement {
         this.stage.draw();
     }
     onMousedown() {
-        const {x,y} = this.getRelativePointerPosition(this.group)
-        if (this.mode === 'shape') this.createShape({x,y})
-        else if (this.mode === 'text') this.createText({x,y})
-        else if (this.mode === 'image') this.createImage({x,y})
-        else if (this.mode === 'pen') this.createLine({x,y})
+        const pos = this.getPointerPosition()
+        if (this.mode === 'shape') this.createShape(pos)
+        else if (this.mode === 'text') this.createText(pos)
+        else if (this.mode === 'image') this.createImage(pos)
+        else if (this.mode === 'pen') this.createLine(pos)
     }
     onMouseup() {
         this.isPaint = false
     }
     onMousemove() {
         if (!this.isPaint) return
-        const pos = this.getRelativePointerPosition(this.group)
+        const pos = this.getPointerPosition()
         const newPoints = this.lastLine.points().concat([pos.x, pos.y]);
         this.lastLine.points(newPoints);
         this.layer.batchDraw();
