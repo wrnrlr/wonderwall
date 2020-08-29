@@ -1,5 +1,5 @@
 import crel from 'crelt'
-import {Circle, Layer, Stage, Image, Text, Transformer, Group, Rect} from 'konva'
+import {Circle, Layer, Stage, Image, Text, Transformer, Group, Rect, Line} from 'konva'
 class Tools extends HTMLElement {
     static get observedAttributes() { return ['value'] }
     get value() { return this.getAttribute('value') }
@@ -42,6 +42,7 @@ class Editor extends HTMLElement {
         this.state = []
         this.history = [this.state]
         this.historyStep = 0
+        this.lastLine = null
     }
     connectedCallback() {
         const container = document.querySelector('#wrapper');
@@ -97,6 +98,12 @@ class Editor extends HTMLElement {
             this.layer.batchDraw();
         })
     }
+    createLine(pos) {
+        this.isPaint = true;
+        this.lastLine = new Line({stroke: '#df4b26', strokeWidth: 5, points: [pos.x, pos.y],
+            globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'})
+        this.group.add(this.lastLine)
+    }
     onResize() {
         const container = document.querySelector('#wrapper');
         console.log('available width: ' + container.scrollWidth)
@@ -113,25 +120,17 @@ class Editor extends HTMLElement {
         if (this.mode === 'shape') this.createShape({x,y})
         else if (this.mode === 'text') this.createText({x,y})
         else if (this.mode === 'image') this.createImage({x,y})
-        // this.isPaint = true
-        // this.lastPointerPosition = this.stage.getPointerPosition()
+        else if (this.mode === 'pen') this.createLine({x,y})
     }
     onMouseup() {
         this.isPaint = false
     }
     onMousemove() {
         if (!this.isPaint) return
-        if (this.mode === 'brush') this.context.globalCompositeOperation = 'source-over'
-        this.context.beginPath()
-        let localPos = {x: this.lastPointerPosition.x - this.image.x(), y: this.lastPointerPosition.y - this.image.y()}
-        this.context.moveTo(localPos.x, localPos.y)
-        let pos = this.stage.getPointerPosition()
-        localPos = {x: pos.x - this.image.x(), y: pos.y - this.image.y()}
-        this.context.lineTo(localPos.x, localPos.y)
-        this.context.closePath()
-        this.context.stroke()
-        this.lastPointerPosition = pos
-        this.layer.batchDraw()
+        const pos = this.getRelativePointerPosition(this.group)
+        const newPoints = this.lastLine.points().concat([pos.x, pos.y]);
+        this.lastLine.points(newPoints);
+        this.layer.batchDraw();
     }
     onWheel(e) {
         const oldScale = this.stage.scaleX();
