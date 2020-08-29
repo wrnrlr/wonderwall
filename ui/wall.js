@@ -39,6 +39,9 @@ class Editor extends HTMLElement {
         this.stageHeight = 400;
         this.paperWidth = 900;
         this.paperHeight = 400;
+        this.state = []
+        this.history = [this.state]
+        this.historyStep = 0
     }
     connectedCallback() {
         const container = document.querySelector('#wrapper');
@@ -46,17 +49,17 @@ class Editor extends HTMLElement {
         // const width = 900, height = 400
         this.stage = new Stage({container: this, width: width, height: height})
         this.layer = new Layer()
-        this.group = new Group({x: (width / 2) - (this.paperWidth / 2), y: (height / 2) - (this.paperHeight / 2), draggable: true});
+        this.group = new Group({x: (width / 2) - (this.paperWidth / 2), y: (height / 2) - (this.paperHeight / 2)});
         const paper = new Rect({width: this.paperWidth, height: this.paperHeight, stroke: "black", fill: "white"});
         this.group.add(paper);
         this.layer.add(this.group)
         this.stage.add(this.layer)
+        this.group.on('mousedown touchstart', _ => this.onMousedown())
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
         container.addEventListener('wheel', e => this.onWheel(e))
         // this.group.on('wheel', e => this.onWheel(e))
         window.addEventListener('resize', _ => this.onResize())
-        // this.stage.on('mousedown touchstart', _ => this.onMousedown())
         // this.onResize()
     }
     attributeChangedCallback(name, oldValue, newValue) {
@@ -65,15 +68,35 @@ class Editor extends HTMLElement {
         }
     }
     getRelativePointerPosition(node) {
-        var transform = node.getAbsoluteTransform().copy();
-        // to detect relative position we need to invert transform
+        const transform = node.getAbsoluteTransform().copy();
         transform.invert();
-        // get pointer (say mouse or touch) position
-        var pos = node.getStage().getPointerPosition();
-        // now we can find relative point
+        const pos = node.getStage().getPointerPosition();
         return transform.point(pos);
     }
-    disconnectedCallback() {}
+    create(state) {
+        this.layer.destroyChildren();
+        this.state.forEach((item,key) => {
+        })
+    }
+    createShape(pos) {
+        const shape = new Circle({x: pos.x, y: pos.y, fill: 'red', radius: 20})
+        this.group.add(shape)
+        this.layer.batchDraw()
+    }
+    createText(pos) {
+        const text = new Text({text: 'hello', x: pos.x, y: pos.y, fill: 'black', fontSize: 50})
+        this.group.add(text)
+        this.layer.batchDraw()
+    }
+    createImage(pos) {
+        const image = Image.fromURL('/static/img/yoda.jpg', image => {
+            this.group.add(image)
+            image.position(this.getRelativePointerPosition(this.group))
+            image.draggable(true);
+            this.layer.batchDraw();
+        })
+
+    }
     onResize() {
         const container = document.querySelector('#wrapper');
         console.log('available width: ' + container.scrollWidth)
@@ -86,8 +109,12 @@ class Editor extends HTMLElement {
         this.stage.draw();
     }
     onMousedown() {
-        this.isPaint = true
-        this.lastPointerPosition = this.stage.getPointerPosition()
+        const {x,y} = this.getRelativePointerPosition(this.group)
+        if (this.mode === 'shape') this.createShape({x,y})
+        else if (this.mode === 'text') this.createText({x,y})
+        else if (this.mode === 'image') this.createImage({x,y})
+        // this.isPaint = true
+        // this.lastPointerPosition = this.stage.getPointerPosition()
     }
     onMouseup() {
         this.isPaint = false
