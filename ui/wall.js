@@ -26,9 +26,11 @@ function createTextarea(n, areaPosition) {
     return textarea
 }
 class Editor extends HTMLElement {
+    static get observedAttributes() { return ['mode'] }
+    get mode() { return this.getAttribute('mode') }
+    set mode(v) { this.setAttribute('mode', v) }
     constructor() {
         super()
-        this.mode = 'brush'
         this.isPaint = false
         this.lastPointerPosition = null
         this.scaleBy = 1.1
@@ -56,6 +58,11 @@ class Editor extends HTMLElement {
         window.addEventListener('resize', _ => this.onResize())
         // this.stage.on('mousedown touchstart', _ => this.onMousedown())
         // this.onResize()
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'mode') {
+            console.log('change editor mode: ' + newValue)
+        }
     }
     getRelativePointerPosition(node) {
         var transform = node.getAbsoluteTransform().copy();
@@ -183,7 +190,10 @@ class App extends HTMLElement {
         this.appendChild(crel('div', {class:'options menu'}))
         this.appendChild(this.$tools)
     }
-    toolValue(e) { this.$tools.value = e.detail }
+    toolValue(e) {
+        this.$tools.value = e.detail
+        this.$editor.mode = e.detail
+    }
 }
 document.addEventListener('DOMContentLoaded', _ => {
     window.customElements.define('wall-tools', Tools)
