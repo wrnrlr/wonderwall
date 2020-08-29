@@ -84,18 +84,18 @@ class Editor extends HTMLElement {
         this.layer.batchDraw()
     }
     createText(pos) {
-        const text = new Text({text: 'hello', x: pos.x, y: pos.y, fill: 'black', fontSize: 50})
+        const fontSize = 50
+        const text = new Text({text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50})
         this.group.add(text)
         this.layer.batchDraw()
     }
     createImage(pos) {
-        const image = Image.fromURL('/static/img/yoda.jpg', image => {
+        Image.fromURL('/static/img/yoda.jpg', image => {
             this.group.add(image)
-            image.position(this.getRelativePointerPosition(this.group))
+            image.position({x: pos.x, y: pos.y-(image.height()/2)})
             image.draggable(true);
             this.layer.batchDraw();
         })
-
     }
     onResize() {
         const container = document.querySelector('#wrapper');
