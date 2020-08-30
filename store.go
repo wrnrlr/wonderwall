@@ -1,14 +1,23 @@
 package main
 
 import (
-	"github.com/dgraph-io/badger"
+	"bytes"
+	"encoding/gob"
+	"github.com/dgraph-io/badger/v2"
 )
+
+func serialize(e interface{}) ([]byte, error) {
+	var b bytes.Buffer; enc := gob.NewEncoder(&b); err := enc.Encode(e)
+	if err != nil { return []byte{}, err } else { return b.Bytes(), nil }}
+
+func deserialize(v []byte, e interface{}) error {
+	return gob.NewDecoder(bytes.NewReader(v)).Decode(e)}
 
 type Key []byte
 type Readable interface { Deserialize([]byte) error }
-type Writable interface { Serialize() []byte; Key() Key }
+type Writable interface { Serialize() ([]byte,error); Key() Key }
 
-type Store struct { badger.DB }
+type Store struct { *badger.DB }
 
 func (s *Store) Get(k Key, r Readable) error {
 	return s.View(func(tx *badger.Txn) error {
@@ -21,8 +30,9 @@ func (s *Store) Get(k Key, r Readable) error {
 }
 
 func (s *Store) Set(o Writable) error {
+	b, err := o.Serialize(); if err != nil { return err }
 	return s.DB.Update(func(txn *badger.Txn) error {
-		if err := txn.Set(o.Key(), o.Serialize()); err != nil {
+		if err := txn.Set(o.Key(), b); err != nil {
 			return err
 		}
 		return nil
