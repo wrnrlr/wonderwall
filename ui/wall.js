@@ -17,28 +17,33 @@ class Tools extends HTMLElement {
     }
     fireValueEvent(e) { this.dispatchEvent(new CustomEvent('value', {detail: e.target.getAttribute('value'), bubbles: true})) }
 }
-class ColorInput extends HTMLElement {connectedCallback() { this.appendChild(crel('input', {placeholder: 'Color'})) }}
+class ColorInput extends HTMLElement {
+    static get observedAttributes() { return ['value'] }
+    get value() { return this.getAttribute('value') }
+    set value(v) { this.setAttribute('value', v) }
+    connectedCallback() { this.appendChild(crel('input', {type: 'color', onchange: this.fireValueEvent, value: this.value})) }
+    fireValueEvent(e) { this.dispatchEvent(new CustomEvent('value', {detail: e.target.value, bubbles: true}))}}
 class FontInput extends HTMLElement {connectedCallback() { this.appendChild(crel('input', {placeholder: 'Font'})) }}
 class SizeInput extends HTMLElement {
     static get observedAttributes() { return ['value'] }
     get value() { return this.getAttribute('value') }
     set value(v) { this.setAttribute('value', v) }
-    connectedCallback() {
-        this.appendChild(crel('input', {type: 'number', oninput: this.fireValueEvent, value: this.value}))
-    }
-    fireValueEvent(e) { this.dispatchEvent(new CustomEvent('value', {detail: e.target.value, bubbles: true}))}
-}
+    connectedCallback() { this.appendChild(crel('input', {type: 'number', oninput: this.fireValueEvent, value: this.value})) }
+    fireValueEvent(e) { this.dispatchEvent(new CustomEvent('value', {detail: e.target.value, bubbles: true}))}}
 class DecorationsInput extends HTMLElement {connectedCallback() { this.appendChild(crel('input', {placeholder: 'Decorations'})) }}
 // class SelectionConfig extends HTMLElement {}
 class PenConfig extends HTMLElement {
     constructor() {
         super();
+        this.color = '#ff0000'
         this.size = 16
+        this.$color = crel('color-input', {value: this.color})
         this.$size = crel('size-input', {value: this.size})}
     connectedCallback() {
+        this.$color.addEventListener('value', e => this.color = e.target.value)
         this.$size.addEventListener('value', e => this.size = e.target.value)
         this.appendChild(this.$size)
-        this.appendChild(crel('color-input'))}}
+        this.appendChild(this.$color)}}
 class TextConfig extends HTMLElement {
     connectedCallback() {
         this.appendChild(crel('font-input'))
@@ -148,7 +153,7 @@ class Editor extends HTMLElement {
     }
     createLine(pos) {
         this.isPaint = true;
-        this.lastLine = new Line({stroke: '#df4b26', strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
+        this.lastLine = new Line({stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'})
         this.group.add(this.lastLine)
     }
