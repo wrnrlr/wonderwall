@@ -39,10 +39,24 @@ body {
 
 wall-app {
     display: flex;
-    /*background-color: lightpink;*/
     height: 100%;
     width: 100%;
     position: fixed;
+}
+#wall-menu {
+    display: flex;
+    position: fixed;
+    /*height: 100%;*/
+    background-color: darkgrey;
+}
+config-menu {
+    display: flex;
+    flex-direction: column;
+}
+pen-config, text-config, image-config, shape-config { /* selection-config, */
+    display: flex;
+    flex-direction: column;
+    margin: .1em;
 }
 wall-tools {
     display: flex;

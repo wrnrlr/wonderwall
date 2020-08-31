@@ -1,5 +1,5 @@
 import crel from 'crelt'
-import {Circle, Layer, Stage, Image, Text, Transformer, Group, Rect, Line} from 'konva'
+import {Circle, Group, Image, Layer, Line, Rect, Stage, Text} from 'konva'
 class Tools extends HTMLElement {
     static get observedAttributes() { return ['value'] }
     get value() { return this.getAttribute('value') }
@@ -17,6 +17,36 @@ class Tools extends HTMLElement {
     }
     fireValueEvent(e) { this.dispatchEvent(new CustomEvent('value', {detail: e.target.getAttribute('value'), bubbles: true})) }
 }
+class ColorInput extends HTMLElement {connectedCallback() { this.appendChild(crel('input', {placeholder: 'Color'})) }}
+class FontInput extends HTMLElement {connectedCallback() { this.appendChild(crel('input', {placeholder: 'Font'})) }}
+class SizeInput extends HTMLElement {
+    static get observedAttributes() { return ['value'] }
+    get value() { return this.getAttribute('value') }
+    set value(v) { this.setAttribute('value', v) }
+    connectedCallback() {
+        this.appendChild(crel('input', {type: 'number', oninput: this.fireValueEvent, value: this.value}))
+    }
+    fireValueEvent(e) { this.dispatchEvent(new CustomEvent('value', {detail: e.target.value, bubbles: true}))}
+}
+class DecorationsInput extends HTMLElement {connectedCallback() { this.appendChild(crel('input', {placeholder: 'Decorations'})) }}
+// class SelectionConfig extends HTMLElement {}
+class PenConfig extends HTMLElement {
+    constructor() {
+        super();
+        this.size = 16
+        this.$size = crel('size-input', {value: this.size})}
+    connectedCallback() {
+        this.$size.addEventListener('value', e => this.size = e.target.value)
+        this.appendChild(this.$size)
+        this.appendChild(crel('color-input'))}}
+class TextConfig extends HTMLElement {
+    connectedCallback() {
+        this.appendChild(crel('font-input'))
+        this.appendChild(crel('size-input'))
+        this.appendChild(crel('decorations-input'))
+        this.appendChild(crel('color-input'))}}
+class ImageConfig extends HTMLElement {}
+class ShapeConfig extends HTMLElement {}
 function createTextarea(n, areaPosition) {
     console.log('text: ' + n.text())
     const textarea = crel('textarea', {class: "wall", value: n.text()});
@@ -24,6 +54,21 @@ function createTextarea(n, areaPosition) {
     const style = {top: areaPosition.y+'px', left: areaPosition.x+'px', width: n.width()-n.padding()*2+'px', height: n.height()-n.padding()*2+5+'px', fontSize: n.fontSize()+'px', lineHeight: n.lineHeight(), fontFamily: n.fontFamily(), textAlign: n.align(), color: n.fill()}
     Object.keys(style).forEach(k => textarea.style[k] = style[k])
     return textarea
+}
+class ConfigMenu extends HTMLElement {
+    static get observedAttributes() { return ['tool'] }
+    get tool() { return this.getAttribute('tool') }
+    set tool(v) { this.setAttribute('tool', v) }
+    attributeChangedCallback(name, oldValue, newValue) {if (name === 'tool') { console.log('change tool options to: ' + newValue)}}
+    constructor() {
+        super(); this.$pen = crel('pen-config')
+    }
+    connectedCallback() {
+        this.appendChild(this.$pen)
+        // this.appendChild(crel('text-config'))
+        // this.appendChild(crel('image-config'))
+        // this.appendChild(crel('shape-config'))
+    }
 }
 class Editor extends HTMLElement {
     static get observedAttributes() { return ['mode'] }
@@ -43,10 +88,12 @@ class Editor extends HTMLElement {
         this.history = [this.state]
         this.historyStep = 0
         this.lastLine = null
+        this.configs = {}
     }
     connectedCallback() {
+        this.dispatchEvent(new CustomEvent('inject-pen-config', {detail: {provider: this}, bubbles: true}))
         const container = document.querySelector('#wrapper');
-        const width = container.offsetWidth - 80, height = container.offsetHeight
+        const width = container.offsetWidth, height = container.offsetHeight
         // const width = 900, height = 400
         this.stage = new Stage({container: this, width: width, height: height})
         this.layer = new Layer()
@@ -55,7 +102,7 @@ class Editor extends HTMLElement {
         this.group.add(paper);
         this.layer.add(this.group)
         this.stage.add(this.layer)
-        this.group.on('mousedown touchstart', _ => this.onMousedown())
+        this.stage.on('mousedown touchstart', _ => this.onMousedown())
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
         container.addEventListener('wheel', e => this.onWheel(e))
@@ -101,15 +148,15 @@ class Editor extends HTMLElement {
     }
     createLine(pos) {
         this.isPaint = true;
-        this.lastLine = new Line({stroke: '#df4b26', strokeWidth: 5, points: [pos.x, pos.y],
+        this.lastLine = new Line({stroke: '#df4b26', strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'})
         this.group.add(this.lastLine)
     }
     onResize() {
         const container = document.querySelector('#wrapper');
         console.log('available width: ' + container.scrollWidth)
-        var containerWidth = container.offsetWidth - 80;
-        var containerHeight = container.offsetHeight - 80;
+        var containerWidth = container.offsetWidth;
+        var containerHeight = container.offsetHeight;
         var scale = containerWidth / this.stageWidth;
         this.stage.width(this.stageWidth * scale );
         this.stage.height(this.stageHeight * scale);
@@ -209,13 +256,18 @@ class Editor extends HTMLElement {
     }
 }
 class App extends HTMLElement {
-    connectedCallback() {
+    constructor() {
+        super()
         this.$editor = crel('wall-editor')
         this.$tools = crel('wall-tools', {})
+        this.$config = crel('config-menu', {})
+    }
+    connectedCallback() {
+        this.addEventListener('inject-pen-config', e => { e.detail.provider.configs = this.$config; e.stopPropagation() })
+        this.$wallMenu = crel('div', {id: 'wall-menu'}, this.$tools, this.$config)
         this.$tools.addEventListener('value', e => this.toolValue(e))
         this.appendChild(crel('div', {id: 'wrapper'}, this.$editor))
-        this.appendChild(crel('div', {class:'options menu'}))
-        this.appendChild(this.$tools)
+        this.appendChild(this.$wallMenu)
     }
     toolValue(e) {
         this.$tools.value = e.detail
@@ -223,6 +275,16 @@ class App extends HTMLElement {
     }
 }
 document.addEventListener('DOMContentLoaded', _ => {
+    window.customElements.define('color-input', ColorInput)
+    window.customElements.define('font-input', FontInput)
+    window.customElements.define('size-input', SizeInput)
+    window.customElements.define('decorations-input', DecorationsInput)
+    // window.customElements.define('selection-config', SelectionConfig)
+    window.customElements.define('pen-config', PenConfig)
+    window.customElements.define('text-config', TextConfig)
+    window.customElements.define('image-config', ImageConfig)
+    window.customElements.define('shape-config', ShapeConfig)
+    window.customElements.define('config-menu', ConfigMenu)
     window.customElements.define('wall-tools', Tools)
     window.customElements.define('wall-editor', Editor)
     window.customElements.define('wall-app', App)
