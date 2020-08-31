@@ -3,14 +3,52 @@
 <head>
     <link rel="icon" type="image/png" href="/static/img/icon.png">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/css/frontpage.css">
 </head>
 <body>
-<div class="top menu">
-    <a href="/" class="logo">&nbsp;</a>
-</div>
-    <h1>Welcome to Wonderwall</h1>
-    <p>More space then any office</p>
-    <a href="/sandbox">Try</a>
-    <a href="/join">Join</a>
+<header>
+    <nav>
+        <a href="/"><img src="/static/img/wonderwall-small.png"/></a>
+        <div>
+            <div><a href="/pricing">Features</a></div>
+            <div><a href="/pricing">Pricing</a></div>
+            <div><a href="/login">Login</a></div>
+            <div><a href="/join" class="join">Join for FREE</a></div>
+        </div>
+    </nav>
+</header>
+<main>
+    <div class="about">
+        <h1>More wall then any office</h1>
+        <p>
+            Collaborate with your teammates using virtual walls.<br>
+            Brainstorm on new ideas, organize tasks with Kanban, draw plans.
+        </p>
+        <div>
+            <a href="/sandbox" class="try">Try it out</a>
+            <a href="/join" class="join">Join for FREE</a>
+        </div>
+    </div>
+    <div class="example">
+{{/*        <img src="/static/img/wonderwall.png" class="large image"/>*/}}
+        <img src="/static/img/board1.png"/>
+    </div>
+    <div class="pricing">
+        <h1>Free for personal use,<br>Only 99&euro; for teams</h1>
+        <div class="plan">Basic</div> <div class="plan">Professional</div> <div class="plan">Enterprise</div>
+
+    </div>
+</main>
+<footer>
+    <ul>
+        <li>Sitemap:</li>
+        <li><a href="/pricing">Features</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><a href="/pricing">Privacy&amp;Policies</a></li>
+        <li><a href="/login">Login</a></li>
+        <li><a href="/join">Join</a></li>
+    </ul>
+    <div>Wonderwall is designed by Almanax. Copyright &copy;2020 Almanax, BVBA. All rights reserved.</div>
+</footer>
 </body>
 </html>
