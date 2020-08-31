@@ -1,21 +1,30 @@
-package main; import ("encoding/json";"errors";"fmt";"html/template";"log";"net/http";"regexp")
+package main; import("encoding/json";"errors";"fmt";"golang.org/x/crypto/bcrypt";"html/template";"log";"net/http";"regexp")
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 var (emailErr = errors.New("invalid email"); passwordErr = errors.New("invalid password"))
 type Email string; func (e Email) valid() bool { return len(e) > 3 && len(e) < 255 && emailRegex.MatchString(string(e)) }
-type Password string; func (e Password) valid() bool { return len(e) > 8 && len(e) < 255 }
+type Password string; func (p Password) valid() bool { return len(p) > 8 && len(p) < 255 }
+func (p Password) HashPassword() (PasswordHash, error) { return bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost) }
 type AuthForm struct { Email Email; Password Password}
 func (f AuthForm) validate() error { if !f.Email.valid() { return emailErr } else if len(f.Password) < 8 { return passwordErr }; return nil}
 type EmailForm struct { Email Email }; func (f EmailForm) validate() error { if !f.Email.valid() { return emailErr }; return nil}
 type PasswordForm struct { Password Password }; func (f PasswordForm) validate() error { if !f.Password.valid() { return passwordErr }; return nil}
-type User struct {
-	ID string
-	Email Email
-	PasswordHash string
-}
-type Wall struct {
-	ID string
-	Elements []interface{}
-}
+type PasswordHash []byte; func (h PasswordHash) ComparePassword(p Password) error { return bcrypt.CompareHashAndPassword(h, []byte(p)) }
+type User struct { ID string; Email Email; PasswordHash PasswordHash }
+func (u *User) Key() Key { if u == nil { return Key("user:")} else { return Key("user:"+u.ID) } }
+type Wall struct { ID string; Elements []interface{}}
+func (w *Wall) Key() Key { if w == nil { return Key("wall:")} else { return Key("wall:"+w.ID) } }
+type FindUserByEmail interface { FindUserByEmail(Email) (*User, error) }
+type FindUserById interface { FindUserById(string) (*User, error) }
+type CreateUser interface { CreateUser(*User) error }
+type UpdateUser interface { UpdateUser(*User) error }
+type DeleteUser interface { DeleteUser(*User) error }
+type UserService interface { CreateUser; UpdateUser; DeleteUser; FindUserById; FindUserByEmail }
+type Users struct { users []*Users }
+func (s Users) CreateUser(*User) error { return nil }
+func (s Users) UpdateUser(*User) error { return nil }
+func (s Users) DeleteUser(*User) error { return nil }
+func (s Users) FindUserById(string) (*User, error) { return nil, nil }
+func (s Users) FindUserByEmail(string) (*User, error) { return nil, nil }
 func main() {
 	writeTmpl := func(w http.ResponseWriter, name string, i interface{}) {
 		indexTmpl, err := template.ParseFiles(fmt.Sprintf("./template/%s.html", name))
