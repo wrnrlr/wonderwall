@@ -17,41 +17,25 @@ type Key []byte
 type Readable interface { Deserialize([]byte) error }
 type Writable interface { Serialize() ([]byte,error); Key() Key }
 
+type Index struct { Primary, Secondary Key }
+
 type Store struct { *badger.DB }
+type Txn = badger.Txn
 
-func (s *Store) Get(k Key, r Readable) error {
-	return s.View(func(tx *badger.Txn) error {
-		if i, err := tx.Get(k); err != nil {
-			return err
-		} else {
-			return i.Value(func(v []byte) error { return r.Deserialize(v) })
-		}
-	})
-}
+func (s *Store) Get(tx *Txn, k Key, r Readable) error {
+	i, err := tx.Get(k); if err != nil { return err }
+	return i.Value(r.Deserialize)}
 
-func (s *Store) Set(o Writable) error {
+func (s *Store) Set(txn *Txn, o Writable) error {
 	b, err := o.Serialize(); if err != nil { return err }
-	return s.DB.Update(func(txn *badger.Txn) error {
-		if err := txn.Set(o.Key(), b); err != nil {
-			return err
-		}
-		return nil
-	})
-}
-
-func (s *Store) Delete(k []byte) error {
-	return s.Update(func(tx *badger.Txn) error { return tx.Delete(k) })
-}
+	if err := txn.Set(o.Key(), b); err != nil { return err }
+	return nil }
 
 var onlyKeysIterator = badger.IteratorOptions{PrefetchValues:false,PrefetchSize:100,Reverse:false,AllVersions:false,}
-func (s *Store) Index(k Key) (keys []Key, err error) {
-	err = s.DB.View(func(txn *badger.Txn) error {
-		it := txn.NewIterator(onlyKeysIterator)
-		defer it.Close()
-		for it.Seek(k); it.ValidForPrefix(k); it.Next() {
-			keys = append(keys, it.Item().Key())
-		}
-		return nil
-	})
-	return keys, err
-}
+func (s *Store) Index(txn *Txn, k Key, keys *[]Key) error {
+	it := txn.NewIterator(onlyKeysIterator); defer it.Close()
+	for it.Seek(k); it.ValidForPrefix(k); it.Next() {
+		*keys = append(*keys, it.Item().Key())}
+	return nil}
+
+func (s *Store) Delete(tx *Txn, k []byte) error { return tx.Delete(k) }

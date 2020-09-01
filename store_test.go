@@ -17,21 +17,19 @@ func (o *obj) Serialize() ([]byte, error) { return serialize(o) }
 func (o *obj) Deserialize(b []byte) error { return deserialize(b, o) }
 
 func TestStore(t *testing.T) {
-	o1 := obj{"hello"}; var o1Copy obj; s := MemStore()
-	o2 := obj{"world"}; var o2Copy, dummy obj;
-	assert.Nil(t, s.Set(&o1))
-	assert.Nil(t, s.Set(&o2))
-	keys, err := s.Index(Key("obj:"))
-	assert.Nil(t, err)
+	var (keys []Key; dummy obj; o1Copy, o2Copy obj)
+	o1 := obj{"hello"}; o2 := obj{"world"}; s := MemStore()
+	assert.Nil(t, s.Update(func(txn *Txn)error{return s.Set(txn, &o1)}))
+	assert.Nil(t, s.Update(func(txn *Txn)error{return s.Set(txn, &o2)}))
+	assert.Nil(t, s.View(func(txn *Txn)error{return s.Index(txn, Key("obj:"), &keys)}))
 	assert.Equal(t, 2, len(keys))
-	assert.Nil(t, s.Get(o1.Key(), &o1Copy))
-	assert.Nil(t, s.Get(o2.Key(), &o2Copy))
+	assert.Nil(t, s.View(func(txn *Txn)error{return s.Get(txn, o1.Key(), &o1Copy)}))
+	assert.Nil(t, s.View(func(txn *Txn)error{return s.Get(txn, o2.Key(), &o2Copy)}))
 	assert.NotEqual(t, o1Copy, o2Copy)
-	assert.NotNil(t, s.Get(Key("unknown"), &dummy))
 	assert.Equal(t, o1, o1Copy)
-	assert.Nil(t, s.Delete(o2.Key()))
-	assert.NotNil(t, s.Get(o2.Key(), &dummy))
-	keys, err = s.Index(Key("obj:"))
-	assert.Nil(t, err)
+	assert.NotNil(t, s.View(func(txn *Txn)error{return s.Get(txn, Key("unknown"), &dummy)}))
+	assert.Nil(t, s.Update(func(txn *Txn)error{return s.Delete(txn, o2.Key())}))
+	assert.NotNil(t, s.View(func(txn *Txn)error{return s.Get(txn, o2.Key(), &dummy)}))
+	keys = nil;assert.Nil(t, s.View(func(txn *Txn)error{return s.Index(txn, Key("obj:"), &keys)}))
 	assert.Equal(t, 1, len(keys))
 }
