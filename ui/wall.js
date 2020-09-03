@@ -138,7 +138,7 @@ class Editor extends HTMLElement {
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
         container.addEventListener('wheel', e => this.onWheel(e))
         // this.group.on('wheel', e => this.onWheel(e))
-        window.addEventListener('resize', _ => this.onResize())
+        // window.addEventListener('resize', _ => this.onResize())
         // this.onResize()
     }
     attributeChangedCallback(name, oldValue, newValue) {
@@ -147,10 +147,10 @@ class Editor extends HTMLElement {
         }
     }
     getRelativePointerPosition(node) {
-        const transform = node.getAbsoluteTransform().copy();
-        transform.invert();
-        const pos = node.getStage().getPointerPosition();
-        return transform.point(pos);
+        const transform = node.getAbsoluteTransform().copy()
+        transform.invert()
+        const pos = node.getStage().getPointerPosition()
+        return transform.point(pos)
     }
     getPointerPosition() { return this.getRelativePointerPosition(this.group)}
     create(state) {
@@ -159,29 +159,45 @@ class Editor extends HTMLElement {
         })
     }
     createShape(pos) {
-        const shape = new Circle({x: pos.x, y: pos.y, fill: 'red', radius: 20})
+        const options = {x: pos.x, y: pos.y, fill: 'red', radius: 20}
+        const shape = new Circle(options)
         this.group.add(shape)
         this.layer.batchDraw()
+        options.type = 'shape'
+        return options
     }
     createText(pos) {
         const fontSize = 50
-        const text = new Text({text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50})
+        const options = {text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
+        const text = new Text(options)
         this.group.add(text)
         this.layer.batchDraw()
+        options.type = 'text'
+        return options
     }
-    createImage(pos) {
-        Image.fromURL('/static/img/yoda.jpg', image => {
-            this.group.add(image)
-            image.position({x: pos.x, y: pos.y-(image.height()/2)})
-            image.draggable(true);
-            this.layer.batchDraw();
+    loadImage(url) {
+        return new Promise((resolve, reject) => {
+            Image.fromURL(url, image => resolve(image))
         })
     }
-    createLine(pos) {
+    async createImage(pos) {
+        let image = await this.loadImage('/static/img/yoda.jpg')
+        const options = {x: pos.x, y: pos.y-(image.height()/2)}
+        this.group.add(image)
+        image.position(options)
+        image.draggable(true);
+        this.layer.batchDraw();
+        options.type = 'image'
+        return options
+    }
+    createStroke(pos) {
         this.isPaint = true;
-        this.lastLine = new Line({stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
-            globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'})
+        const options = {stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
+            globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
+        this.lastLine = new Line(options)
         this.group.add(this.lastLine)
+        options.type = 'stroke'
+        return options
     }
     onResize() {
         const container = document.querySelector('#wrapper');
@@ -194,12 +210,16 @@ class Editor extends HTMLElement {
         this.stage.scale({ x: scale, y: scale });
         this.stage.draw();
     }
-    onMousedown() {
+    async onMousedown() {
         const pos = this.getPointerPosition()
-        if (this.mode === 'shape') this.createShape(pos)
-        else if (this.mode === 'text') this.createText(pos)
-        else if (this.mode === 'image') this.createImage(pos)
-        else if (this.mode === 'pen') this.createLine(pos)
+        let el  = null
+        if (this.mode === 'shape') el = this.createShape(pos)
+        else if (this.mode === 'text')  el = this.createText(pos)
+        else if (this.mode === 'image') el = await this.createImage(pos)
+        else if (this.mode === 'pen') el = this.createStroke(pos)
+        else return
+        console.log(el)
+        this.state.push(el)
     }
     onMouseup() {
         this.isPaint = false
@@ -253,7 +273,8 @@ class Editor extends HTMLElement {
             n.show();
             this.tr.show();
             this.tr.forceUpdate();
-            this.textLayer.draw();}
+            this.textLayer.draw();
+        }
         function setTextareaWidth(newWidth) {
             if (!newWidth) {newWidth = n.placeholder.length * n.fontSize();}
             // some extra fixes on different browsers
