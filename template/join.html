@@ -4,19 +4,16 @@
     <link rel="icon" type="image/png" href="/static/img/icon.png">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/css/auth.css">
+    <script type="text/javascript" src="/static/js/join.bundle.js"></script>
 </head>
 <body>
-<div class="top menu">
-    <a class="logo" href="/">&nbsp;</a>
-</div>
+<header>
+    <nav>
+        <a href="/" title="Home"><img src="/static/img/wonderwall-small.png"/></a>
+    </nav>
+</header>
 <main>
-<form method="post">
-    <h1>Join</h1>
-    <label for="email">Email:</label><input id="email" name="email" type="email">
-    <label for="password">Password:</label><input id="password" name="password" type="password">
-    <label for="terms">Accept <a href="terms">terms</a></label><input id="terms" name="term" type="checkbox">
-    <button>Join</button>
-</form>
+    <join-form></join-form>
 </main>
 </body>
 </html>

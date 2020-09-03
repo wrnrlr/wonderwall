@@ -9,6 +9,10 @@ module.exports = env => {
         watch: true,
         entry: {
             wall: ['./wall.js'],
+            login: ['./login.js'],
+            join: ['./join.js'],
+            'reset-password': ['./reset-password.js'],
+            'forgot-password': ['./forgot-password.js'],
         },
         output: {
             path: path.resolve(__dirname + "/../static/js"),
