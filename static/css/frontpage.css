@@ -14,6 +14,7 @@ nav {
     height: 60px;
     align-items: stretch;
     justify-content: space-between;
+    background-color: white;
 }
 nav > a {
     /*width: fit-content;*/
