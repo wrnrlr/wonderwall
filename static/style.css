@@ -47,22 +47,37 @@ wall-app {
     display: flex;
     position: fixed;
     /*height: 100%;*/
-    background-color: darkgrey;
+    background-color: lightgrey;
 }
 config-menu {
     display: flex;
     flex-direction: column;
 }
+config-menu > * > h1 {
+    font-size: 1.5em;
+    text-align: center;
+}
 pen-config, text-config, image-config, shape-config { /* selection-config, */
-    display: flex;
+    display: none;
     flex-direction: column;
     margin: .1em;
+    padding: 5px;
+}
+size-input, color-input {
+    margin-bottom: .5em;
+}
+input[type='number'] {
+    height: 2em;
+}
+input[type='color'] {
+    width: calc(100% - 5px);
+    height: 2em;
 }
 wall-tools {
     display: flex;
     flex-direction: column;
     background-color: lightgrey;
-    justify-content: center;
+    justify-content: start;
 }
 wall-tools > * {
     display: block;

@@ -42,16 +42,26 @@ class PenConfig extends HTMLElement {
     connectedCallback() {
         this.$color.addEventListener('value', e => this.color = e.target.value)
         this.$size.addEventListener('value', e => this.size = e.target.value)
-        this.appendChild(this.$size)
-        this.appendChild(this.$color)}}
+        this.appendChild(crel('h1', {}, 'Pen'))
+        this.appendChild(crel('label', {'for': 'strokeSize'}, 'Stroke size')); this.appendChild(this.$size)
+        this.appendChild(crel('label', {'for': 'strokeColor'}, 'Stroke color')); this.appendChild(this.$color)}}
 class TextConfig extends HTMLElement {
+    constructor() {
+        super();
+        this.$color = crel('color-input', {value: this.color})
+        this.$size = crel('size-input', {value: this.size})}
     connectedCallback() {
-        this.appendChild(crel('font-input'))
-        this.appendChild(crel('size-input'))
-        this.appendChild(crel('decorations-input'))
-        this.appendChild(crel('color-input'))}}
-class ImageConfig extends HTMLElement {}
-class ShapeConfig extends HTMLElement {}
+        this.appendChild(crel('h1', {}, 'Text'))
+        this.appendChild(crel('label', {'for': 'fontSize'}, 'Font size')); this.appendChild(this.$size)
+        this.appendChild(crel('label', {'for': 'textColor'}, 'Text color')); this.appendChild(this.$color)}}
+class ImageConfig extends HTMLElement {
+    connectedCallback() {
+        this.appendChild(crel('h1', {}, 'Image'))}
+}
+class ShapeConfig extends HTMLElement {
+    connectedCallback() {
+        this.appendChild(crel('h1', {}, 'Shape'))}
+}
 function createTextarea(n, areaPosition) {
     console.log('text: ' + n.text())
     const textarea = crel('textarea', {class: "wall", value: n.text()});
@@ -64,15 +74,31 @@ class ConfigMenu extends HTMLElement {
     static get observedAttributes() { return ['tool'] }
     get tool() { return this.getAttribute('tool') }
     set tool(v) { this.setAttribute('tool', v) }
-    attributeChangedCallback(name, oldValue, newValue) {if (name === 'tool') { console.log('change tool options to: ' + newValue)}}
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'tool') {
+            console.log('change tool config')
+            this.display(oldValue, 'none')
+            this.display(newValue, 'flex')
+        }
+    }
+    display(name, value) {
+        if (name === 'pen') this.$pen.style.display = value
+        else if (name === 'text') this.$text.style.display = value
+        else if (name === 'image') this.$image.style.display = value
+        else if (name === 'shape') this.$shape.style.display = value
+    }
     constructor() {
-        super(); this.$pen = crel('pen-config')
+        super();
+        this.$pen = crel('pen-config')
+        this.$text = crel('text-config')
+        this.$image = crel('image-config')
+        this.$shape = crel('shape-config')
     }
     connectedCallback() {
         this.appendChild(this.$pen)
-        // this.appendChild(crel('text-config'))
-        // this.appendChild(crel('image-config'))
-        // this.appendChild(crel('shape-config'))
+        this.appendChild(this.$text)
+        this.appendChild(this.$image)
+        this.appendChild(this.$shape)
     }
 }
 class Editor extends HTMLElement {
@@ -277,6 +303,7 @@ class App extends HTMLElement {
     toolValue(e) {
         this.$tools.value = e.detail
         this.$editor.mode = e.detail
+        this.$config.tool = e.detail
     }
 }
 document.addEventListener('DOMContentLoaded', _ => {
