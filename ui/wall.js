@@ -101,6 +101,12 @@ class ConfigMenu extends HTMLElement {
         this.appendChild(this.$shape)
     }
 }
+class TopMenu extends HTMLElement {
+    connectedCallback() {
+        this.appendChild(crel('div', {class: 'undo', onclick: _ => this.dispatchEvent(new CustomEvent('undo', {bubbles: true}))}))
+        this.appendChild(crel('div', {class: 'redo', onclick: _ => this.dispatchEvent(new CustomEvent('redo', {bubbles: true}))}))
+    }
+}
 class Editor extends HTMLElement {
     static get observedAttributes() { return ['mode'] }
     get mode() { return this.getAttribute('mode') }
@@ -115,13 +121,14 @@ class Editor extends HTMLElement {
         this.stageHeight = 400;
         this.paperWidth = 900;
         this.paperHeight = 400;
-        this.historyStep = 0
         this.lastLine = null
         this.configs = {}
-        this.state = [
-            {type:'text', text:'hello', x: 400, y: 400, fill:'black', fontSize:50},
-            {type:'image', x: 400, y: 300, src: '/static/img/yoda.jpg'}]
-        this.history = [this.state]
+        // this.state = [
+        //     {type:'text', text:'hello', x: 400, y: 400, fill:'black', fontSize:50},
+        //     {type:'image', x: 400, y: 300, src: '/static/img/yoda.jpg'}]
+        this.state = []
+        this.history = [this.state.slice()]
+        this.historyStep = 0
     }
     connectedCallback() {
         this.dispatchEvent(new CustomEvent('inject-pen-config', {detail: {provider: this}, bubbles: true}))
@@ -150,17 +157,15 @@ class Editor extends HTMLElement {
         }
     }
     redraw() {
+        console.log('redraw')
+        console.log(this.state)
         this.layer.destroyChildren();
         this.state.forEach(item => {
-            console.log('draw')
-            console.log(item)
             const node = this.toNode(item)
-            console.log(node)
             this.layer.add(node)
             this.layer.batchDraw()
         })
         this.stage.draw();
-        // this.layer.batchDraw()
     }
     toNode(el) {
         const type = el.type; delete el.type
@@ -183,7 +188,7 @@ class Editor extends HTMLElement {
         this.layer.add(shape)
         this.layer.batchDraw()
         options.type = 'shape'
-        this.state.push(options)
+        this.saveStateToHistory(options)
         return options
     }
     createText(pos) {
@@ -193,7 +198,7 @@ class Editor extends HTMLElement {
         this.layer.add(text)
         this.layer.batchDraw()
         options.type = 'text'
-        this.state.push(options)
+        this.saveStateToHistory(options)
         return options
     }
     async createImage(pos) {
@@ -204,7 +209,7 @@ class Editor extends HTMLElement {
         image.draggable(true);
         this.layer.batchDraw();
         options.type = 'image'
-        this.state.push(options)
+        this.saveStateToHistory(options)
         return options
     }
     createStroke(pos) {
@@ -214,8 +219,36 @@ class Editor extends HTMLElement {
         this.lastLine = new Line(options)
         this.layer.add(this.lastLine)
         options.type = 'stroke'
-        this.state.push(options)
+        this.saveStateToHistory(options)
         return options
+    }
+    saveStateToHistory(options) {
+        console.log('history before: ' + this.historyStep)
+        console.log(this.history)
+        let state = this.state.slice()
+        this.history = this.history.slice(0, this.historyStep + 1)
+        this.history.concat([state])
+        this.historyStep += 1
+        console.log('history after: ' + this.historyStep)
+        console.log(this.history)
+        this.state.push(options)
+    }
+    undo() {
+        if (this.historyStep === 0) return
+        console.log('undo')
+        console.log(this)
+        this.historyStep--
+        this.state = this.history[this.historyStep]
+        this.redraw()
+    }
+    redo() {
+        if (this.historyStep === this.history.length) return
+        console.log('redo')
+        this.historyStep++
+        this.state = this.history[this.historyStep]
+        console.log(this.history)
+        console.log(this.state)
+        this.redraw()
     }
     onResize() {
         const container = document.querySelector('#wrapper');
@@ -230,7 +263,6 @@ class Editor extends HTMLElement {
     }
     async onMousedown() {
         console.log('mouse down')
-        console.log(this)
         const pos = this.getPointerPosition()
         let el  = null
         if (this.mode === 'shape') el = this.createShape(pos)
@@ -337,13 +369,17 @@ class App extends HTMLElement {
         this.$editor = crel('wall-editor')
         this.$tools = crel('wall-tools', {})
         this.$config = crel('config-menu', {})
+        this.$topMenu = crel('top-menu', {})
     }
     connectedCallback() {
         this.addEventListener('inject-pen-config', e => { e.detail.provider.configs = this.$config; e.stopPropagation() })
         this.$wallMenu = crel('div', {id: 'wall-menu'}, this.$tools, this.$config)
         this.$tools.addEventListener('value', e => this.toolValue(e))
+        this.addEventListener('undo', _ => this.$editor.undo())
+        this.addEventListener('redo', _ => this.$editor.redo())
         this.appendChild(crel('div', {id: 'wrapper'}, this.$editor))
         this.appendChild(this.$wallMenu)
+        this.appendChild(this.$topMenu)
     }
     toolValue(e) {
         this.$tools.value = e.detail
@@ -362,6 +398,7 @@ document.addEventListener('DOMContentLoaded', _ => {
     window.customElements.define('image-config', ImageConfig)
     window.customElements.define('shape-config', ShapeConfig)
     window.customElements.define('config-menu', ConfigMenu)
+    window.customElements.define('top-menu', TopMenu)
     window.customElements.define('wall-tools', Tools)
     window.customElements.define('wall-editor', Editor)
     window.customElements.define('wall-app', App)
