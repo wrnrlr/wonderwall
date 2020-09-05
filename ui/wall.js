@@ -151,12 +151,6 @@ class Editor extends HTMLElement {
     }
     redraw() {
         this.layer.destroyChildren();
-        // const options = {text: 'hello', x: 400, y: 100, fill: 'black', fontSize: 50}
-        // const text = new Text(options)
-        // this.layer.add(text)
-        // this.layer.batchDraw()
-        // options.type = 'text'
-        // this.state.push(options)
         this.state.forEach(item => {
             console.log('draw')
             console.log(item)
