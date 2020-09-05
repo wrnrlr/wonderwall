@@ -115,11 +115,13 @@ class Editor extends HTMLElement {
         this.stageHeight = 400;
         this.paperWidth = 900;
         this.paperHeight = 400;
-        this.state = []
-        this.history = [this.state]
         this.historyStep = 0
         this.lastLine = null
         this.configs = {}
+        this.state = [
+            {type:'text', text:'hello', x: 400, y: 400, fill:'black', fontSize:50},
+            {type:'image', x: 400, y: 300, src: '/static/img/yoda.jpg'}]
+        this.history = [this.state]
     }
     connectedCallback() {
         this.dispatchEvent(new CustomEvent('inject-pen-config', {detail: {provider: this}, bubbles: true}))
@@ -128,12 +130,13 @@ class Editor extends HTMLElement {
         // const width = 900, height = 400
         this.stage = new Stage({container: this, width: width, height: height})
         this.layer = new Layer()
-        this.group = new Group({x: (width / 2) - (this.paperWidth / 2), y: (height / 2) - (this.paperHeight / 2)});
-        const paper = new Rect({width: this.paperWidth, height: this.paperHeight, stroke: "black", fill: "white"});
-        this.group.add(paper);
-        this.layer.add(this.group)
+        // this.group = new Group({x: (width / 2) - (this.paperWidth / 2), y: (height / 2) - (this.paperHeight / 2)});
+        // const paper = new Rect({width: this.paperWidth, height: this.paperHeight, stroke: "black", fill: "white"});
+        // this.group.add(paper);
+        // this.layer.add(this.group)
         this.stage.add(this.layer)
-        this.stage.on('mousedown touchstart', _ => this.onMousedown())
+        this.redraw()
+        this.stage.on('mousedown touchstart', async _ => await this.onMousedown())
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
         container.addEventListener('wheel', e => this.onWheel(e))
@@ -146,48 +149,68 @@ class Editor extends HTMLElement {
             console.log('change editor mode: ' + newValue)
         }
     }
+    redraw() {
+        this.layer.destroyChildren();
+        // const options = {text: 'hello', x: 400, y: 100, fill: 'black', fontSize: 50}
+        // const text = new Text(options)
+        // this.layer.add(text)
+        // this.layer.batchDraw()
+        // options.type = 'text'
+        // this.state.push(options)
+        this.state.forEach(item => {
+            console.log('draw')
+            console.log(item)
+            const node = this.toNode(item)
+            console.log(node)
+            this.layer.add(node)
+            this.layer.batchDraw()
+        })
+        this.stage.draw();
+        // this.layer.batchDraw()
+    }
+    toNode(el) {
+        const type = el.type; delete el.type
+        if (type === 'stroke') return new Circle(el)
+        else if (type === 'text') return new Text(el)
+        else if (type === 'image') return new Image(el)
+        else if (type === 'circle') return new Circle(el)
+        else return new Circle(el)
+    }
     getRelativePointerPosition(node) {
         const transform = node.getAbsoluteTransform().copy()
         transform.invert()
         const pos = node.getStage().getPointerPosition()
         return transform.point(pos)
     }
-    getPointerPosition() { return this.getRelativePointerPosition(this.group)}
-    create(state) {
-        this.layer.destroyChildren();
-        this.state.forEach((item,key) => {
-        })
-    }
+    getPointerPosition() { return this.getRelativePointerPosition(this.layer)}
     createShape(pos) {
         const options = {x: pos.x, y: pos.y, fill: 'red', radius: 20}
         const shape = new Circle(options)
-        this.group.add(shape)
+        this.layer.add(shape)
         this.layer.batchDraw()
         options.type = 'shape'
+        this.state.push(options)
         return options
     }
     createText(pos) {
         const fontSize = 50
         const options = {text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
         const text = new Text(options)
-        this.group.add(text)
+        this.layer.add(text)
         this.layer.batchDraw()
         options.type = 'text'
+        this.state.push(options)
         return options
-    }
-    loadImage(url) {
-        return new Promise((resolve, reject) => {
-            Image.fromURL(url, image => resolve(image))
-        })
     }
     async createImage(pos) {
         let image = await this.loadImage('/static/img/yoda.jpg')
-        const options = {x: pos.x, y: pos.y-(image.height()/2)}
-        this.group.add(image)
+        const options = {x: pos.x, y: pos.y-(image.height()/2), src: '/static/img/yoda.jpg'}
+        this.layer.add(image)
         image.position(options)
         image.draggable(true);
         this.layer.batchDraw();
         options.type = 'image'
+        this.state.push(options)
         return options
     }
     createStroke(pos) {
@@ -195,8 +218,9 @@ class Editor extends HTMLElement {
         const options = {stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
         this.lastLine = new Line(options)
-        this.group.add(this.lastLine)
+        this.layer.add(this.lastLine)
         options.type = 'stroke'
+        this.state.push(options)
         return options
     }
     onResize() {
@@ -211,6 +235,8 @@ class Editor extends HTMLElement {
         this.stage.draw();
     }
     async onMousedown() {
+        console.log('mouse down')
+        console.log(this)
         const pos = this.getPointerPosition()
         let el  = null
         if (this.mode === 'shape') el = this.createShape(pos)
@@ -219,7 +245,6 @@ class Editor extends HTMLElement {
         else if (this.mode === 'pen') el = this.createStroke(pos)
         else return
         console.log(el)
-        this.state.push(el)
     }
     onMouseup() {
         this.isPaint = false
@@ -305,6 +330,11 @@ class Editor extends HTMLElement {
             }
         }
         setTimeout(() => { window.addEventListener('click', handleOutsideClick); });
+    }
+    loadImage(url) {
+        return new Promise((resolve, reject) => {
+            Image.fromURL(url, image => resolve(image))
+        })
     }
 }
 class App extends HTMLElement {
