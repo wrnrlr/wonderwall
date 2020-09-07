@@ -102,6 +102,7 @@ class ConfigMenu extends HTMLElement {
 }
 class TopMenu extends HTMLElement {
     connectedCallback() {
+        this.appendChild(crel('div', {class: 'delete', onclick: _ => this.dispatchEvent(new CustomEvent('delete', {bubbles: true}))}))
         this.appendChild(crel('div', {class: 'undo', onclick: _ => this.dispatchEvent(new CustomEvent('undo', {bubbles: true}))}))
         this.appendChild(crel('div', {class: 'redo', onclick: _ => this.dispatchEvent(new CustomEvent('redo', {bubbles: true}))}))
     }
@@ -113,9 +114,16 @@ export class EditorState {
         this.redoStack = []
     }
     add(e) {
+        this.save()
+        this.state.push(e)
+    }
+    remove(id) {
+        this.save()
+        this.state = this.state.filter(e => e.id !== id)
+    }
+    save() {
         this.undoStack.push(JSON.stringify(this.state))
         this.redoStack = []
-        this.state.push(e)
     }
     undo() {
         if (this.undoStack.length === 0) return
@@ -130,6 +138,7 @@ export class EditorState {
     forEach(f) { this.state.forEach(f) }
 }
 window.ED = null
+function randomID() { return '_' + Math.random().toString(36).substr(2, 9) }
 class Editor extends HTMLElement {
     static get observedAttributes() { return ['mode'] }
     get mode() { return this.getAttribute('mode') }
@@ -158,7 +167,7 @@ class Editor extends HTMLElement {
         this.layer = new konva.Layer()
         this.stage.add(this.layer)
         this.redraw()
-        this.stage.on('mousedown touchstart', async _ => await this.onMousedown())
+        this.stage.on('mousedown touchstart', async e => await this.onMousedown(e))
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
         container.addEventListener('wheel', e => this.onWheel(e))
@@ -193,7 +202,8 @@ class Editor extends HTMLElement {
     }
     getPointerPosition() { return this.getRelativePointerPosition(this.layer)}
     createShape(pos) {
-        const options = {x: pos.x, y: pos.y, fill: 'red', radius: 20}
+        const id = randomID()
+        const options = {id: id, x: pos.x, y: pos.y, fill: 'red', radius: 20}
         const shape = new konva.Circle(options)
         this.layer.add(shape)
         this.layer.batchDraw()
@@ -202,8 +212,9 @@ class Editor extends HTMLElement {
         return options
     }
     createText(pos) {
+        const id = randomID()
         const fontSize = 50
-        const options = {text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
+        const options = {id: id, text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
         const text = new konva.Text(options)
         this.layer.add(text)
         this.layer.batchDraw()
@@ -212,8 +223,9 @@ class Editor extends HTMLElement {
         return options
     }
     async createImage(pos) {
+        const id = randomID()
         let image = await this.loadImage('/static/img/yoda.jpg')
-        const options = {x: pos.x, y: pos.y-(image.height()/2), src: '/static/img/yoda.jpg'}
+        const options = {id: id, x: pos.x, y: pos.y-(image.height()/2), src: '/static/img/yoda.jpg'}
         this.layer.add(image)
         image.position(options)
         image.draggable(true);
@@ -223,8 +235,9 @@ class Editor extends HTMLElement {
         return options
     }
     createStroke(pos) {
+        const id = randomID()
         this.isPaint = true;
-        const options = {stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
+        const options = {id: id, stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
         this.lastLine = new konva.Line(options)
         this.layer.add(this.lastLine)
@@ -240,6 +253,14 @@ class Editor extends HTMLElement {
         this.state.redo()
         this.redraw()
     }
+    delete() {
+        if (this.mode !== 'selection' || !this.selected) return
+        console.log('delete ' + this.selected.attrs.id)
+        this.state.remove(this.selected.attrs.id)
+        this.selected.destroy()
+        this.selected = null
+        this.redraw()
+    }
     onResize() {
         const container = document.querySelector('#wrapper');
         console.log('available width: ' + container.scrollWidth)
@@ -251,10 +272,16 @@ class Editor extends HTMLElement {
         this.stage.scale({ x: scale, y: scale });
         this.stage.draw();
     }
-    async onMousedown() {
+    async onMousedown(e) {
         const pos = this.getPointerPosition()
         let el  = null
-        if (this.mode === 'shape') el = this.createShape(pos)
+        if (this.mode === 'selection') {
+            console.log('selection: ')
+            if (e.target.getClassName === 'Stage') return
+            console.log(e.target)
+            this.selected = e.target
+        }
+        else if (this.mode === 'shape') el = this.createShape(pos)
         else if (this.mode === 'text')  el = this.createText(pos)
         else if (this.mode === 'image') el = await this.createImage(pos)
         else if (this.mode === 'pen') el = this.createStroke(pos)
@@ -363,6 +390,7 @@ class App extends HTMLElement {
         this.addEventListener('inject-pen-config', e => { e.detail.provider.configs = this.$config; e.stopPropagation() })
         this.$wallMenu = crel('div', {id: 'wall-menu'}, this.$tools, this.$config)
         this.$tools.addEventListener('value', e => this.toolValue(e))
+        this.addEventListener('delete', _ => this.$editor.delete())
         this.addEventListener('undo', _ => this.$editor.undo())
         this.addEventListener('redo', _ => this.$editor.redo())
         this.appendChild(crel('div', {id: 'wrapper'}, this.$editor))
