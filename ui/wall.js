@@ -121,6 +121,14 @@ export class EditorState {
         this.save()
         this.state = this.state.filter(e => e.id !== id)
     }
+    update(node) {
+        this.save()
+        console.log(node)
+        const i = this.state.findIndex(e => e.id === node.attrs.id)
+        console.log(this.state[i])
+        this.state[i].x = node.x()
+        this.state[i].y = node.y()
+    }
     save() {
         this.undoStack.push(JSON.stringify(this.state))
         this.redoStack = []
@@ -151,8 +159,6 @@ class Editor extends HTMLElement {
         this.scale = 1
         this.stageWidth = 900;
         this.stageHeight = 400;
-        this.paperWidth = 900;
-        this.paperHeight = 400;
         this.lastLine = null
         this.configs = {}
         this.state = new EditorState()
@@ -170,10 +176,7 @@ class Editor extends HTMLElement {
         this.stage.on('mousedown touchstart', async e => await this.onMousedown(e))
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
-        container.addEventListener('wheel', e => this.onWheel(e))
-        // this.group.on('wheel', e => this.onWheel(e))
-        // window.addEventListener('resize', _ => this.onResize())
-        // this.onResize()
+        this.stage.on('dragend', e => this.onDragend(e))
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'mode') {}
@@ -209,18 +212,19 @@ class Editor extends HTMLElement {
         this.layer.batchDraw()
         options.type = 'shape'
         this.state.add(options)
-        return options
+        return shape
     }
     createText(pos) {
         const id = randomID()
         const fontSize = 50
         const options = {id: id, text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
         const text = new konva.Text(options)
+        text.draggable(true);
         this.layer.add(text)
         this.layer.batchDraw()
         options.type = 'text'
         this.state.add(options)
-        return options
+        return text
     }
     async createImage(pos) {
         const id = randomID()
@@ -228,11 +232,12 @@ class Editor extends HTMLElement {
         const options = {id: id, x: pos.x, y: pos.y-(image.height()/2), src: '/static/img/yoda.jpg'}
         this.layer.add(image)
         image.position(options)
+        image.id(id)
         image.draggable(true);
         this.layer.batchDraw();
         options.type = 'image'
         this.state.add(options)
-        return options
+        return image
     }
     createStroke(pos) {
         const id = randomID()
@@ -243,7 +248,7 @@ class Editor extends HTMLElement {
         this.layer.add(this.lastLine)
         options.type = 'stroke'
         this.state.add(options)
-        return options
+        return this.lastLine
     }
     undo() {
         this.state.undo()
@@ -296,6 +301,9 @@ class Editor extends HTMLElement {
         const newPoints = this.lastLine.points().concat([pos.x, pos.y]);
         this.lastLine.points(newPoints);
         this.layer.batchDraw();
+    }
+    onDragend(e) {
+        this.state.update(e.target)
     }
     onWheel(e) {
         const oldScale = this.stage.scaleX();
