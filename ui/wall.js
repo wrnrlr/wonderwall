@@ -76,7 +76,6 @@ class ConfigMenu extends HTMLElement {
     set tool(v) { this.setAttribute('tool', v) }
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'tool') {
-            console.log('change tool config')
             this.display(oldValue, 'none')
             this.display(newValue, 'flex')
         }
@@ -107,6 +106,30 @@ class TopMenu extends HTMLElement {
         this.appendChild(crel('div', {class: 'redo', onclick: _ => this.dispatchEvent(new CustomEvent('redo', {bubbles: true}))}))
     }
 }
+export class EditorState {
+    constructor() {
+        this.state = []
+        this.undoStack = []
+        this.redoStack = []
+    }
+    add(e) {
+        this.undoStack.push(JSON.stringify(this.state))
+        this.redoStack = []
+        this.state.push(e)
+    }
+    undo() {
+        if (this.undoStack.length === 0) return
+        this.redoStack.push(JSON.stringify(this.state))
+        this.state = JSON.parse(this.undoStack.pop())
+    }
+    redo() {
+        if (this.redoStack.length === 0) return
+        this.undoStack.push(JSON.stringify(this.state))
+        this.state = JSON.parse(this.redoStack.pop())
+    }
+    forEach(f) { this.state.forEach(f) }
+}
+window.ED = null
 class Editor extends HTMLElement {
     static get observedAttributes() { return ['mode'] }
     get mode() { return this.getAttribute('mode') }
@@ -123,12 +146,8 @@ class Editor extends HTMLElement {
         this.paperHeight = 400;
         this.lastLine = null
         this.configs = {}
-        // this.state = [
-        //     {type:'text', text:'hello', x: 400, y: 400, fill:'black', fontSize:50},
-        //     {type:'image', x: 400, y: 300, src: '/static/img/yoda.jpg'}]
-        this.state = []
-        this.history = [this.state.slice()]
-        this.historyStep = 0
+        this.state = new EditorState()
+        window.ED = this
     }
     connectedCallback() {
         this.dispatchEvent(new CustomEvent('inject-pen-config', {detail: {provider: this}, bubbles: true}))
@@ -137,10 +156,6 @@ class Editor extends HTMLElement {
         // const width = 900, height = 400
         this.stage = new Stage({container: this, width: width, height: height})
         this.layer = new Layer()
-        // this.group = new Group({x: (width / 2) - (this.paperWidth / 2), y: (height / 2) - (this.paperHeight / 2)});
-        // const paper = new Rect({width: this.paperWidth, height: this.paperHeight, stroke: "black", fill: "white"});
-        // this.group.add(paper);
-        // this.layer.add(this.group)
         this.stage.add(this.layer)
         this.redraw()
         this.stage.on('mousedown touchstart', async _ => await this.onMousedown())
@@ -152,28 +167,23 @@ class Editor extends HTMLElement {
         // this.onResize()
     }
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'mode') {
-            console.log('change editor mode: ' + newValue)
-        }
+        if (name === 'mode') {}
     }
     redraw() {
-        console.log('redraw')
-        console.log(this.state)
         this.layer.destroyChildren();
         this.state.forEach(item => {
             const node = this.toNode(item)
             this.layer.add(node)
-            this.layer.batchDraw()
         })
-        this.stage.draw();
+        this.layer.batchDraw();
     }
     toNode(el) {
-        const type = el.type; delete el.type
+        const type = el.type
         if (type === 'stroke') return new Circle(el)
         else if (type === 'text') return new Text(el)
         else if (type === 'image') return new Image(el)
         else if (type === 'circle') return new Circle(el)
-        else return new Circle(el)
+        else console.log('WTF: ' + type)
     }
     getRelativePointerPosition(node) {
         const transform = node.getAbsoluteTransform().copy()
@@ -188,7 +198,7 @@ class Editor extends HTMLElement {
         this.layer.add(shape)
         this.layer.batchDraw()
         options.type = 'shape'
-        this.saveStateToHistory(options)
+        this.state.add(options)
         return options
     }
     createText(pos) {
@@ -198,7 +208,7 @@ class Editor extends HTMLElement {
         this.layer.add(text)
         this.layer.batchDraw()
         options.type = 'text'
-        this.saveStateToHistory(options)
+        this.state.add(options)
         return options
     }
     async createImage(pos) {
@@ -209,7 +219,7 @@ class Editor extends HTMLElement {
         image.draggable(true);
         this.layer.batchDraw();
         options.type = 'image'
-        this.saveStateToHistory(options)
+        this.state.add(options)
         return options
     }
     createStroke(pos) {
@@ -219,35 +229,15 @@ class Editor extends HTMLElement {
         this.lastLine = new Line(options)
         this.layer.add(this.lastLine)
         options.type = 'stroke'
-        this.saveStateToHistory(options)
+        this.state.add(options)
         return options
     }
-    saveStateToHistory(options) {
-        console.log('history before: ' + this.historyStep)
-        console.log(this.history)
-        let state = this.state.slice()
-        this.history = this.history.slice(0, this.historyStep + 1)
-        this.history.concat([state])
-        this.historyStep += 1
-        console.log('history after: ' + this.historyStep)
-        console.log(this.history)
-        this.state.push(options)
-    }
     undo() {
-        if (this.historyStep === 0) return
-        console.log('undo')
-        console.log(this)
-        this.historyStep--
-        this.state = this.history[this.historyStep]
+        this.state.undo()
         this.redraw()
     }
     redo() {
-        if (this.historyStep === this.history.length) return
-        console.log('redo')
-        this.historyStep++
-        this.state = this.history[this.historyStep]
-        console.log(this.history)
-        console.log(this.state)
+        this.state.redo()
         this.redraw()
     }
     onResize() {
@@ -262,7 +252,6 @@ class Editor extends HTMLElement {
         this.stage.draw();
     }
     async onMousedown() {
-        console.log('mouse down')
         const pos = this.getPointerPosition()
         let el  = null
         if (this.mode === 'shape') el = this.createShape(pos)
@@ -270,7 +259,6 @@ class Editor extends HTMLElement {
         else if (this.mode === 'image') el = await this.createImage(pos)
         else if (this.mode === 'pen') el = this.createStroke(pos)
         else return
-        console.log(el)
     }
     onMouseup() {
         this.isPaint = false
@@ -387,7 +375,31 @@ class App extends HTMLElement {
         this.$config.tool = e.detail
     }
 }
+function test(s, expected, actual) {
+    const e = JSON.stringify(expected), a = JSON.stringify(actual)
+    if (e !== a) console.log(s + ` failed, expected: ${e} actual: ${a}`)
+}
 document.addEventListener('DOMContentLoaded', _ => {
+    let h = new EditorState()
+    test('new editor state', [], h.state)
+    h.add(1)
+    test('add 1', [1], h.state)
+    h.add(2)
+    test('add 2', [1,2], h.state)
+    h.undo()
+    test('undo', [1], h.state)
+    h.redo()
+    test('redo', [1,2], h.state)
+    h.add(3)
+    test('add 3', [1,2,3], h.state)
+    h.undo(); h.undo(); h.undo()
+    test('undo 3 times', [], h.state)
+    h.redo(); h.redo()
+    test('redo 2 times', [1,2], h.state)
+    h.add(4)
+    test('add 4', [1,2,4], h.state)
+    h.redo()
+    test('redo', [1,2,4], h.state)
     window.customElements.define('color-input', ColorInput)
     window.customElements.define('font-input', FontInput)
     window.customElements.define('size-input', SizeInput)
