@@ -1,5 +1,5 @@
 import crel from 'crelt'
-import {Circle, Group, Image, Layer, Line, Rect, Stage, Text} from 'konva'
+import konva from 'konva'
 class Tools extends HTMLElement {
     static get observedAttributes() { return ['value'] }
     get value() { return this.getAttribute('value') }
@@ -154,8 +154,8 @@ class Editor extends HTMLElement {
         const container = document.querySelector('#wrapper');
         const width = container.offsetWidth, height = container.offsetHeight
         // const width = 900, height = 400
-        this.stage = new Stage({container: this, width: width, height: height})
-        this.layer = new Layer()
+        this.stage = new konva.Stage({container: this, width: width, height: height})
+        this.layer = new konva.Layer()
         this.stage.add(this.layer)
         this.redraw()
         this.stage.on('mousedown touchstart', async _ => await this.onMousedown())
@@ -179,10 +179,10 @@ class Editor extends HTMLElement {
     }
     toNode(el) {
         const type = el.type
-        if (type === 'stroke') return new Circle(el)
-        else if (type === 'text') return new Text(el)
-        else if (type === 'image') return new Image(el)
-        else if (type === 'circle') return new Circle(el)
+        if (type === 'stroke') return new konva.Circle(el)
+        else if (type === 'text') return new konva.Text(el)
+        else if (type === 'image') return new konva.Image(el)
+        else if (type === 'circle') return new konva.Circle(el)
         else console.log('WTF: ' + type)
     }
     getRelativePointerPosition(node) {
@@ -194,7 +194,7 @@ class Editor extends HTMLElement {
     getPointerPosition() { return this.getRelativePointerPosition(this.layer)}
     createShape(pos) {
         const options = {x: pos.x, y: pos.y, fill: 'red', radius: 20}
-        const shape = new Circle(options)
+        const shape = new konva.Circle(options)
         this.layer.add(shape)
         this.layer.batchDraw()
         options.type = 'shape'
@@ -204,7 +204,7 @@ class Editor extends HTMLElement {
     createText(pos) {
         const fontSize = 50
         const options = {text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
-        const text = new Text(options)
+        const text = new konva.Text(options)
         this.layer.add(text)
         this.layer.batchDraw()
         options.type = 'text'
@@ -226,7 +226,7 @@ class Editor extends HTMLElement {
         this.isPaint = true;
         const options = {stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
-        this.lastLine = new Line(options)
+        this.lastLine = new konva.Line(options)
         this.layer.add(this.lastLine)
         options.type = 'stroke'
         this.state.add(options)
@@ -347,7 +347,7 @@ class Editor extends HTMLElement {
     }
     loadImage(url) {
         return new Promise((resolve, reject) => {
-            Image.fromURL(url, image => resolve(image))
+            konva.Image.fromURL(url, image => resolve(image))
         })
     }
 }
