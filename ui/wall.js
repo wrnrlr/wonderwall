@@ -109,25 +109,28 @@ class TopMenu extends HTMLElement {
 }
 export class EditorState {
     constructor() {
+        // image / text / pen
         this.state = []
         this.undoStack = []
         this.redoStack = []
     }
-    add(e) {
+    add(node) {
+        const attrs = node.getAttrs()
+        const className = node.getClassName()
         this.save()
-        this.state.push(e)
+        this.state.push({className, attrs})
     }
     remove(id) {
         this.save()
-        this.state = this.state.filter(e => e.id !== id)
+        this.state = this.state.filter(e => e.attrs.id !== id)
     }
     update(node) {
         this.save()
         console.log(node)
-        const i = this.state.findIndex(e => e.id === node.attrs.id)
+        const i = this.state.findIndex(e => e.attrs.id === node.attrs.id)
         console.log(this.state[i])
-        this.state[i].x = node.x()
-        this.state[i].y = node.y()
+        this.state[i].attrs.x = node.x()
+        this.state[i].attrs.y = node.y()
     }
     save() {
         this.undoStack.push(JSON.stringify(this.state))
@@ -143,7 +146,19 @@ export class EditorState {
         this.undoStack.push(JSON.stringify(this.state))
         this.state = JSON.parse(this.redoStack.pop())
     }
-    forEach(f) { this.state.forEach(f) }
+    forEach(f) {
+        this.state.forEach( e => {
+            f(toNode(e))
+        })
+    }
+}
+function toNode(el) {
+    const type = el.className
+    if (type === 'Stroke') return new konva.Circle(el.attrs)
+    else if (type === 'Text') return new konva.Text(el.attrs)
+    else if (type === 'Image') return new konva.Image(el.attrs)
+    else if (type === 'Circle') return new konva.Circle(el.attrs)
+    else console.log('WTF: ' + type)
 }
 window.ED = null
 function randomID() { return '_' + Math.random().toString(36).substr(2, 9) }
@@ -184,19 +199,10 @@ class Editor extends HTMLElement {
     }
     redraw() {
         this.layer.destroyChildren();
-        this.state.forEach(item => {
-            const node = this.toNode(item)
+        this.state.forEach(node => {
             this.layer.add(node)
         })
         this.layer.batchDraw();
-    }
-    toNode(el) {
-        const type = el.type
-        if (type === 'stroke') return new konva.Circle(el)
-        else if (type === 'text') return new konva.Text(el)
-        else if (type === 'image') return new konva.Image(el)
-        else if (type === 'circle') return new konva.Circle(el)
-        else console.log('WTF: ' + type)
     }
     getRelativePointerPosition(node) {
         const transform = node.getAbsoluteTransform().copy()
@@ -211,9 +217,7 @@ class Editor extends HTMLElement {
         const shape = new konva.Circle(options)
         this.layer.add(shape)
         this.layer.batchDraw()
-        options.type = 'shape'
-        this.state.add(options)
-        return shape
+        this.state.add(shape)
     }
     createText(pos) {
         const id = randomID()
@@ -223,9 +227,7 @@ class Editor extends HTMLElement {
         text.draggable(true);
         this.layer.add(text)
         this.layer.batchDraw()
-        options.type = 'text'
-        this.state.add(options)
-        return text
+        this.state.add(text)
     }
     async createImage(pos) {
         const id = randomID()
@@ -236,9 +238,7 @@ class Editor extends HTMLElement {
         image.id(id)
         image.draggable(true);
         this.layer.batchDraw();
-        options.type = 'image'
-        this.state.add(options)
-        return image
+        this.state.add(image)
     }
     createStroke(pos) {
         const id = randomID()
@@ -247,9 +247,7 @@ class Editor extends HTMLElement {
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
         this.lastLine = new konva.Line(options)
         this.layer.add(this.lastLine)
-        options.type = 'stroke'
-        this.state.add(options)
-        return this.lastLine
+        this.state.add(this.lastLine)
     }
     undo() {
         this.state.undo()
@@ -412,31 +410,7 @@ class App extends HTMLElement {
         this.$config.tool = e.detail
     }
 }
-function test(s, expected, actual) {
-    const e = JSON.stringify(expected), a = JSON.stringify(actual)
-    if (e !== a) console.log(s + ` failed, expected: ${e} actual: ${a}`)
-}
 document.addEventListener('DOMContentLoaded', _ => {
-    let h = new EditorState()
-    test('new editor state', [], h.state)
-    h.add(1)
-    test('add 1', [1], h.state)
-    h.add(2)
-    test('add 2', [1,2], h.state)
-    h.undo()
-    test('undo', [1], h.state)
-    h.redo()
-    test('redo', [1,2], h.state)
-    h.add(3)
-    test('add 3', [1,2,3], h.state)
-    h.undo(); h.undo(); h.undo()
-    test('undo 3 times', [], h.state)
-    h.redo(); h.redo()
-    test('redo 2 times', [1,2], h.state)
-    h.add(4)
-    test('add 4', [1,2,4], h.state)
-    h.redo()
-    test('redo', [1,2,4], h.state)
     window.customElements.define('color-input', ColorInput)
     window.customElements.define('font-input', FontInput)
     window.customElements.define('size-input', SizeInput)
