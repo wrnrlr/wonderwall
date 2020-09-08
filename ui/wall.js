@@ -177,6 +177,7 @@ class Editor extends HTMLElement {
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
         this.stage.on('dragend', e => this.onDragend(e))
+        container.addEventListener('wheel', e => this.onWheel(e))
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'mode') {}
