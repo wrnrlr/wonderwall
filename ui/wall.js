@@ -130,11 +130,9 @@ export class EditorState {
     }
     update(node) {
         this.save()
-        console.log(node)
         const className = node.getClassName()
         const layerName = this.layerName(className)
         const i = this.state[layerName].findIndex(e => e.attrs.id === node.attrs.id)
-        console.log(this.state[i])
         this.state[layerName][i].attrs.x = node.x()
         this.state[layerName][i].attrs.y = node.y()
     }
@@ -200,7 +198,6 @@ class Editor extends HTMLElement {
         if (name === 'mode') {}
     }
     redraw() {
-        console.log('redraw')
         this.imageLayer.destroyChildren();
         this.textLayer.destroyChildren();
         this.penLayer.destroyChildren();
@@ -208,7 +205,6 @@ class Editor extends HTMLElement {
         this.state.text.forEach(e => this.textLayer.add(toNode(e)))
         this.state.pen.forEach(e => this.penLayer.add(toNode(e)))
         this.stage.draw()
-        // this.stage.draw();
     }
     createText(pos) {
         const id = randomID()
@@ -269,7 +265,7 @@ class Editor extends HTMLElement {
     async onMousedown(e) {
         const pos = this.stage.getPointerPosition()
         if (this.mode === 'selection') {
-            if (e.target.getClassName === 'Stage') return
+            if (e.target.getClassName === 'Stage') { this.selected = e.target; return }
             this.selected = e.target
         }
         else if (this.mode === 'text')  this.createText(pos)
