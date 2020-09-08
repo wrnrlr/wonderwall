@@ -4,7 +4,7 @@ class Tools extends HTMLElement {
     static get observedAttributes() { return ['value'] }
     get value() { return this.getAttribute('value') }
     set value(v) { this.setAttribute('value', v) }
-    constructor() { super(); this.tools = ['selection', 'pen', 'text', 'image', 'shape'] }
+    constructor() { super(); this.tools = ['selection', 'pen', 'text', 'image'] }
     connectedCallback() {
         this.tools.forEach(t => this.appendChild(crel('div', {value: t, onclick: this.fireValueEvent})))
         this.value = this.tools[0]
@@ -58,10 +58,6 @@ class ImageConfig extends HTMLElement {
     connectedCallback() {
         this.appendChild(crel('h1', {}, 'Image'))}
 }
-class ShapeConfig extends HTMLElement {
-    connectedCallback() {
-        this.appendChild(crel('h1', {}, 'Shape'))}
-}
 function createTextarea(n, areaPosition) {
     console.log('text: ' + n.text())
     const textarea = crel('textarea', {class: "wall", value: n.text()});
@@ -84,20 +80,17 @@ class ConfigMenu extends HTMLElement {
         if (name === 'pen') this.$pen.style.display = value
         else if (name === 'text') this.$text.style.display = value
         else if (name === 'image') this.$image.style.display = value
-        else if (name === 'shape') this.$shape.style.display = value
     }
     constructor() {
         super();
         this.$pen = crel('pen-config')
         this.$text = crel('text-config')
         this.$image = crel('image-config')
-        this.$shape = crel('shape-config')
     }
     connectedCallback() {
         this.appendChild(this.$pen)
         this.appendChild(this.$text)
         this.appendChild(this.$image)
-        this.appendChild(this.$shape)
     }
 }
 class TopMenu extends HTMLElement {
@@ -162,7 +155,7 @@ export class EditorState {
 }
 function toNode(el) {
     const type = el.className
-    if (type === 'Stroke') return new konva.Circle(el.attrs)
+    if (type === 'Line') return new konva.Line(el.attrs)
     else if (type === 'Text') return new konva.Text(el.attrs)
     else if (type === 'Image') return new konva.Image(el.attrs)
     else if (type === 'Circle') return new konva.Circle(el.attrs)
@@ -191,7 +184,6 @@ class Editor extends HTMLElement {
         this.dispatchEvent(new CustomEvent('inject-pen-config', {detail: {provider: this}, bubbles: true}))
         const container = document.querySelector('#wrapper');
         const width = container.offsetWidth, height = container.offsetHeight
-        // const width = 900, height = 400
         this.stage = new konva.Stage({container: this, width: width, height: height})
         this.imageLayer = new konva.Layer()
         this.textLayer = new konva.Layer()
@@ -217,14 +209,6 @@ class Editor extends HTMLElement {
         this.state.pen.forEach(e => this.penLayer.add(toNode(e)))
         this.stage.draw()
         // this.stage.draw();
-    }
-    createShape(pos) {
-        const id = randomID()
-        const options = {id: id, x: pos.x, y: pos.y, fill: 'red', radius: 20}
-        const shape = new konva.Circle(options)
-        this.layer.add(shape)
-        this.layer.batchDraw()
-        this.state.add(shape)
     }
     createText(pos) {
         const id = randomID()
@@ -288,7 +272,6 @@ class Editor extends HTMLElement {
             if (e.target.getClassName === 'Stage') return
             this.selected = e.target
         }
-        else if (this.mode === 'shape') this.createShape(pos)
         else if (this.mode === 'text')  this.createText(pos)
         else if (this.mode === 'image') await this.createImage(pos)
         else if (this.mode === 'pen') this.createStroke(pos)
@@ -422,7 +405,6 @@ document.addEventListener('DOMContentLoaded', _ => {
     window.customElements.define('pen-config', PenConfig)
     window.customElements.define('text-config', TextConfig)
     window.customElements.define('image-config', ImageConfig)
-    window.customElements.define('shape-config', ShapeConfig)
     window.customElements.define('config-menu', ConfigMenu)
     window.customElements.define('top-menu', TopMenu)
     window.customElements.define('wall-tools', Tools)
