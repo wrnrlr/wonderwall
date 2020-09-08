@@ -108,29 +108,42 @@ class TopMenu extends HTMLElement {
     }
 }
 export class EditorState {
+    get image() { return this.state.image }
+    get text() { return this.state.text }
+    get pen() { return this.state.pen }
     constructor() {
         // image / text / pen
-        this.state = []
+        this.state = {image:[], text: [], pen: []}
         this.undoStack = []
         this.redoStack = []
     }
+    layerName(className) {
+        if (className === 'Image') return 'image'
+        else if (className === 'Text') return 'text'
+        else if (className === 'Line') return 'pen'
+    }
     add(node) {
+        this.save()
         const attrs = node.getAttrs()
         const className = node.getClassName()
-        this.save()
-        this.state.push({className, attrs})
+        const layerName = this.layerName(className)
+        this.state[layerName].push({className, attrs})
     }
-    remove(id) {
+    remove(node) {
         this.save()
-        this.state = this.state.filter(e => e.attrs.id !== id)
+        const className = node.getClassName()
+        const layerName = this.layerName(className)
+        this.state[layerName] = this.state[layerName].filter(e => e.attrs.id !== node.attrs.id)
     }
     update(node) {
         this.save()
         console.log(node)
-        const i = this.state.findIndex(e => e.attrs.id === node.attrs.id)
+        const className = node.getClassName()
+        const layerName = this.layerName(className)
+        const i = this.state[layerName].findIndex(e => e.attrs.id === node.attrs.id)
         console.log(this.state[i])
-        this.state[i].attrs.x = node.x()
-        this.state[i].attrs.y = node.y()
+        this.state[layerName][i].attrs.x = node.x()
+        this.state[layerName][i].attrs.y = node.y()
     }
     save() {
         this.undoStack.push(JSON.stringify(this.state))
@@ -145,11 +158,6 @@ export class EditorState {
         if (this.redoStack.length === 0) return
         this.undoStack.push(JSON.stringify(this.state))
         this.state = JSON.parse(this.redoStack.pop())
-    }
-    forEach(f) {
-        this.state.forEach( e => {
-            f(toNode(e))
-        })
     }
 }
 function toNode(el) {
@@ -185,8 +193,10 @@ class Editor extends HTMLElement {
         const width = container.offsetWidth, height = container.offsetHeight
         // const width = 900, height = 400
         this.stage = new konva.Stage({container: this, width: width, height: height})
-        this.layer = new konva.Layer()
-        this.stage.add(this.layer)
+        this.imageLayer = new konva.Layer()
+        this.textLayer = new konva.Layer()
+        this.penLayer = new konva.Layer()
+        this.stage.add(this.imageLayer, this.textLayer, this.penLayer)
         this.redraw()
         this.stage.on('mousedown touchstart', async e => await this.onMousedown(e))
         this.stage.on('mouseup touchend', _ => this.onMouseup())
@@ -198,19 +208,16 @@ class Editor extends HTMLElement {
         if (name === 'mode') {}
     }
     redraw() {
-        this.layer.destroyChildren();
-        this.state.forEach(node => {
-            this.layer.add(node)
-        })
-        this.layer.batchDraw();
+        console.log('redraw')
+        this.imageLayer.destroyChildren();
+        this.textLayer.destroyChildren();
+        this.penLayer.destroyChildren();
+        this.state.image.forEach(e => this.imageLayer.add(toNode(e)))
+        this.state.text.forEach(e => this.textLayer.add(toNode(e)))
+        this.state.pen.forEach(e => this.penLayer.add(toNode(e)))
+        this.stage.draw()
+        // this.stage.draw();
     }
-    getRelativePointerPosition(node) {
-        const transform = node.getAbsoluteTransform().copy()
-        transform.invert()
-        const pos = node.getStage().getPointerPosition()
-        return transform.point(pos)
-    }
-    getPointerPosition() { return this.getRelativePointerPosition(this.layer)}
     createShape(pos) {
         const id = randomID()
         const options = {id: id, x: pos.x, y: pos.y, fill: 'red', radius: 20}
@@ -225,19 +232,19 @@ class Editor extends HTMLElement {
         const options = {id: id, text: 'hello', x: pos.x, y: pos.y-(fontSize/2), fill: 'black', fontSize: 50}
         const text = new konva.Text(options)
         text.draggable(true);
-        this.layer.add(text)
-        this.layer.batchDraw()
+        this.textLayer.add(text)
+        this.textLayer.batchDraw()
         this.state.add(text)
     }
     async createImage(pos) {
         const id = randomID()
         let image = await this.loadImage('/static/img/yoda.jpg')
         const options = {id: id, x: pos.x, y: pos.y-(image.height()/2), src: '/static/img/yoda.jpg'}
-        this.layer.add(image)
+        this.imageLayer.add(image)
         image.position(options)
         image.id(id)
         image.draggable(true);
-        this.layer.batchDraw();
+        this.imageLayer.batchDraw();
         this.state.add(image)
     }
     createStroke(pos) {
@@ -246,7 +253,7 @@ class Editor extends HTMLElement {
         const options = {id: id, stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
         this.lastLine = new konva.Line(options)
-        this.layer.add(this.lastLine)
+        this.penLayer.add(this.lastLine)
         this.state.add(this.lastLine)
     }
     undo() {
@@ -259,8 +266,7 @@ class Editor extends HTMLElement {
     }
     delete() {
         if (this.mode !== 'selection' || !this.selected) return
-        console.log('delete ' + this.selected.attrs.id)
-        this.state.remove(this.selected.attrs.id)
+        this.state.remove(this.selected)
         this.selected.destroy()
         this.selected = null
         this.redraw()
@@ -277,18 +283,15 @@ class Editor extends HTMLElement {
         this.stage.draw();
     }
     async onMousedown(e) {
-        const pos = this.getPointerPosition()
-        let el  = null
+        const pos = this.stage.getPointerPosition()
         if (this.mode === 'selection') {
-            console.log('selection: ')
             if (e.target.getClassName === 'Stage') return
-            console.log(e.target)
             this.selected = e.target
         }
-        else if (this.mode === 'shape') el = this.createShape(pos)
-        else if (this.mode === 'text')  el = this.createText(pos)
-        else if (this.mode === 'image') el = await this.createImage(pos)
-        else if (this.mode === 'pen') el = this.createStroke(pos)
+        else if (this.mode === 'shape') this.createShape(pos)
+        else if (this.mode === 'text')  this.createText(pos)
+        else if (this.mode === 'image') await this.createImage(pos)
+        else if (this.mode === 'pen') this.createStroke(pos)
         else return
     }
     onMouseup() {
@@ -296,10 +299,10 @@ class Editor extends HTMLElement {
     }
     onMousemove() {
         if (!this.isPaint) return
-        const pos = this.getPointerPosition()
+        const pos = this.stage.getPointerPosition()
         const newPoints = this.lastLine.points().concat([pos.x, pos.y]);
         this.lastLine.points(newPoints);
-        this.layer.batchDraw();
+        this.penLayer.batchDraw();
     }
     onDragend(e) {
         this.state.update(e.target)
