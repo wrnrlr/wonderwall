@@ -167,7 +167,6 @@ class Editor extends HTMLElement {
     set mode(v) { this.setAttribute('mode', v) }
     constructor() {
         super()
-        this.isPaint = false
         this.lastPointerPosition = null
         this.scaleBy = 1.1
         this.scale = 1
@@ -204,6 +203,7 @@ class Editor extends HTMLElement {
         this.state.image.forEach(e => this.imageLayer.add(toNode(e)))
         this.state.text.forEach(e => this.textLayer.add(toNode(e)))
         this.state.pen.forEach(e => this.penLayer.add(toNode(e)))
+        if (this.lastLine) this.penLayer.add(this.lastLine)
         this.stage.draw()
     }
     createText(pos) {
@@ -229,12 +229,10 @@ class Editor extends HTMLElement {
     }
     createStroke(pos) {
         const id = randomID()
-        this.isPaint = true;
         const options = {id: id, stroke: this.configs.$pen.color, strokeWidth: this.configs.$pen.size, points: [pos.x, pos.y],
             globalCompositeOperation: this.mode === 'pen' ? 'source-over' : 'destination-out'}
         this.lastLine = new konva.Line(options)
         this.penLayer.add(this.lastLine)
-        this.state.add(this.lastLine)
     }
     undo() {
         this.state.undo()
@@ -274,10 +272,12 @@ class Editor extends HTMLElement {
         else return
     }
     onMouseup() {
-        this.isPaint = false
+        if (!this.lastLine) return
+        this.state.add(this.lastLine)
+        this.lastLine = null
     }
     onMousemove() {
-        if (!this.isPaint) return
+        if (!this.lastLine) return
         const pos = this.stage.getPointerPosition()
         const newPoints = this.lastLine.points().concat([pos.x, pos.y]);
         this.lastLine.points(newPoints);
