@@ -100,6 +100,49 @@ class TopMenu extends HTMLElement {
         this.appendChild(crel('div', {class: 'redo', onclick: _ => this.dispatchEvent(new CustomEvent('redo', {bubbles: true}))}))
     }
 }
+function getLayerName(className) {
+    if (className === 'Image') return 'image'
+    else if (className === 'Text') return 'text'
+    else if (className === 'Line') return 'pen'
+}
+function mustOverride() { throw new Error("Override me") }
+class Action {
+    constructor(node) { this.node = node }
+    apply(node) { mustOverride() }
+    invert() { mustOverride() }
+    toJSON() { mustOverride() }
+    static fromJSON() {}
+}
+class AddNode extends Action {
+    apply(state) {
+        const attrs = this.node.getAttrs()
+        const className = this.node.getClassName()
+        const layerName = getLayerName(className)
+        state[layerName].push({className, attrs})
+    }
+    invert() {}
+    toJSON() {}
+}
+class RemoveNode extends Action {
+    apply(state) {
+        const className = this.node.getClassName()
+        const layerName = getLayerName(className)
+        state[layerName] = state[layerName].filter(e => e.attrs.id !== this.node.attrs.id)
+    }
+    invert() {}
+    toJSON() {}
+}
+class UpdateNode extends Action  {
+    apply(state) {
+        const className = this.node.getClassName()
+        const layerName = getLayerName(className)
+        const i = state[layerName].findIndex(e => e.attrs.id === this.node.attrs.id)
+        state[layerName][i].attrs.x = this.node.x()
+        state[layerName][i].attrs.y = this.node.y()
+    }
+    invert() {}
+    toJSON() {}
+}
 export class EditorState {
     get image() { return this.state.image }
     get text() { return this.state.text }
@@ -110,31 +153,9 @@ export class EditorState {
         this.undoStack = []
         this.redoStack = []
     }
-    layerName(className) {
-        if (className === 'Image') return 'image'
-        else if (className === 'Text') return 'text'
-        else if (className === 'Line') return 'pen'
-    }
-    add(node) {
+    apply(a) {
         this.save()
-        const attrs = node.getAttrs()
-        const className = node.getClassName()
-        const layerName = this.layerName(className)
-        this.state[layerName].push({className, attrs})
-    }
-    remove(node) {
-        this.save()
-        const className = node.getClassName()
-        const layerName = this.layerName(className)
-        this.state[layerName] = this.state[layerName].filter(e => e.attrs.id !== node.attrs.id)
-    }
-    update(node) {
-        this.save()
-        const className = node.getClassName()
-        const layerName = this.layerName(className)
-        const i = this.state[layerName].findIndex(e => e.attrs.id === node.attrs.id)
-        this.state[layerName][i].attrs.x = node.x()
-        this.state[layerName][i].attrs.y = node.y()
+        a.apply(this.state)
     }
     save() {
         this.undoStack.push(JSON.stringify(this.state))
@@ -214,7 +235,7 @@ class Editor extends HTMLElement {
         text.draggable(true);
         this.textLayer.add(text)
         this.textLayer.batchDraw()
-        this.state.add(text)
+        this.state.apply(new AddNode(text))
     }
     async createImage(pos) {
         const id = randomID()
@@ -225,7 +246,7 @@ class Editor extends HTMLElement {
         image.id(id)
         image.draggable(true);
         this.imageLayer.batchDraw();
-        this.state.add(image)
+        this.state.apply(new AddNode(image))
     }
     createStroke(pos) {
         const id = randomID()
@@ -244,7 +265,7 @@ class Editor extends HTMLElement {
     }
     delete() {
         if (this.mode !== 'selection' || !this.selected) return
-        this.state.remove(this.selected)
+        this.state.apply(new RemoveNode(this.selected))
         this.selected.destroy()
         this.selected = null
         this.redraw()
@@ -273,7 +294,7 @@ class Editor extends HTMLElement {
     }
     onMouseup() {
         if (!this.lastLine) return
-        this.state.add(this.lastLine)
+        this.state.apply(new AddNode(this.lastLine))
         this.lastLine = null
     }
     onMousemove() {
@@ -284,7 +305,7 @@ class Editor extends HTMLElement {
         this.penLayer.batchDraw();
     }
     onDragend(e) {
-        this.state.update(e.target)
+        this.state.apply(new UpdateNode(e.target))
     }
     onWheel(e) {
         const oldScale = this.stage.scaleX();
