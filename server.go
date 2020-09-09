@@ -75,12 +75,15 @@ func (r *Registration) Deserialize(b []byte) error { return deserialize(b, r) }
 type CreateRegistration interface {
 	CreateRegistration(*Txn, Email, Password) (*Registration, error)
 }
+type FindRegistrationByID interface {
+	FindRegistrationByID(*Txn, Token) (*Registration, error)
+}
 type FindRegistrationByEmail interface {
 	FindRegistrationByEmail(*Txn, Email) (*Registration, error)
 }
-
 type RegistrationService interface {
 	CreateUser
+	FindRegistrationByID
 	FindRegistrationByEmail
 }
 type Registrations struct{ DB *Store }
@@ -101,6 +104,14 @@ func (s Registrations) CreateRegistration(txn *Txn, email Email, password Passwo
 		return nil, err
 	}
 	return r, nil
+}
+
+func (s Registrations) FindRegistrationByID(*Txn, Token) (*Registration, error) {
+	return nil, nil
+}
+
+func (s Registrations) FindRegistrationByEmail(*Txn, Email) (*Registration, error) {
+	return nil, nil
 }
 
 type User struct {
@@ -133,8 +144,8 @@ func (s Sessions) CreateSession(*Txn, string) (*Session, error) {
 }
 
 type Wall struct {
-	ID       string
-	Elements []interface{}
+	ID      string
+	Content []interface{}
 }
 
 func (w *Wall) Key() Key {
@@ -143,6 +154,16 @@ func (w *Wall) Key() Key {
 	} else {
 		return Key("wall:" + w.ID)
 	}
+}
+
+type CreateWall interface {
+	CreateWall(*Txn, *User) (*Wall, error)
+}
+type FindWallById interface {
+	FindWallById(*Txn, string) (*Wall, error)
+}
+type DeleteWall interface {
+	DeleteWall(*Txn, *Wall) error
 }
 
 type FindUserByEmail interface {
@@ -181,6 +202,7 @@ func ContentType(t string, w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 }
+
 func writeTmpl(w http.ResponseWriter, name string, i interface{}) {
 	indexTmpl, err := template.ParseFiles(fmt.Sprintf("./template/%s.html", name))
 	if err != nil {
@@ -190,7 +212,9 @@ func writeTmpl(w http.ResponseWriter, name string, i interface{}) {
 		panic(err)
 	}
 }
+
 func writeError(w http.ResponseWriter, err error) { writeTmpl(w, "500", err); w.WriteHeader(500) }
+
 func RenderTemplate(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		writeTmpl(w, name, nil)
@@ -339,6 +363,63 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 	}
 }
 
+type ForgotPasswordForm struct {
+	Email Email `json:"email`
+}
+
+func PostForgotPassword(db *Store, users FindUserByEmail) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			f   ForgotPasswordForm
+			u   *User
+			err error
+		)
+		if !ContentType(applicationJson, w, r) {
+			return
+		}
+		if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		db.Update(func(txn *Txn) error {
+			u, err = users.FindUserByEmail(txn, f.Email)
+			if err != nil {
+				return nil
+			}
+			// TODO Insert reset token
+			return nil
+		})
+		// TODO Send email
+	}
+}
+
+type Verification struct{ Token Token }
+
+func PostVerifyEmail(db *Store, registrations FindRegistrationByID, users CreateUser) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			f   Verification
+			u   *User
+			reg *Registration
+			err error
+		)
+		if !ContentType(applicationJson, w, r) {
+			return
+		}
+		if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = db.Update(func(txn *Txn) error {
+			reg, err = registrations.FindRegistrationByID(txn, f.Token)
+			u = &User{Email: reg.Email, PasswordHash: reg.PasswordHash}
+			err = users.CreateUser(txn, u)
+			return err
+		})
+		// TODO send welcome email
+	}
+}
+
 func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
@@ -348,54 +429,29 @@ func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
 		}
 	}
 }
+
 func main() {
-	indexHandler := func(w http.ResponseWriter, r *http.Request) { writeTmpl(w, "index", nil) }
-	sandboxHandler := func(w http.ResponseWriter, r *http.Request) { writeTmpl(w, "sandbox", nil) }
-	loginHandler := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			writeTmpl(w, "login", nil)
-			return
-		}
-		if r.Method == "POST" {
-			var form Registration
-			if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
-				writeError(w, err)
-				return
-			}
-			http.SetCookie(w, &http.Cookie{Name: "session", Value: "session"})
-		}
-	}
-	logoutHandler := func(w http.ResponseWriter, r *http.Request) {}
-	forgotPasswordHandler := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			writeTmpl(w, "forgot-password", nil)
-			return
-		}
-		if r.Method == "POST" {
-			var form EmailForm
-			if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
-				writeError(w, err)
-				return
-			}
-			/*TODO*/
-		}
-	}
-	termsHandler := func(w http.ResponseWriter, r *http.Request) { writeTmpl(w, "terms", nil) }
 	store := &Store{}
 	users := &Users{}
 	registrations := &Registrations{}
+	sessions := &Sessions{}
 	emails := &Emails{}
 	postRegistration := PostRegistration(store, registrations, users, emails)
+	postLogin := PostLogin(store, users, registrations, sessions)
+	loginHandler := PostLogin(store, users, registrations, sessions)
+	postForgotPassword := PostForgotPassword(store, users)
+	postVerifyEmail := PostVerifyEmail(store, registrations, users)
 	getRegistration := RenderTemplate("join")
 	wrapper := noCacheMiddleware
-	http.HandleFunc("/", wrapper(indexHandler))
-	http.HandleFunc("/sandbox", wrapper(sandboxHandler))
+	http.HandleFunc("/", wrapper(RenderTemplate("index")))
+	http.HandleFunc("/sandbox", wrapper(RenderTemplate("sandbox")))
 	http.HandleFunc("/join", wrapper(GetPostRouter(getRegistration, postRegistration)))
-	http.HandleFunc("/terms", wrapper(termsHandler))
-	http.HandleFunc("/login", wrapper(loginHandler))
-	http.HandleFunc("/logout", wrapper(logoutHandler))
-	http.HandleFunc("/forgot-password", wrapper(forgotPasswordHandler))
-	http.HandleFunc("/reset-password", wrapper(loginHandler))
+	http.HandleFunc("/terms", wrapper(RenderTemplate("terms")))
+	http.HandleFunc("/login", wrapper(GetPostRouter(RenderTemplate("login"), postLogin)))
+	http.HandleFunc("/logout", wrapper(RenderTemplate("logout")))
+	http.HandleFunc("/verify-email", wrapper(GetPostRouter(RenderTemplate("verify-email"), postVerifyEmail)))
+	http.HandleFunc("/forgot-password", wrapper(GetPostRouter(RenderTemplate("forgot-password"), postForgotPassword)))
+	http.HandleFunc("/reset-password", wrapper(GetPostRouter(RenderTemplate("reset-password"), postRegistration)))
 	http.HandleFunc("/walls", wrapper(loginHandler))
 	http.HandleFunc("/wall", wrapper(loginHandler))
 	http.Handle("/static/", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
