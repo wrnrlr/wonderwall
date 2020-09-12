@@ -107,13 +107,15 @@ function getLayerName(className) {
 }
 function mustOverride() { throw new Error("Override me") }
 class Action {
-    constructor(node) { this.node = node }
+    constructor(name, node) { this.name = name; this.node = node }
     apply(node) { mustOverride() }
     invert() { mustOverride() }
     toJSON() { mustOverride() }
+    event() { return new CustomEvent(this.name, {bubbles: true, detail: this.node}) }
     static fromJSON() {}
 }
 class AddNode extends Action {
+    constructor(node) { super('add', node) }
     apply(state) {
         const attrs = this.node.getAttrs()
         const className = this.node.getClassName()
@@ -124,6 +126,7 @@ class AddNode extends Action {
     toJSON() { return JSON.stringify({action: 'add', node: this.node.toJSON()}) }
 }
 class RemoveNode extends Action {
+    constructor(node) { super('remove', node) }
     apply(state) {
         const className = this.node.getClassName()
         const layerName = getLayerName(className)
@@ -132,7 +135,8 @@ class RemoveNode extends Action {
     invert() {}
     toJSON() { return JSON.stringify({action: 'remove', node: this.node.toJSON()}) }
 }
-class UpdateNode extends Action  {
+class UpdateNode extends Action {
+    constructor(node) { super('update', node) }
     apply(state) {
         const className = this.node.getClassName()
         const layerName = getLayerName(className)
@@ -413,11 +417,7 @@ class Client {
         this.ws.onerror = this.onerror.bind(this)
     }
     send(message) {
-        if (this.wsState === WsStateConnected) {
-            this.ws.send(message);
-        } else {
-            console.log('connection is closed or closing')
-        }
+        this.ws.send(message);
     }
     onclose(e) {
         console.log('ws onclose')
@@ -426,15 +426,18 @@ class Client {
         console.log('ws onopen')
     }
     onmessage(e) {
-        console.log('ws onmessage')
-        console.log('Message from server ', event.data);
-        if (typeof e.data === 'string') {
-            // TODO process string message
-            // console.log('string:', e.data)
-        } else {
-            if (e.data.byteLength > 0) {
-                // TODO process arraybuffer message
-            }
+        console.log('Message from server ', e.data);
+        let msg
+        if (typeof e.data === 'string') { msg = JSON.parse(e.data)}
+        else { console.log('arraybuffer'); }
+        switch (msg.method) {
+            case 'hello': console.log('hello'); break;
+            case 'greet': console.log('greet'); break;
+            case 'load': console.log('load editor state'); break;
+            case 'join': console.log('user joins'); break;
+            case 'leave': console.log('user leaves'); break;
+            case 'edit': console.log('edit wall'); break;
+            default: console.log('unknown json-rpc method')
         }
     }
     onerror() {
@@ -454,7 +457,7 @@ class App extends HTMLElement {
         this.addEventListener('inject-pen-config', e => { e.detail.provider.configs = this.$config; e.stopPropagation() })
         this.$wallMenu = crel('div', {id: 'wall-menu'}, this.$tools, this.$config)
         this.$tools.addEventListener('value', e => this.toolValue(e))
-        this.addEventListener('delete', _ => this.$editor.delete())
+        this.$topMenu.addEventListener('delete', _ => this.$editor.delete())
         this.addEventListener('undo', _ => this.$editor.undo())
         this.addEventListener('redo', _ => this.$editor.redo())
         this.appendChild(crel('div', {id: 'wrapper'}, this.$editor))
