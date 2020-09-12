@@ -121,7 +121,7 @@ class AddNode extends Action {
         state[layerName].push({className, attrs})
     }
     invert() {}
-    toJSON() {}
+    toJSON() { return JSON.stringify({action: 'add', node: this.node.toJSON()}) }
 }
 class RemoveNode extends Action {
     apply(state) {
@@ -130,7 +130,7 @@ class RemoveNode extends Action {
         state[layerName] = state[layerName].filter(e => e.attrs.id !== this.node.attrs.id)
     }
     invert() {}
-    toJSON() {}
+    toJSON() { return JSON.stringify({action: 'remove', node: this.node.toJSON()}) }
 }
 class UpdateNode extends Action  {
     apply(state) {
@@ -141,7 +141,7 @@ class UpdateNode extends Action  {
         state[layerName][i].attrs.y = this.node.y()
     }
     invert() {}
-    toJSON() {}
+    toJSON() { return JSON.stringify({action: 'update', node: this.node.toJSON()}) }
 }
 export class EditorState {
     get image() { return this.state.image }
@@ -282,7 +282,7 @@ class Editor extends HTMLElement {
         this.stage.draw();
     }
     async onMousedown(e) {
-        const pos = this.stage.getPointerPosition()
+        const pos = this.getPointerPosition()
         if (this.mode === 'selection') {
             if (e.target.getClassName === 'Stage') { this.selected = e.target; return }
             this.selected = e.target
@@ -299,7 +299,7 @@ class Editor extends HTMLElement {
     }
     onMousemove() {
         if (!this.lastLine) return
-        const pos = this.stage.getPointerPosition()
+        const pos = this.getPointerPosition()
         const newPoints = this.lastLine.points().concat([pos.x, pos.y]);
         this.lastLine.points(newPoints);
         this.penLayer.batchDraw();
@@ -387,10 +387,64 @@ class Editor extends HTMLElement {
             konva.Image.fromURL(url, image => resolve(image))
         })
     }
+    getPointerPosition() {
+        // the function will return pointer position relative to the passed node
+        var transform = this.imageLayer.getAbsoluteTransform().copy();
+        // to detect relative position we need to invert transform
+        transform.invert();
+        // get pointer (say mouse or touch) position
+        var pos = this.imageLayer.getStage().getPointerPosition();
+        // now we find a relative point
+        return transform.point(pos);
+    }
+}
+const WsStateDisconnected = 0, WsStateDisconnecting = 1, WsStateConnected = 2, WsStateConnecting = 3;
+class Client {
+    constructor(url) {
+        this.url = url;
+        this.ws = null;
+    }
+    connect() {
+        this.ws = new WebSocket(this.url);
+        // this.ws.binaryType = 'arraybuffer';
+        this.ws.onopen = this.onopen.bind(this)
+        this.ws.onmessage = this.onmessage.bind(this)
+        this.ws.onclose = this.onclose.bind(this)
+        this.ws.onerror = this.onerror.bind(this)
+    }
+    send(message) {
+        if (this.wsState === WsStateConnected) {
+            this.ws.send(message);
+        } else {
+            console.log('connection is closed or closing')
+        }
+    }
+    onclose(e) {
+        console.log('ws onclose')
+    }
+    onopen() {
+        console.log('ws onopen')
+    }
+    onmessage(e) {
+        console.log('ws onmessage')
+        console.log('Message from server ', event.data);
+        if (typeof e.data === 'string') {
+            // TODO process string message
+            // console.log('string:', e.data)
+        } else {
+            if (e.data.byteLength > 0) {
+                // TODO process arraybuffer message
+            }
+        }
+    }
+    onerror() {
+        console.log('ws onerror')
+    }
 }
 class App extends HTMLElement {
     constructor() {
         super()
+        this.client = new Client('ws://localhost:9999/wall')
         this.$editor = crel('wall-editor')
         this.$tools = crel('wall-tools', {})
         this.$config = crel('config-menu', {})
@@ -406,6 +460,7 @@ class App extends HTMLElement {
         this.appendChild(crel('div', {id: 'wrapper'}, this.$editor))
         this.appendChild(this.$wallMenu)
         this.appendChild(this.$topMenu)
+        this.client.connect()
     }
     toolValue(e) {
         this.$tools.value = e.detail
