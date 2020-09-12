@@ -112,7 +112,16 @@ class Action {
     invert() { mustOverride() }
     toJSON() { mustOverride() }
     event() { return new CustomEvent(this.name, {bubbles: true, detail: this.node}) }
-    static fromJSON() {}
+    static fromJSON(s) {
+        const d = JSON.parse(s)
+        const node = konva.Node.create(d.node)
+        switch (d.action) {
+            case 'add': return new AddNode(node)
+            case 'remove': return new RemoveNode(node)
+            case 'update': return new UpdateNode(node, konva.Node.create(d.original))
+            default: throw new Error('unknown action: ' + d.action)
+        }
+    }
 }
 class AddNode extends Action {
     constructor(node) { super('add', node) }
@@ -122,7 +131,7 @@ class AddNode extends Action {
         const layerName = getLayerName(className)
         state[layerName].push({className, attrs})
     }
-    invert() {}
+    invert() { return new RemoveNode(this.node) }
     toJSON() { return JSON.stringify({action: 'add', node: this.node.toJSON()}) }
 }
 class RemoveNode extends Action {
@@ -132,11 +141,11 @@ class RemoveNode extends Action {
         const layerName = getLayerName(className)
         state[layerName] = state[layerName].filter(e => e.attrs.id !== this.node.attrs.id)
     }
-    invert() {}
+    invert() { return new AddNode(this.node) }
     toJSON() { return JSON.stringify({action: 'remove', node: this.node.toJSON()}) }
 }
 class UpdateNode extends Action {
-    constructor(node) { super('update', node) }
+    constructor(node, original) { super('update', node); this.original = original }
     apply(state) {
         const className = this.node.getClassName()
         const layerName = getLayerName(className)
@@ -144,8 +153,8 @@ class UpdateNode extends Action {
         state[layerName][i].attrs.x = this.node.x()
         state[layerName][i].attrs.y = this.node.y()
     }
-    invert() {}
-    toJSON() { return JSON.stringify({action: 'update', node: this.node.toJSON()}) }
+    invert() { return new UpdateNode(this.original, this.node) }
+    toJSON() { return JSON.stringify({action: 'update', node: this.node.toJSON(), original: this.original.toJSON()}) }
 }
 export class EditorState {
     get image() { return this.state.image }
@@ -158,22 +167,24 @@ export class EditorState {
         this.redoStack = []
     }
     apply(a) {
-        this.save()
+        this.save(a)
         a.apply(this.state)
     }
-    save() {
-        this.undoStack.push(JSON.stringify(this.state))
+    save(a) {
+        this.undoStack.push(a.toJSON())
         this.redoStack = []
     }
     undo() {
         if (this.undoStack.length === 0) return
-        this.redoStack.push(JSON.stringify(this.state))
-        this.state = JSON.parse(this.undoStack.pop())
+        const a = Action.fromJSON(this.undoStack.pop()).invert()
+        this.redoStack.push(a.toJSON())
+        a.apply(this.state)
     }
     redo() {
         if (this.redoStack.length === 0) return
-        this.undoStack.push(JSON.stringify(this.state))
-        this.state = JSON.parse(this.redoStack.pop())
+        const a = Action.fromJSON(this.redoStack.pop()).invert()
+        this.undoStack.push(a.toJSON())
+        a.apply(this.state)
     }
 }
 function toNode(el) {
@@ -215,6 +226,7 @@ class Editor extends HTMLElement {
         this.stage.on('mousedown touchstart', async e => await this.onMousedown(e))
         this.stage.on('mouseup touchend', _ => this.onMouseup())
         this.stage.on('mousemove touchmove', _ => this.onMousemove())
+        this.stage.on('dragstart', e => this.onDragstart(e))
         this.stage.on('dragend', e => this.onDragend(e))
         container.addEventListener('wheel', e => this.onWheel(e))
     }
@@ -308,8 +320,11 @@ class Editor extends HTMLElement {
         this.lastLine.points(newPoints);
         this.penLayer.batchDraw();
     }
+    onDragstart(e) {
+        this.dragging = e.target.clone()
+    }
     onDragend(e) {
-        this.state.apply(new UpdateNode(e.target))
+        this.state.apply(new UpdateNode(e.target, this.dragging))
     }
     onWheel(e) {
         const oldScale = this.stage.scaleX();
