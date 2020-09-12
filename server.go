@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"log"
 	"net/http"
 	"regexp"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -162,9 +163,18 @@ type CreateWall interface {
 type FindWallById interface {
 	FindWallById(*Txn, string) (*Wall, error)
 }
+type UpdateWall interface {
+	UpdateWall(*Txn, *Wall) error
+}
 type DeleteWall interface {
 	DeleteWall(*Txn, *Wall) error
 }
+type Walls struct{}
+
+func (w Walls) CreateWall(*Txn, *User) (*Wall, error)    { return nil, nil }
+func (w Walls) FindWallById(*Txn, string) (*Wall, error) { return nil, nil }
+func (w Walls) UpdateWall(*Txn, *Wall) error             { return nil }
+func (w Walls) DeleteWall(*Txn, *Wall) error             { return nil }
 
 type FindUserByEmail interface {
 	FindUserByEmail(*Txn, Email) (*User, error)
@@ -436,6 +446,8 @@ func main() {
 	registrations := &Registrations{}
 	sessions := &Sessions{}
 	emails := &Emails{}
+	walls := &Walls{}
+	collabConfig := CollabConfig{Debug: false, Workers: 1, Queue: 2, IOTimeout: time.Second * 5}
 	postRegistration := PostRegistration(store, registrations, users, emails)
 	postLogin := PostLogin(store, users, registrations, sessions)
 	loginHandler := PostLogin(store, users, registrations, sessions)
@@ -453,7 +465,7 @@ func main() {
 	http.HandleFunc("/forgot-password", wrapper(GetPostRouter(RenderTemplate("forgot-password"), postForgotPassword)))
 	http.HandleFunc("/reset-password", wrapper(GetPostRouter(RenderTemplate("reset-password"), postRegistration)))
 	http.HandleFunc("/walls", wrapper(loginHandler))
-	http.HandleFunc("/wall", wrapper(loginHandler))
+	http.HandleFunc("/wall", wrapper(WallCollab(collabConfig, store, walls)))
 	http.Handle("/static/", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
 	log.Fatal(http.ListenAndServe(":9999", nil))
 }
