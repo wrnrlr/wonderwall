@@ -12,8 +12,9 @@ type Node struct {
 }
 
 type Action struct {
-	Action string `json:"action"`
-	Node   Node   `json:"node"`
+	Action   string `json:"action"`
+	Node     Node   `json:"node"`
+	Original *Node  `json:"original"`
 }
 
 func (a Action) Apply(s State) {
