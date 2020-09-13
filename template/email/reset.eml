@@ -1,0 +1,27 @@
+Subject: Reset password for Wonderwall
+MIME-version: 1.0;
+Content-Type: text/html; charset="UTF-8";
+
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Welcome to Wonderwall</title>
+</head>
+<body>
+<p>
+    Hello {{ .Name }},
+</p>
+
+<p>
+    To reset your password click the link below:<br>
+    <a href="{{ .Origin }}/#/reset/{{ .Token }}" id="reset-link">Reset Password</a>
+</p>
+
+<p>
+    Kind Regards<br>
+    The Wonderwall Team
+</p>
+</body>
+</html>

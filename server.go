@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
 	"fmt"
 	"html/template"
 	"log"
@@ -32,23 +31,15 @@ func writeTmpl(w http.ResponseWriter, name string, i interface{}) {
 	}
 }
 
-func writeError(w http.ResponseWriter, err error) { writeTmpl(w, "500", err); w.WriteHeader(500) }
+func writeError(w http.ResponseWriter, err error) {
+	writeTmpl(w, "500", err)
+	w.WriteHeader(500)
+}
 
 func RenderTemplate(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		writeTmpl(w, name, nil)
 	}
-}
-
-type Token []byte
-
-func GenerateToken(n int) (Token, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
 }
 
 func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
@@ -66,26 +57,29 @@ func main() {
 	users := &Users{}
 	registrations := &Registrations{}
 	sessions := &Sessions{}
-	emails := &Emails{}
+	emails := &EmailClient{}
 	walls := &Walls{}
 	collabConfig := CollabConfig{Debug: false, Workers: 10, Queue: 20, IOTimeout: time.Second * 5}
+
 	postRegistration := PostRegistration(store, registrations, users, emails)
-	postLogin := PostLogin(store, users, registrations, sessions)
-	loginHandler := PostLogin(store, users, registrations, sessions)
+	loginHandler := PostLogin(store, users, registrations, sessions, emails)
 	postForgotPassword := PostForgotPassword(store, users)
 	postVerifyEmail := PostVerifyEmail(store, registrations, users)
 	getRegistration := RenderTemplate("join")
+
 	wrapper := noCacheMiddleware
+
 	http.HandleFunc("/", wrapper(RenderTemplate("index")))
 	http.HandleFunc("/sandbox", wrapper(RenderTemplate("sandbox")))
-	http.HandleFunc("/join", wrapper(GetPostRouter(getRegistration, postRegistration)))
 	http.HandleFunc("/terms", wrapper(RenderTemplate("terms")))
-	http.HandleFunc("/login", wrapper(GetPostRouter(RenderTemplate("login"), postLogin)))
+
+	http.HandleFunc("/join", wrapper(GetPostRouter(getRegistration, postRegistration)))
+	http.HandleFunc("/login", wrapper(GetPostRouter(RenderTemplate("login"), loginHandler)))
 	http.HandleFunc("/logout", wrapper(RenderTemplate("logout")))
 	http.HandleFunc("/verify-email", wrapper(GetPostRouter(RenderTemplate("verify-email"), postVerifyEmail)))
 	http.HandleFunc("/forgot-password", wrapper(GetPostRouter(RenderTemplate("forgot-password"), postForgotPassword)))
 	http.HandleFunc("/reset-password", wrapper(GetPostRouter(RenderTemplate("reset-password"), postRegistration)))
-	http.HandleFunc("/walls", wrapper(loginHandler))
+
 	http.HandleFunc("/wall", wrapper(WallCollab(collabConfig, store, walls)))
 	http.Handle("/static/", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
 	log.Fatal(http.ListenAndServe(":9999", nil))

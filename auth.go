@@ -1,5 +1,7 @@
 package main
 
+import "crypto/rand"
+
 type EmailForm struct{ Email Email }
 
 func (f EmailForm) validate() error {
@@ -18,4 +20,15 @@ func (f PasswordForm) validate() error {
 		return passwordErr
 	}
 	return nil
+}
+
+type Token []byte
+
+func GenerateToken(n int) (Token, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

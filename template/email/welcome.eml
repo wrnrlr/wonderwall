@@ -1,0 +1,32 @@
+Subject: Welcome to Wonderwall
+MIME-version: 1.0;
+Content-Type: text/html; charset="UTF-8";
+
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Welcome to Wonderwall</title>
+</head>
+<body>
+<p>
+    Welcome {{ .Name }},
+</p>
+
+<p>
+    Your Almanax profile has been verified,
+    <a href="{{ .Origin }}/#/login">login</a> and start creating knowledge graphs.
+</p>
+
+<p>
+    This service is still under active development,
+    should you find any glitch in the system don't be shy to report them to us.
+</p>
+
+<p>
+    Kind Regards<br>
+    The Wonderwall Team
+</p>
+</body>
+</html>

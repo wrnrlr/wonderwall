@@ -1,0 +1,24 @@
+Subject: Login at Wonderwall
+MIME-version: 1.0;
+Content-Type: text/html; charset="UTF-8";
+
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Login at Wonderwall</title>
+</head>
+<body>
+<h1>Hello {{ .Name }}</h1>
+
+<p>
+    There was a device
+</p>
+
+<p>
+    Kind Regards
+    The Wonderwall Team
+</p>
+</body>
+</html>

@@ -34,11 +34,13 @@ type FindRegistrationByID interface {
 type FindRegistrationByEmail interface {
 	FindRegistrationByEmail(*Txn, Email) (*Registration, error)
 }
+
 type RegistrationService interface {
 	CreateUser
 	FindRegistrationByID
 	FindRegistrationByEmail
 }
+
 type Registrations struct{ DB *Store }
 
 func (s Registrations) CreateRegistration(txn *Txn, email Email, password Password) (*Registration, error) {
@@ -83,7 +85,14 @@ func (f RegistrationForm) validate() error {
 	return nil
 }
 
-func PostRegistration(db *Store, registrations CreateRegistration, users FindUserByEmail, emails *Emails) http.HandlerFunc {
+func PostRegistration(db *Store, registrations CreateRegistration, users FindUserByEmail, emails *EmailClient) http.HandlerFunc {
+
+	type ActivateMsg struct {
+		Name   string
+		Origin string
+		Token  string
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			f   RegistrationForm
@@ -119,13 +128,17 @@ func PostRegistration(db *Store, registrations CreateRegistration, users FindUse
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		emails.SendEmail("verify-email", reg.ID)
+		emails.SendEmail("verify-email", u.Email, reg.ID)
 	}
 }
 
 type Verification struct{ Token Token }
 
 func PostVerifyEmail(db *Store, registrations FindRegistrationByID, users CreateUser) http.HandlerFunc {
+	type WelcomeMsg struct {
+		Name   string
+		Origin string
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			f   Verification

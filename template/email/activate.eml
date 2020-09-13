@@ -1,0 +1,27 @@
+Subject: Activate your Wonderwall profile
+MIME-version: 1.0;
+Content-Type: text/html; charset="UTF-8";
+
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Activate your Wonderwall profile</title>
+</head>
+<body>
+<p>
+    Hello {{ .Name }},
+</p>
+
+<p>
+    To complete your registration click on the link below:<br>
+    <a href="{{ .Origin }}/#/activate/{{ .Token }}" id="activation-link">Activate Account</a>
+</p>
+
+<p>
+    Kind Regards<br>
+    The Wonderwall Team
+</p>
+</body>
+</html>

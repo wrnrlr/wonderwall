@@ -25,6 +25,13 @@ type ForgotPasswordForm struct {
 }
 
 func PostForgotPassword(db *Store, users FindUserByEmail) http.HandlerFunc {
+
+	type ForgotMsg struct {
+		Name   string
+		Origin string
+		Token  string
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			f   ForgotPasswordForm
@@ -51,5 +58,12 @@ func PostForgotPassword(db *Store, users FindUserByEmail) http.HandlerFunc {
 }
 
 func PostResetPassword(db *Store, users FindUserByEmail) http.HandlerFunc {
+
+	type ResetMsg struct {
+		Name   string
+		Origin string
+		Token  string
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {}
 }

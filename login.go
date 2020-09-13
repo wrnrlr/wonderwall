@@ -24,7 +24,15 @@ func (f LoginForm) validate() error {
 var emailNotVerifiedErr = errors.New("email not verified")
 var emailNotRegistered = errors.New("email not registered")
 
-func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationByEmail, sessions CreateSession) http.HandlerFunc {
+func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationByEmail, sessions CreateSession, emails SendEmail) http.HandlerFunc {
+
+	origin := "http://localhost:9999"
+
+	type LoginMsg struct {
+		Name   string
+		Origin string
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			f   LoginForm
@@ -71,9 +79,12 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		// TODO send new login email
 		expiration := time.Now().Add(30 * 24 * time.Hour)
 		cookie := http.Cookie{Name: "session", Value: string(s.ID), Expires: expiration}
 		http.SetCookie(w, &cookie)
+
+		// TODO send new login email
+		msg := &LoginMsg{Name: u.Name, Origin: origin}
+		emails.SendEmail("login", u.Email, msg)
 	}
 }
