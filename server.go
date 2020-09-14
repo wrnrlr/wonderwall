@@ -54,7 +54,7 @@ func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func main() {
+func StartServer() {
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	if err != nil {
 		panic("failed to create test user")
@@ -67,7 +67,7 @@ func main() {
 	walls := &Walls{}
 	collabConfig := CollabConfig{Debug: false, Workers: 10, Queue: 20, IOTimeout: time.Second * 5}
 
-	loadTestUser(store, users)
+	LoadTestUser(store, users)
 
 	postRegistration := PostRegistration(store, registrations, users, emails)
 	loginHandler := PostLogin(store, users, registrations, sessions, emails)
@@ -93,7 +93,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":9999", nil))
 }
 
-func loadTestUser(db *Store, users CreateUser) {
+func LoadTestUser(db *Store, users CreateUser) {
 	id := xid.New()
 	email := Email("alice@example.com")
 	password, _ := Password("abc").HashPassword()
