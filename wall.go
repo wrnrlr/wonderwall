@@ -27,10 +27,12 @@ func (a Action) Apply(s State) {
 		a.Update(s)
 	}
 }
+
 func (a Action) Add(s State) {
 	layer := s.Layer(a.Node.ClassName)
 	*layer = append(*layer, a.Node)
 }
+
 func (a Action) Remove(s State) {
 	layer := s.Layer(a.Node.ClassName)
 	for i, n := range *layer {
@@ -45,6 +47,7 @@ func (a Action) Remove(s State) {
 		}
 	}
 }
+
 func (a Action) Update(s State) {
 	layer := s.Layer(a.Node.ClassName)
 	for i, n := range *layer {
@@ -80,8 +83,9 @@ func (s State) Layer(n string) *[]Node {
 }
 
 type Wall struct {
-	ID      string
-	Content []interface{}
+	ID      string        `json:"id"`
+	Title   string        `json:"title"`
+	Content []interface{} `json:"content"`
 }
 
 func (w *Wall) Key() Key {
