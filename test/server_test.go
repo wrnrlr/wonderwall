@@ -1,23 +1,24 @@
-package wonderwall
+package test
 
 import (
+	. ".."
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestPassword(t *testing.T) {
-	t.Run("Valid password has minimum length 8", func(t *testing.T) { assert.False(t, Password("short").valid()) })
+	t.Run("Valid password has minimum length 8", func(t *testing.T) { assert.False(t, Password("short").Valid()) })
 }
 
 func TestEmail(t *testing.T) {
-	assert.False(t, Email("short").valid())
-	assert.False(t, Email("short@").valid())
+	assert.False(t, Email("short").Valid())
+	assert.False(t, Email("short@").Valid())
 }
 
 func TestAuthForm(t *testing.T) {
-	assert.Equal(t, RegistrationForm{"test@example.com", "short"}.validate(), passwordErr)
-	assert.Equal(t, RegistrationForm{"test", "Password12345!"}.validate(), emailErr)
+	assert.Equal(t, RegistrationForm{"test@example.com", "short"}.Validate(), PasswordErr)
+	assert.Equal(t, RegistrationForm{"test", "Password12345!"}.Validate(), EmailErr)
 }
 
 var (

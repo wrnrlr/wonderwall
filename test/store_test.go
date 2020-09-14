@@ -1,7 +1,8 @@
-package wonderwall
+package test
 
 import (
-	"github.com/dgraph-io/badger/v2"
+	. ".."
+	"github.com/dgraph-io/badger"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -14,8 +15,8 @@ func MemStore() *Store {
 type obj struct{ ID string }
 
 func (o *obj) Key() Key                   { return Key("obj:" + o.ID) }
-func (o *obj) Serialize() ([]byte, error) { return serialize(o) }
-func (o *obj) Deserialize(b []byte) error { return deserialize(b, o) }
+func (o *obj) Serialize() ([]byte, error) { return Serialize(o) }
+func (o *obj) Deserialize(b []byte) error { return Deserialize(b, o) }
 
 func TestStore(t *testing.T) {
 	var (

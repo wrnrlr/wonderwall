@@ -1,7 +1,8 @@
-package wonderwall
+package test
 
 import (
-	"github.com/dgraph-io/badger/v2"
+	. ".."
+	"github.com/dgraph-io/badger"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -30,7 +31,7 @@ func TestUsers(t *testing.T) {
 		})
 	}
 	assert.Nil(t, createUser(u))
-	assert.Equal(t, duplicateEmailErr, createUser(u))
+	assert.Equal(t, DuplicateEmailErr, createUser(u))
 	findUserById := func(id xid.ID) (u *User, err error) {
 		store.View(func(txn *badger.Txn) error {
 			u, err = users.FindUserById(txn, id)
