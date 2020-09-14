@@ -22,8 +22,8 @@ func (r *Registration) Key() Key {
 		return append([]byte("registration:"), r.ID...)
 	}
 }
-func (r *Registration) Serialize() ([]byte, error) { return serialize(r) }
-func (r *Registration) Deserialize(b []byte) error { return deserialize(b, r) }
+func (r *Registration) Serialize() ([]byte, error) { return Serialize(r) }
+func (r *Registration) Deserialize(b []byte) error { return Deserialize(b, r) }
 
 type CreateRegistration interface {
 	CreateRegistration(*Txn, Email, Password) (*Registration, error)
@@ -69,18 +69,18 @@ func (s Registrations) FindRegistrationByEmail(*Txn, Email) (*Registration, erro
 	return nil, nil
 }
 
-var duplicateEmailErr = errors.New("duplicate email")
+var DuplicateEmailErr = errors.New("duplicate email")
 
 type RegistrationForm struct {
 	Email    Email    `json:"email"`
 	Password Password `json:"password"`
 }
 
-func (f RegistrationForm) validate() error {
-	if !f.Email.valid() {
-		return emailErr
+func (f RegistrationForm) Validate() error {
+	if !f.Email.Valid() {
+		return EmailErr
 	} else if len(f.Password) < 8 {
-		return passwordErr
+		return PasswordErr
 	}
 	return nil
 }
@@ -107,7 +107,7 @@ func PostRegistration(db *Store, registrations CreateRegistration, users FindUse
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if err := f.validate(); err != nil {
+		if err := f.Validate(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -116,7 +116,7 @@ func PostRegistration(db *Store, registrations CreateRegistration, users FindUse
 			if err != nil {
 				return err
 			} else if u != nil {
-				return duplicateEmailErr
+				return DuplicateEmailErr
 			}
 			reg, err = registrations.CreateRegistration(txn, f.Email, f.Password)
 			if err != nil {

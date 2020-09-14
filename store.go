@@ -6,7 +6,7 @@ import (
 	"github.com/dgraph-io/badger/v2"
 )
 
-func serialize(e interface{}) ([]byte, error) {
+func Serialize(e interface{}) ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
 	err := enc.Encode(e)
@@ -17,7 +17,7 @@ func serialize(e interface{}) ([]byte, error) {
 	}
 }
 
-func deserialize(v []byte, e interface{}) error {
+func Deserialize(v []byte, e interface{}) error {
 	return gob.NewDecoder(bytes.NewReader(v)).Decode(e)
 }
 

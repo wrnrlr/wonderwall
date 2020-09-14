@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	emailErr    = errors.New("invalid email")
-	passwordErr = errors.New("invalid password")
+	EmailErr    = errors.New("invalid email")
+	PasswordErr = errors.New("invalid password")
 
 	emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 )
 
 type Email string
 
-func (e Email) valid() bool { return len(e) > 3 && len(e) < 255 && emailRegex.MatchString(string(e)) }
+func (e Email) Valid() bool { return len(e) > 3 && len(e) < 255 && emailRegex.MatchString(string(e)) }
 
 func (e Email) String() string { return string(e) }
 

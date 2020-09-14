@@ -13,10 +13,10 @@ type LoginForm struct {
 }
 
 func (f LoginForm) validate() error {
-	if !f.Email.valid() {
-		return emailErr
+	if !f.Email.Valid() {
+		return EmailErr
 	} else if len(f.Password) < 8 {
-		return passwordErr
+		return PasswordErr
 	}
 	return nil
 }

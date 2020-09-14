@@ -8,7 +8,7 @@ import (
 
 type Password string
 
-func (p Password) valid() bool { return len(p) > 8 && len(p) < 255 }
+func (p Password) Valid() bool { return len(p) > 8 && len(p) < 255 }
 
 func (p Password) HashPassword() (PasswordHash, error) {
 	return bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)

@@ -20,8 +20,8 @@ func (u *User) Eq(other *User) bool {
 }
 
 func (u *User) Key() Key                   { return userPrimaryIndex(u.ID) }
-func (u *User) Serialize() ([]byte, error) { return serialize(u) }
-func (u *User) Deserialize(b []byte) error { return deserialize(b, u) }
+func (u *User) Serialize() ([]byte, error) { return Serialize(u) }
+func (u *User) Deserialize(b []byte) error { return Deserialize(b, u) }
 func (u *User) EmailKey() Key              { return userEmailIndex(u.Email) }
 
 func userPrimaryIndex(id xid.ID) Key { return append([]byte("user:"), id.Bytes()...) }
@@ -51,7 +51,7 @@ func (s Users) CreateUser(txn *Txn, u *User) error {
 	var primaryKey Key
 	err := s.DB.Get(txn, u.EmailKey(), &primaryKey)
 	if err != badger.ErrKeyNotFound {
-		return duplicateEmailErr
+		return DuplicateEmailErr
 	}
 	if err := txn.Set(u.EmailKey(), u.Key()); err != nil {
 		return err

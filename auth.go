@@ -7,8 +7,8 @@ import (
 type EmailForm struct{ Email Email }
 
 func (f EmailForm) validate() error {
-	if !f.Email.valid() {
-		return emailErr
+	if !f.Email.Valid() {
+		return EmailErr
 	}
 	return nil
 }
@@ -18,8 +18,8 @@ type PasswordForm struct {
 }
 
 func (f PasswordForm) validate() error {
-	if !f.Password.valid() {
-		return passwordErr
+	if !f.Password.Valid() {
+		return PasswordErr
 	}
 	return nil
 }
