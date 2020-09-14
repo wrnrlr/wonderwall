@@ -1,8 +1,8 @@
 package test
 
 import (
-	. ".."
-	"github.com/dgraph-io/badger"
+	. "github.com/Almanax/wonderwall"
+	"github.com/dgraph-io/badger/v2"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

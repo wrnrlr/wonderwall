@@ -1,7 +1,7 @@
 package test
 
 import (
-	. ".."
+	. "github.com/Almanax/wonderwall"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
 	"testing"
