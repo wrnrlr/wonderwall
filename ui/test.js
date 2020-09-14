@@ -1,0 +1,27 @@
+
+function test(s, expected, actual) {
+    const e = JSON.stringify(expected), a = JSON.stringify(actual)
+    if (e !== a) console.log(s + ` failed, expected: ${e} actual: ${a}`)
+}
+document.addEventListener('DOMContentLoaded', _ => {
+    // let h = new EditorState()
+    // test('new editor state', [], h.state)
+    // h.add(1)
+    // test('add 1', [1], h.state)
+    // h.add(2)
+    // test('add 2', [1,2], h.state)
+    // h.undo()
+    // test('undo', [1], h.state)
+    // h.redo()
+    // test('redo', [1,2], h.state)
+    // h.add(3)
+    // test('add 3', [1,2,3], h.state)
+    // h.undo(); h.undo(); h.undo()
+    // test('undo 3 times', [], h.state)
+    // h.redo(); h.redo()
+    // test('redo 2 times', [1,2], h.state)
+    // h.add(4)
+    // test('add 4', [1,2,4], h.state)
+    // h.redo()
+    // test('redo', [1,2,4], h.state)
+})
