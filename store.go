@@ -22,7 +22,14 @@ func deserialize(v []byte, e interface{}) error {
 }
 
 type Key []byte
+
+func (k *Key) Deserialize(b []byte) error {
+	*k = b
+	return nil
+}
+
 type Readable interface{ Deserialize([]byte) error }
+
 type Writable interface {
 	Serialize() ([]byte, error)
 	Key() Key

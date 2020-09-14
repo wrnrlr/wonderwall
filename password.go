@@ -34,8 +34,8 @@ func PostForgotPassword(db *Store, users FindUserByEmail) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
-			f   ForgotPasswordForm
-			u   *User
+			f ForgotPasswordForm
+			//u   *User
 			err error
 		)
 		if !ContentType(applicationJson, w, r) {
@@ -46,7 +46,7 @@ func PostForgotPassword(db *Store, users FindUserByEmail) http.HandlerFunc {
 			return
 		}
 		db.Update(func(txn *Txn) error {
-			u, err = users.FindUserByEmail(txn, f.Email)
+			_, err = users.FindUserByEmail(txn, f.Email)
 			if err != nil {
 				return nil
 			}

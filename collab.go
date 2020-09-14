@@ -273,14 +273,14 @@ func (c *Collective) Register(conn net.Conn) *Collaborator {
 		"name": user.name,
 	})
 	if err != nil {
-		log.Println("error write notice: %v", err)
+		log.Printf("error write notice: %v\n", err)
 	}
 	err = c.Broadcast("greet", Object{
 		"name": user.name,
 		"time": timestamp(),
 	})
 	if err != nil {
-		log.Println("error write notice: %v", err)
+		log.Printf("error write notice: %v\n", err)
 	}
 	return user
 }

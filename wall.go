@@ -95,15 +95,19 @@ func (w *Wall) Key() Key {
 type CreateWall interface {
 	CreateWall(*Txn, *User) (*Wall, error)
 }
+
 type FindWallById interface {
 	FindWallById(*Txn, string) (*Wall, error)
 }
+
 type UpdateWall interface {
 	UpdateWall(*Txn, *Wall) error
 }
+
 type DeleteWall interface {
 	DeleteWall(*Txn, *Wall) error
 }
+
 type Walls struct{}
 
 func (w Walls) CreateWall(*Txn, *User) (*Wall, error)    { return nil, nil }

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/dgraph-io/badger/v2"
+	"github.com/rs/xid"
 	"html/template"
 	"log"
 	"net/http"
@@ -53,13 +55,19 @@ func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
 }
 
 func main() {
-	store := &Store{}
+	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
+	if err != nil {
+		panic("failed to create test user")
+	}
+	store := &Store{db}
 	users := &Users{}
 	registrations := &Registrations{}
 	sessions := &Sessions{}
-	emails := &EmailClient{}
+	emails := NewEmailPrinter("http://localhost:9999")
 	walls := &Walls{}
 	collabConfig := CollabConfig{Debug: false, Workers: 10, Queue: 20, IOTimeout: time.Second * 5}
+
+	loadTestUser(store, users)
 
 	postRegistration := PostRegistration(store, registrations, users, emails)
 	loginHandler := PostLogin(store, users, registrations, sessions, emails)
@@ -83,4 +91,17 @@ func main() {
 	http.HandleFunc("/wall", wrapper(WallCollab(collabConfig, store, walls)))
 	http.Handle("/static/", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
 	log.Fatal(http.ListenAndServe(":9999", nil))
+}
+
+func loadTestUser(db *Store, users CreateUser) {
+	id := xid.New()
+	email := Email("alice@example.com")
+	password, _ := Password("abc").HashPassword()
+	u := User{id, email, password, "alice"}
+	err := db.Update(func(txn *Txn) error {
+		return users.CreateUser(txn, &u)
+	})
+	if err != nil {
+		panic("failed to create test user")
+	}
 }

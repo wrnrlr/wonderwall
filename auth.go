@@ -1,6 +1,8 @@
 package main
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+)
 
 type EmailForm struct{ Email Email }
 

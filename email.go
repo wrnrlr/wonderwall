@@ -23,6 +23,8 @@ type Email string
 
 func (e Email) valid() bool { return len(e) > 3 && len(e) < 255 && emailRegex.MatchString(string(e)) }
 
+func (e Email) String() string { return string(e) }
+
 type SendEmail interface {
 	SendEmail(name string, email Email, i interface{}) error
 }

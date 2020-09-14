@@ -85,7 +85,7 @@ func (f RegistrationForm) validate() error {
 	return nil
 }
 
-func PostRegistration(db *Store, registrations CreateRegistration, users FindUserByEmail, emails *EmailClient) http.HandlerFunc {
+func PostRegistration(db *Store, registrations CreateRegistration, users FindUserByEmail, emails SendEmail) http.HandlerFunc {
 
 	type ActivateMsg struct {
 		Name   string

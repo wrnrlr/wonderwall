@@ -66,7 +66,7 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 				}
 				return emailNotRegistered
 			}
-			s, err = sessions.CreateSession(txn, u.ID)
+			s, err = sessions.CreateSession(txn, u.ID.String())
 			if err != nil {
 				return err
 			}
