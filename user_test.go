@@ -1,4 +1,4 @@
-package main
+package wonderwall
 
 import (
 	"github.com/dgraph-io/badger/v2"
@@ -50,9 +50,16 @@ func TestUsers(t *testing.T) {
 		})
 		return
 	}
-	_, err = findUserByEmail("")
+	_, err = findUserByEmail("bob@example.com")
 	assert.Equal(t, err, badger.ErrKeyNotFound)
 	u2, err := findUserByEmail(u.Email)
 	assert.Nil(t, err)
 	assert.True(t, u.Eq(u2))
+	deleteUser := func(u *User) error {
+		return store.Update(func(txn *badger.Txn) error {
+			return users.DeleteUser(txn, u)
+		})
+	}
+	assert.Equal(t, deleteUser(mockUser("bob", "bob@example.com", "Hello1234!")), badger.ErrKeyNotFound)
+	assert.Nil(t, deleteUser(u))
 }

@@ -1,4 +1,4 @@
-package main
+package wonderwall
 
 import (
 	"github.com/dgraph-io/badger/v2"

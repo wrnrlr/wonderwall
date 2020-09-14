@@ -1,4 +1,4 @@
-package main
+package wonderwall
 
 import "time"
 
