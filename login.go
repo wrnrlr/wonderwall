@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
+
+	"github.com/alexedwards/scs/v2"
 )
 
 type LoginForm struct {
@@ -24,26 +26,23 @@ func (f LoginForm) validate() error {
 var emailNotVerifiedErr = errors.New("email not verified")
 var emailNotRegistered = errors.New("email not registered")
 
-func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationByEmail, sessions CreateSession, emails SendEmail) http.HandlerFunc {
-
+func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationByEmail, sessionManager *scs.SessionManager, emails SendEmail) http.HandlerFunc {
 	origin := "http://localhost:9999"
-
 	type LoginMsg struct {
 		Name   string
 		Origin string
 	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			f   LoginForm
 			u   *User
 			reg *Registration
-			s   *Session
+			//s   *Session
 			err error
 		)
-		if !ContentType(applicationJson, w, r) {
-			return
-		}
+		//if !ContentType(applicationJson, w, r) {
+		//	return
+		//}
 		if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -57,7 +56,7 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 			if err != nil {
 				return err
 			}
-			if u != nil {
+			if u == nil {
 				reg, err = registrations.FindRegistrationByEmail(txn, f.Email)
 				if err != nil {
 					return err
@@ -66,10 +65,11 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 				}
 				return emailNotRegistered
 			}
-			s, err = sessions.CreateSession(txn, u.ID.String())
-			if err != nil {
-				return err
-			}
+			// TODO store session
+			//s, err = sessions.CreateSession(txn, u.ID.String())
+			//if err != nil {
+			//	return err
+			//}
 			return nil
 		})
 		if err == emailNotVerifiedErr || err == emailNotRegistered {
@@ -79,12 +79,29 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// Renew token to prevent session fixation
+		//err = sessionManager.RenewToken(r.Context())
+		//if err != nil {
+		//	http.Error(w, err.Error(), 500)
+		//	return
+		//}
+		// Then make the privilege-level change.
+		//sessionManager.Put(r.Context(), "userID", u.ID.String())
+		//msg := &LoginMsg{Name: u.Name, Origin: origin}
+		//emails.SendEmail("login", u.Email, msg)
+
 		expiration := time.Now().Add(30 * 24 * time.Hour)
-		cookie := http.Cookie{Name: "session", Value: string(s.ID), Expires: expiration}
+		cookie := http.Cookie{Name: "session", Value: string("hello"), Expires: expiration}
 		http.SetCookie(w, &cookie)
 
-		// TODO send new login email
-		msg := &LoginMsg{Name: u.Name, Origin: origin}
-		emails.SendEmail("login", u.Email, msg)
+		http.Redirect(w, r, origin+"/walls", http.StatusFound)
+	}
+}
+
+func Logout(sessionManager *scs.SessionManager) http.HandlerFunc {
+	origin := "http://localhost:9999"
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionManager.Remove(r.Context(), "userID")
+		http.Redirect(w, r, origin, http.StatusFound)
 	}
 }

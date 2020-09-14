@@ -2,12 +2,15 @@ package wonderwall
 
 import (
 	"fmt"
-	"github.com/dgraph-io/badger/v2"
-	"github.com/rs/xid"
+
 	"html/template"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/dgraph-io/badger/v2"
+	"github.com/rs/xid"
 )
 
 var (
@@ -55,6 +58,9 @@ func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
 }
 
 func StartServer() {
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 15 * 24 * time.Hour
+
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	if err != nil {
 		panic("failed to create test user")
@@ -62,7 +68,6 @@ func StartServer() {
 	store := &Store{db}
 	users := &Users{}
 	registrations := &Registrations{}
-	sessions := &Sessions{}
 	emails := NewEmailPrinter("http://localhost:9999")
 	walls := &Walls{}
 	collabConfig := CollabConfig{Debug: false, Workers: 10, Queue: 20, IOTimeout: time.Second * 5}
@@ -70,7 +75,8 @@ func StartServer() {
 	LoadTestUser(store, users)
 
 	postRegistration := PostRegistration(store, registrations, users, emails)
-	loginHandler := PostLogin(store, users, registrations, sessions, emails)
+	loginHandler := PostLogin(store, users, registrations, sessionManager, emails)
+	logoutHandler := Logout(sessionManager)
 	postForgotPassword := PostForgotPassword(store, users)
 	postVerifyEmail := PostVerifyEmail(store, registrations, users)
 	getRegistration := RenderTemplate("join")
@@ -83,7 +89,7 @@ func StartServer() {
 
 	http.HandleFunc("/join", wrapper(GetPostRouter(getRegistration, postRegistration)))
 	http.HandleFunc("/login", wrapper(GetPostRouter(RenderTemplate("login"), loginHandler)))
-	http.HandleFunc("/logout", wrapper(RenderTemplate("logout")))
+	http.HandleFunc("/logout", wrapper(logoutHandler))
 	http.HandleFunc("/verify-email", wrapper(GetPostRouter(RenderTemplate("verify-email"), postVerifyEmail)))
 	http.HandleFunc("/forgot-password", wrapper(GetPostRouter(RenderTemplate("forgot-password"), postForgotPassword)))
 	http.HandleFunc("/reset-password", wrapper(GetPostRouter(RenderTemplate("reset-password"), postRegistration)))
@@ -96,7 +102,7 @@ func StartServer() {
 func LoadTestUser(db *Store, users CreateUser) {
 	id := xid.New()
 	email := Email("alice@example.com")
-	password, _ := Password("abc").HashPassword()
+	password, _ := Password("Abcd1234").HashPassword()
 	u := User{id, email, password, "alice"}
 	err := db.Update(func(txn *Txn) error {
 		return users.CreateUser(txn, &u)
