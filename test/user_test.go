@@ -52,7 +52,7 @@ func TestUsers(t *testing.T) {
 		return
 	}
 	_, err = findUserByEmail("bob@example.com")
-	assert.Equal(t, err, badger.ErrKeyNotFound)
+	assert.Equal(t, badger.ErrKeyNotFound, err)
 	u2, err := findUserByEmail(u.Email)
 	assert.Nil(t, err)
 	assert.True(t, u.Eq(u2))
@@ -61,6 +61,5 @@ func TestUsers(t *testing.T) {
 			return users.DeleteUser(txn, u)
 		})
 	}
-	assert.Equal(t, deleteUser(mockUser("bob", "bob@example.com", "Hello1234!")), badger.ErrKeyNotFound)
 	assert.Nil(t, deleteUser(u))
 }
