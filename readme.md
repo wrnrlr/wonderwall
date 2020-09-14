@@ -2,6 +2,14 @@
 
 ## Dev Server
 
+Install js dependencies
+
+```bash
+npm install
+```
+
+build js assets
+
 ```bash
 webpack --env.NODE_ENV=local --progress
 
