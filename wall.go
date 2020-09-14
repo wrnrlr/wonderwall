@@ -1,6 +1,8 @@
 package wonderwall
 
-import ()
+import (
+	"net/http"
+)
 
 type Wall struct {
 	ID      string        `json:"id"`
@@ -38,3 +40,27 @@ func (w Walls) CreateWall(*Txn, *User) (*Wall, error)    { return nil, nil }
 func (w Walls) FindWallById(*Txn, string) (*Wall, error) { return nil, nil }
 func (w Walls) UpdateWall(*Txn, *Wall) error             { return nil }
 func (w Walls) DeleteWall(*Txn, *Wall) error             { return nil }
+
+func GetWall(security Auth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func PostWallHandler(security Auth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func PatchWallHandler(security Auth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func DeleteWallHandler(security Auth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}

@@ -2,6 +2,7 @@ package wonderwall
 
 import (
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 
 	"html/template"
 	"log"
@@ -70,6 +71,7 @@ func StartServer() {
 	registrations := &Registrations{}
 	emails := NewEmailPrinter("http://localhost:9999")
 	walls := &Walls{}
+	security := Auth{}
 	collabConfig := CollabConfig{Debug: false, Workers: 10, Queue: 20, IOTimeout: time.Second * 5}
 
 	LoadTestUser(store, users)
@@ -79,24 +81,41 @@ func StartServer() {
 	logoutHandler := Logout(sessionManager)
 	postForgotPassword := PostForgotPassword(store, users)
 	postVerifyEmail := PostVerifyEmail(store, registrations, users)
-	getRegistration := RenderTemplate("join")
 
 	wrapper := noCacheMiddleware
 
-	http.HandleFunc("/", wrapper(RenderTemplate("index")))
-	http.HandleFunc("/sandbox", wrapper(RenderTemplate("sandbox")))
-	http.HandleFunc("/terms", wrapper(RenderTemplate("terms")))
+	router := httprouter.New()
 
-	http.HandleFunc("/join", wrapper(GetPostRouter(getRegistration, postRegistration)))
-	http.HandleFunc("/login", wrapper(GetPostRouter(RenderTemplate("login"), loginHandler)))
-	http.HandleFunc("/logout", wrapper(logoutHandler))
-	http.HandleFunc("/verify-email", wrapper(GetPostRouter(RenderTemplate("verify-email"), postVerifyEmail)))
-	http.HandleFunc("/forgot-password", wrapper(GetPostRouter(RenderTemplate("forgot-password"), postForgotPassword)))
-	http.HandleFunc("/reset-password", wrapper(GetPostRouter(RenderTemplate("reset-password"), postRegistration)))
+	router.HandlerFunc("GET", "/", wrapper(RenderTemplate("index")))
+	router.HandlerFunc("GET", "/sandbox", wrapper(RenderTemplate("sandbox")))
+	router.HandlerFunc("GET", "/terms", wrapper(RenderTemplate("terms")))
 
-	http.HandleFunc("/wall", wrapper(WallCollab(collabConfig, store, walls)))
-	http.Handle("/static/", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
-	log.Fatal(http.ListenAndServe(":9999", nil))
+	router.HandlerFunc("GET", "/join", wrapper(RenderTemplate("join")))
+	router.HandlerFunc("POST", "/join", wrapper(postRegistration))
+
+	router.HandlerFunc("GET", "/login", wrapper(RenderTemplate("login")))
+	router.HandlerFunc("POST", "/login", wrapper(loginHandler))
+
+	router.HandlerFunc("GET", "/logout", wrapper(logoutHandler))
+
+	router.HandlerFunc("GET", "/verify-email", wrapper(RenderTemplate("verify-email")))
+	router.HandlerFunc("POST", "/verify-email", wrapper(postVerifyEmail))
+
+	router.HandlerFunc("GET", "/forgot-password", wrapper(RenderTemplate("forgot-password")))
+	router.HandlerFunc("POST", "/forgot-password", wrapper(postForgotPassword))
+
+	router.HandlerFunc("GET", "/reset-password", wrapper(RenderTemplate("reset-password")))
+	router.HandlerFunc("POST", "/reset-password", wrapper(postRegistration))
+
+	router.HandlerFunc("GET", "/wall", wrapper(WallCollab(collabConfig, store, walls)))
+	router.HandlerFunc("POST", "/wall", wrapper(PostWallHandler(security)))
+	router.HandlerFunc("GET", "/wall/:id", wrapper(WallCollab(collabConfig, store, walls)))
+	router.HandlerFunc("PATCH", "/wall/:id", wrapper(PatchWallHandler(security)))
+	router.HandlerFunc("DELETE", "/wall/:id", wrapper(DeleteWallHandler(security)))
+
+	router.HandlerFunc("GET", "/static/*filepath", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
+
+	log.Fatal(http.ListenAndServe(":9999", router))
 }
 
 func LoadTestUser(db *Store, users CreateUser) {
