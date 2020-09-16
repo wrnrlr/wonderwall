@@ -1,72 +1,24 @@
 package wonderwall
 
 import (
-	"fmt"
-	"github.com/julienschmidt/httprouter"
-
-	"html/template"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/dgraph-io/badger/v2"
+	"github.com/julienschmidt/httprouter"
 	"github.com/rs/xid"
 )
-
-var (
-	applicationJson = "application/json"
-)
-
-func ContentType(t string, w http.ResponseWriter, r *http.Request) bool {
-	if r.Header.Get("Content-Type") != t {
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		return false
-	} else {
-		return true
-	}
-}
-
-func writeTmpl(w http.ResponseWriter, name string, i interface{}) {
-	indexTmpl, err := template.ParseFiles(fmt.Sprintf("./template/%s.html", name))
-	if err != nil {
-		panic(err)
-	}
-	if err = indexTmpl.Execute(w, nil); err != nil {
-		panic(err)
-	}
-}
-
-func writeError(w http.ResponseWriter, err error) {
-	writeTmpl(w, "500", err)
-	w.WriteHeader(500)
-}
-
-func RenderTemplate(name string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		writeTmpl(w, name, nil)
-	}
-}
-
-func GetPostRouter(get, post http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			get(w, r)
-		} else if r.Method == "POST" {
-			post(w, r)
-		}
-	}
-}
 
 func StartServer() {
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 15 * 24 * time.Hour
 
-	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
+	store, err := NewStore(StoreConfig{"", true})
 	if err != nil {
 		panic("failed to create test user")
 	}
-	store := &Store{db}
+
 	users := &Users{}
 	registrations := &Registrations{}
 	emails := NewEmailPrinter("http://localhost:9999")
@@ -107,7 +59,7 @@ func StartServer() {
 	router.HandlerFunc("GET", "/reset-password", wrapper(RenderTemplate("reset-password")))
 	router.HandlerFunc("POST", "/reset-password", wrapper(postRegistration))
 
-	router.HandlerFunc("GET", "/wall", wrapper(WallCollab(collabConfig, store, walls)))
+	router.HandlerFunc("GET", "/wall", wrapper(GetWallHandler(security)))
 	router.HandlerFunc("POST", "/wall", wrapper(PostWallHandler(security)))
 	router.HandlerFunc("GET", "/wall/:id", wrapper(WallCollab(collabConfig, store, walls)))
 	router.HandlerFunc("PATCH", "/wall/:id", wrapper(PatchWallHandler(security)))
@@ -122,7 +74,7 @@ func LoadTestUser(db *Store, users CreateUser) {
 	id := xid.New()
 	email := Email("alice@example.com")
 	password, _ := Password("Abcd1234").HashPassword()
-	u := User{id, email, password, "alice"}
+	u := User{ID: id, Email: email, PasswordHash: password, Name: "alice"}
 	err := db.Update(func(txn *Txn) error {
 		return users.CreateUser(txn, &u)
 	})
