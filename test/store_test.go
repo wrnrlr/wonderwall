@@ -29,7 +29,7 @@ func TestStore(t *testing.T) {
 	s := MemStore()
 	assert.Nil(t, s.Update(func(txn *Txn) error { return s.Set(txn, &o1) }))
 	assert.Nil(t, s.Update(func(txn *Txn) error { return s.Set(txn, &o2) }))
-	assert.Nil(t, s.View(func(txn *Txn) error { return s.Index(txn, Key("obj:"), &keys) }))
+	assert.Nil(t, s.View(func(txn *Txn) error { return s.Keys(txn, Key("obj:"), &keys) }))
 	assert.Equal(t, 2, len(keys))
 	assert.Nil(t, s.View(func(txn *Txn) error { return s.Get(txn, o1.Key(), &o1Copy) }))
 	assert.Nil(t, s.View(func(txn *Txn) error { return s.Get(txn, o2.Key(), &o2Copy) }))
@@ -39,6 +39,6 @@ func TestStore(t *testing.T) {
 	assert.Nil(t, s.Update(func(txn *Txn) error { return s.Delete(txn, o2.Key()) }))
 	assert.NotNil(t, s.View(func(txn *Txn) error { return s.Get(txn, o2.Key(), &dummy) }))
 	keys = nil
-	assert.Nil(t, s.View(func(txn *Txn) error { return s.Index(txn, Key("obj:"), &keys) }))
+	assert.Nil(t, s.View(func(txn *Txn) error { return s.Keys(txn, Key("obj:"), &keys) }))
 	assert.Equal(t, 1, len(keys))
 }
