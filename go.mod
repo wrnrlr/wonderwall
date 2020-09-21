@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/alexedwards/scs/v2 v2.4.0
+	github.com/blevesearch/bleve v1.0.10
 	github.com/dgraph-io/badger v1.6.2
 	github.com/dgraph-io/badger/v2 v2.2007.1
 	github.com/gobwas/httphead v0.0.0-20180130184737-2c6c146eadee // indirect
