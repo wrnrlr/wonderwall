@@ -3,6 +3,9 @@ package daabbt
 
 import (
 	"gioui.org/f32"
+	"gioui.org/layout"
+	"github.com/Almanax/wonderwall/wonder/shape"
+	"image/color"
 )
 
 var (
@@ -94,7 +97,7 @@ func (n *Node) Remove(b Bounded) bool {
 
 // Split into four
 func (n *Node) quarter() {
-	if n.isEmpty() {
+	if !n.isEmpty() {
 		return
 	}
 	min, max := n.boundary.Min, n.boundary.Max
@@ -183,4 +186,14 @@ func (n *Node) knearest(p f32.Point, k int, v map[*Node]bool, fn Filter) (result
 		results = results[:k]
 	}
 	return results
+}
+
+func (n *Node) Draw(gtx layout.Context) {
+	shape.Rectangle(n.boundary).Stroke(color.RGBA{255, 182, 193, 255}, float32(2), gtx)
+	if n.children[0] != nil {
+		n.children[0].Draw(gtx)
+		n.children[1].Draw(gtx)
+		n.children[2].Draw(gtx)
+		n.children[3].Draw(gtx)
+	}
 }

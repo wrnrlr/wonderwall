@@ -1,16 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/gesture"
+	"gioui.org/io/pointer"
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/Almanax/wonderwall/wonder/daabbt"
 	"github.com/Almanax/wonderwall/wonder/ui"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"
@@ -42,14 +44,6 @@ var (
 	redoIcon   = loadIcon(icons.ContentRedo)
 )
 
-func loadIcon(b []byte) *widget.Icon {
-	icon, err := widget.NewIcon(b)
-	if err != nil {
-		panic(err)
-	}
-	return icon
-}
-
 func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
@@ -69,13 +63,16 @@ type App struct {
 
 	toolbar *Toolbar
 
-	pen  *Pen
-	text *Text
+	selection *Selection
+	pen       *Pen
+	text      *Text
 
 	penConfig *PenConfig
 
-	lines []Line
-	texts []Text
+	windowSize image.Point
+	tree       *daabbt.Node
+	lines      []*Line
+	texts      []Text
 }
 
 func NewApp() *App {
@@ -84,10 +81,12 @@ func NewApp() *App {
 	return &App{
 		theme:     theme,
 		toolbar:   NewToolbar(theme),
+		selection: new(Selection),
 		pen:       new(Pen),
 		text:      new(Text),
 		penConfig: penConfig,
-		lines:     []Line{{[]f32.Point{f32.Pt(150, 150), f32.Pt(500, 500)}}},
+		tree:      nil,
+		lines:     nil,
 	}
 }
 
@@ -108,14 +107,21 @@ func (a *App) loop(w *app.Window) error {
 }
 
 func (a *App) Event(gtx C) {
+	size := gtx.Constraints.Max
+	if a.windowSize.X != size.X || a.windowSize.Y != size.Y {
+		a.windowSize = size
+		a.tree = daabbt.NewTree(f32.Rect(0, 0, float32(size.X), float32(size.Y)))
+	}
 	switch a.toolbar.Tool {
 	case SelectionTool:
-		//for _, l := range a.lines {
-		//	shape.Line{Points: l.points, Color: a.penConfig.StrokeColor, Width:float32(a.penConfig.StrokeSize)}.Hit(gtx)
-		//}
+		if e := a.selection.Event(a.tree, gtx); e != nil {
+			fmt.Printf("Selection event: %v", e)
+		}
 	case PenTool:
 		if e := a.pen.Event(gtx); e != nil {
-			a.lines = append(a.lines, Line{e})
+			l := &Line{Points: e, Width: float32(a.penConfig.StrokeSize)}
+			a.lines = append(a.lines, l)
+			l.Register(a.tree)
 		}
 	case TextTool:
 	default:
@@ -132,11 +138,7 @@ func (a *App) Layout(gtx C) D {
 		return D{Size: max}
 	})
 	dims := stack.Layout(gtx, canvas, toolbar)
-	if a.toolbar.Tool == SelectionTool {
-		for i := range a.lines {
-			a.lines[i].Event(a.penConfig, gtx)
-		}
-	}
+	a.tree.Draw(gtx)
 	return dims
 }
 
@@ -144,9 +146,38 @@ func (a *App) Draw(gtx C) {
 	for i := range a.lines {
 		a.lines[i].Draw(a.penConfig, gtx)
 	}
+	if a.toolbar.Tool == SelectionTool {
+		for i := range a.lines {
+			a.lines[i].boxes(gtx)
+		}
+	}
 }
 
-type Selection struct{}
+type Selection struct {
+	events []f32.Point
+}
+
+func (s *Selection) Event(tree *daabbt.Node, gtx C) []f32.Point {
+	defer op.Push(gtx.Ops).Pop()
+	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
+	for _, e := range gtx.Events(s) {
+		e, ok := e.(pointer.Event)
+		if !ok {
+			continue
+		}
+		switch e.Type {
+		case pointer.Press:
+			results := tree.KNearest(e.Position, 10, func(p f32.Point) bool {
+				return true
+			})
+			fmt.Printf("results: %v\n", results)
+		case pointer.Drag:
+		case pointer.Release, pointer.Cancel:
+		}
+	}
+	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
+	return nil
+}
 
 type Text struct {
 	pointer gesture.Click

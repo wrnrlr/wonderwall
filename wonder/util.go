@@ -2,6 +2,7 @@ package main
 
 import (
 	"gioui.org/f32"
+	"gioui.org/widget"
 	"image"
 	"math"
 )
@@ -9,6 +10,14 @@ import (
 const (
 	rad90 = float32(90 * math.Pi / 180)
 )
+
+func loadIcon(b []byte) *widget.Icon {
+	icon, err := widget.NewIcon(b)
+	if err != nil {
+		panic(err)
+	}
+	return icon
+}
 
 func boundingBox(points []f32.Point) (box f32.Rectangle) {
 	box.Min, box.Max = points[0], points[0]
