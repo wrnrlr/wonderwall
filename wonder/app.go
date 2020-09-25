@@ -11,9 +11,9 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/daabbt"
 	"github.com/Almanax/wonderwall/wonder/ui"
+	"github.com/rs/xid"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"
 	"image/color"
@@ -44,9 +44,12 @@ var (
 	redoIcon   = loadIcon(icons.ContentRedo)
 )
 
+var theme *ui.Theme
+
 func main() {
+	theme = ui.MenuTheme(gofont.Collection())
 	go func() {
-		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
+		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)), app.Title("Wonderwall"))
 		a := NewApp()
 		if err := a.loop(w); err != nil {
 			log.Fatal(err)
@@ -56,99 +59,88 @@ func main() {
 	app.Main()
 }
 
+type Env struct {
+	insets layout.Inset
+	client *Client
+	redraw func()
+}
+
 type App struct {
-	theme         *material.Theme
-	disabledTheme *material.Theme
-	activeTheme   *material.Theme
+	theme *ui.Theme
+	w     *app.Window
+	env   Env
 
-	toolbar *Toolbar
-
-	selection *Selection
-	pen       *Pen
-	text      *Text
-
-	penConfig *PenConfig
-
-	windowSize image.Point
-	tree       *daabbt.Node
-	lines      []*Line
-	texts      []Text
+	stack pageStack
 }
 
 func NewApp() *App {
-	theme := ui.CustomTheme(gofont.Collection())
-	penConfig := &PenConfig{StrokeSize: 10, StrokeColor: maroon}
-	return &App{
-		theme:     theme,
-		toolbar:   NewToolbar(theme),
-		selection: new(Selection),
-		pen:       new(Pen),
-		text:      new(Text),
-		penConfig: penConfig,
-		tree:      nil,
-		lines:     nil,
-	}
+	theme := ui.MenuTheme(gofont.Collection())
+	a := &App{theme: theme}
+	a.env.redraw = a.w.Invalidate
+	return a
 }
 
 func (a *App) loop(w *app.Window) error {
+	var updates <-chan struct{}
 	var ops op.Ops
 	for {
-		e := <-w.Events()
+		select {
+		case <-updates:
+			fmt.Println("Updates...")
+		case e := <-w.Events():
+			switch e := e.(type) {
+			case system.DestroyEvent:
+				return e.Err
+			case system.StageEvent:
+				if e.Stage >= system.StageRunning {
+					//if a.env.client == nil {
+					//	a.env.client = getClient()
+					//	updates = a.env.client.register(a)
+					//	defer a.env.client.unregister(a)
+					//}
+					if a.stack.Len() == 0 {
+						a.stack.Push(NewLoginPage(&a.env))
+					}
+				}
+			case *system.CommandEvent:
+				switch e.Type {
+				case system.CommandBack:
+					if a.stack.Len() > 1 {
+						a.stack.Pop()
+						e.Cancel = true
+						a.w.Invalidate()
+					}
+				}
+			case system.FrameEvent:
+				gtx := layout.NewContext(&ops, e)
+				a.Layout(gtx)
+				e.Frame(gtx.Ops)
+			}
+		}
+	}
+}
+
+func (a *App) Layout(gtx C) {
+	a.update(gtx)
+	a.stack.Current().Layout(gtx)
+}
+
+func (a *App) update(gtx layout.Context) {
+	page := a.stack.Current()
+	if e := page.Event(gtx); e != nil {
 		switch e := e.(type) {
-		case system.DestroyEvent:
-			return e.Err
-		case system.FrameEvent:
-			gtx := layout.NewContext(&ops, e)
-			a.Event(gtx)
-			a.Layout(gtx)
-			e.Frame(gtx.Ops)
-		}
-	}
-}
-
-func (a *App) Event(gtx C) {
-	size := gtx.Constraints.Max
-	if a.windowSize.X != size.X || a.windowSize.Y != size.Y {
-		a.windowSize = size
-		a.tree = daabbt.NewTree(f32.Rect(0, 0, float32(size.X), float32(size.Y)))
-	}
-	switch a.toolbar.Tool {
-	case SelectionTool:
-		if e := a.selection.Event(a.tree, gtx); e != nil {
-			fmt.Printf("Selection event: %v", e)
-		}
-	case PenTool:
-		if e := a.pen.Event(gtx); e != nil {
-			l := &Line{Points: e, Width: float32(a.penConfig.StrokeSize)}
-			a.lines = append(a.lines, l)
-			l.Register(a.tree)
-		}
-	case TextTool:
-	default:
-	}
-}
-
-func (a *App) Layout(gtx C) D {
-	stack := layout.Stack{}
-	toolbar := layout.Stacked(a.toolbar.Layout)
-	canvas := layout.Expanded(func(gtx C) D {
-		a.Draw(gtx)
-		a.pen.Draw(gtx, a.penConfig)
-		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
-		return D{Size: max}
-	})
-	dims := stack.Layout(gtx, canvas, toolbar)
-	a.tree.Draw(gtx)
-	return dims
-}
-
-func (a *App) Draw(gtx C) {
-	for i := range a.lines {
-		a.lines[i].Draw(a.penConfig, gtx)
-	}
-	if a.toolbar.Tool == SelectionTool {
-		for i := range a.lines {
-			a.lines[i].boxes(gtx)
+		case BackEvent:
+			a.stack.Pop()
+		case LoginEvent:
+			fmt.Println("LoginEvent")
+			//a.env.client.SetAccount(e.Account)
+			a.stack.Clear(NewWallPage(&a.env, xid.New()))
+		case ShowWallListEvent:
+			fmt.Println("Show Wall List")
+			a.stack.Swap(NewWallListPage(&a.env))
+		case ShowWallEvent:
+			fmt.Println("Show Wall")
+			a.stack.Swap(NewWallPage(&a.env, e.WallID))
 		}
 	}
 }

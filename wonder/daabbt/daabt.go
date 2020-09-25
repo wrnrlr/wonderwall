@@ -189,6 +189,9 @@ func (n *Node) knnLeaf(p f32.Point, k int, v map[*Node]bool, fn Filter) (results
 }
 
 func (n *Node) Draw(gtx layout.Context) {
+	if n == nil {
+		return
+	}
 	shape.Rectangle(n.boundary).Stroke(color.RGBA{255, 182, 193, 255}, float32(2), gtx)
 	if n.children[0] != nil {
 		n.children[0].Draw(gtx)

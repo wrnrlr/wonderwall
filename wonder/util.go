@@ -65,3 +65,7 @@ func imageRect(r f32.Rectangle) image.Rectangle {
 	x2, y2 := int(r.Max.X), int(r.Max.Y)
 	return image.Rect(x1, y1, x2, y2)
 }
+
+func toPointF(p image.Point) f32.Point {
+	return f32.Point{X: float32(p.X), Y: float32(p.Y)}
+}

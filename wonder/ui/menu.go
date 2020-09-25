@@ -54,7 +54,7 @@ type ItemStyle struct {
 	// Color is the icon color.
 	Color color.RGBA
 	Icon  *widget.Icon
-	// Size is the icon size.
+	// Size is the icon Size.
 	Size   unit.Value
 	Inset  layout.Inset
 	Button *widget.Clickable
@@ -123,13 +123,13 @@ type IconButtonStyle struct {
 	// Color is the icon color.
 	Color color.RGBA
 	Icon  *widget.Icon
-	// Size is the icon size.
+	// Size is the icon Size.
 	Size   unit.Value
 	Inset  layout.Inset
 	Button *widget.Clickable
 }
 
-func Button(th *material.Theme, button *widget.Clickable, txt string) ButtonStyle {
+func Button(th *Theme, button *widget.Clickable, txt string) ButtonStyle {
 	return ButtonStyle{
 		Text:         txt,
 		Color:        Rgb(0xffffff),
@@ -350,7 +350,7 @@ func drawInk(gtx layout.Context, c widget.Press) {
 	}
 	// Cover the entire constraints min rectangle.
 	size *= 2 * float32(math.Sqrt(2))
-	// Apply curve values to size and color.
+	// Apply curve values to Size and color.
 	size *= sizeBezier
 	alpha := 0.7 * alphaBezier
 	const col = 0.8
