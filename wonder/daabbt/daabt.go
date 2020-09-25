@@ -132,7 +132,7 @@ func (n *Node) kNearestRoot(p f32.Point, k int, v map[*Node]bool, fn Filter) (re
 	}
 	// hit the leaf
 	if n.children[0] == nil {
-		results = append(results, n.knearest(p, k, v, fn)...)
+		results = append(results, n.knnLeaf(p, k, v, fn)...)
 		if len(results) >= k {
 			results = results[:k]
 		}
@@ -150,7 +150,7 @@ func (n *Node) kNearestRoot(p f32.Point, k int, v map[*Node]bool, fn Filter) (re
 	return results
 }
 
-func (n *Node) knearest(p f32.Point, k int, v map[*Node]bool, fn Filter) (results []Bounded) {
+func (n *Node) knnLeaf(p f32.Point, k int, v map[*Node]bool, fn Filter) (results []Bounded) {
 	if _, ok := v[n]; ok {
 		return results
 	} else {
@@ -169,7 +169,7 @@ func (n *Node) knearest(p f32.Point, k int, v map[*Node]bool, fn Filter) (result
 	}
 	if n.children[0] != nil {
 		for _, node := range n.children {
-			results = append(results, node.knearest(p, k, v, fn)...)
+			results = append(results, node.knnLeaf(p, k, v, fn)...)
 			if len(results) >= k {
 				return results[:k]
 			}
@@ -181,7 +181,7 @@ func (n *Node) knearest(p f32.Point, k int, v map[*Node]bool, fn Filter) (result
 	if n.parent == nil {
 		return results
 	}
-	results = append(results, n.parent.knearest(p, k, v, fn)...)
+	results = append(results, n.parent.knnLeaf(p, k, v, fn)...)
 	if len(results) >= k {
 		results = results[:k]
 	}
