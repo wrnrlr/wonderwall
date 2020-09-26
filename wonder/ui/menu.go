@@ -38,7 +38,7 @@ func (m MenuStyle) Layout(gtx C, widgets ...layout.Widget) D {
 	return f.Layout(gtx, children...)
 }
 
-func Item(th *material.Theme, button *widget.Clickable, icon *widget.Icon) ItemStyle {
+func Item(th *Theme, button *widget.Clickable, icon *widget.Icon) ItemStyle {
 	return ItemStyle{
 		Background: th.Color.Primary,
 		Color:      th.Color.InvText,
@@ -132,7 +132,7 @@ type IconButtonStyle struct {
 func Button(th *Theme, button *widget.Clickable, txt string) ButtonStyle {
 	return ButtonStyle{
 		Text:         txt,
-		Color:        Rgb(0xffffff),
+		Color:        th.Color.Text,
 		CornerRadius: unit.Dp(4),
 		Background:   th.Color.Primary,
 		TextSize:     th.TextSize.Scale(14.0 / 16.0),

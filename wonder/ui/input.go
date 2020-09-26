@@ -6,11 +6,10 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"gioui.org/widget/material"
 	"image/color"
 )
 
-func InputNumber(th *material.Theme, editor *widget.Editor) *Input {
+func InputNumber(th *Theme, editor *widget.Editor) *Input {
 	return &Input{
 		Editor:    editor,
 		TextSize:  th.TextSize,

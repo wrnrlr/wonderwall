@@ -6,7 +6,6 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"gioui.org/widget/material"
 	"image"
 	"image/color"
 )
@@ -20,7 +19,7 @@ type ColorPicker struct {
 	Color color.RGBA
 }
 
-func Color(th *material.Theme, button *widget.Clickable) ColorPicker {
+func Color(th *Theme, button *widget.Clickable) ColorPicker {
 	return ColorPicker{
 		Background: th.Color.Primary,
 		Color:      th.Color.InvText,
