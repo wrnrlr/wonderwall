@@ -38,6 +38,12 @@ func (m MenuStyle) Layout(gtx C, widgets ...layout.Widget) D {
 	return f.Layout(gtx, children...)
 }
 
+func Title(th *Theme, txt string, gtx C) D {
+	return layout.UniformInset(unit.Dp(12)).Layout(gtx, func(gtx C) D {
+		return Label(th, unit.Dp(24), txt).Layout(gtx)
+	})
+}
+
 func Item(th *Theme, button *widget.Clickable, icon *widget.Icon) ItemStyle {
 	return ItemStyle{
 		Background: th.Color.Primary,

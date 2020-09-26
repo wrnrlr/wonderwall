@@ -25,7 +25,7 @@ func NewAddWallPage(env *Env) *AddWallPage {
 	p := &AddWallPage{
 		env:    env,
 		list:   &layout.List{Axis: layout.Vertical},
-		topbar: &Topbar{Back: true},
+		topbar: NewTopbar(true),
 		fields: []*Field{
 			{Header: "Workspace", Hint: "", Value: &form.Workspace},
 			{Header: "Title", Hint: "", Value: &form.Title}},
@@ -65,7 +65,7 @@ func (p *AddWallPage) Layout(gtx C) D {
 func (p *AddWallPage) LayoutMenu(gtx C) D {
 	return layout.Flex{}.Layout(gtx,
 		layout.Flexed(1, func(gtx C) D {
-			return ui.Label(theme, unit.Dp(22), "New Wall").Layout(gtx)
+			return ui.Title(theme, "New Wall", gtx)
 		}))
 }
 

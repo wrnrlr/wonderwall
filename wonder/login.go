@@ -13,6 +13,7 @@ type LoginPage struct {
 	fields  []*Field
 	submit  *widget.Clickable
 	account *Account
+	topbar  *Topbar
 }
 
 func NewLoginPage(env *Env) *LoginPage {
@@ -23,7 +24,8 @@ func NewLoginPage(env *Env) *LoginPage {
 		fields: []*Field{
 			{Header: "Email address", Hint: "you@example.org", Value: &account.User},
 			{Header: "Password", Hint: "correct horse battery staple", Value: &account.Password}},
-		submit: &widget.Clickable{}}
+		submit: &widget.Clickable{},
+		topbar: NewTopbar(true)}
 	for _, f := range p.fields {
 		f.env = p.env
 		f.edit = &widget.Editor{
@@ -51,8 +53,7 @@ func (p *LoginPage) Layout(gtx C) D {
 		layout.Rigid(func(gtx C) D {
 			var t Topbar
 			return t.Layout(gtx, p.env.insets, func(gtx C) D {
-				lbl := ui.H6(theme, "Sign in")
-				return lbl.Layout(gtx)
+				return ui.Title(theme, "Login", gtx)
 			})
 		}),
 		layout.Flexed(1, p.layoutSigninForm),

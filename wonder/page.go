@@ -2,18 +2,11 @@ package main
 
 import (
 	"gioui.org/f32"
-	"gioui.org/gesture"
-	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/unit"
-	"gioui.org/widget"
 	"github.com/Almanax/wonderwall/wonder/ui"
-	"github.com/rs/xid"
-	"golang.org/x/exp/shiny/materialdesign/icons"
-	"image"
 	"image/color"
 	"math"
 	"time"
@@ -150,99 +143,6 @@ func (s *pageStack) Clear(p Page) {
 	s.Push(p)
 }
 
-type WallListPage struct {
-	env     *Env
-	newWall *widget.Clickable
-	updates <-chan struct{}
-
-	list *layout.List
-
-	topbar *Topbar
-	walls  []interface{}
-	clicks []gesture.Click
-}
-
-func NewWallListPage(env *Env) *WallListPage {
-	clicks := make([]gesture.Click, len(sampleWalls))
-	return &WallListPage{
-		env:     env,
-		newWall: &widget.Clickable{},
-		list:    &layout.List{Axis: layout.Vertical},
-		topbar:  &Topbar{},
-		clicks:  clicks}
-}
-
-func (p *WallListPage) Start(stop <-chan struct{}) {}
-
-func (p *WallListPage) Event(gtx C) interface{} {
-	for i := range p.clicks {
-		click := &p.clicks[i]
-		for _, e := range click.Events(gtx) {
-			if e.Type == gesture.TypeClick {
-				w := sampleWalls[i]
-				return ShowWallEvent{w.ID}
-			}
-		}
-	}
-	return nil
-}
-
-func (p *WallListPage) Layout(gtx C) D {
-	insets := layout.Inset{
-		Left:  unit.Dp(16),
-		Right: unit.Dp(6),
-	}
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(func(gtx C) D {
-			return p.topbar.Layout(gtx, layout.Inset{}, ui.Label(theme, unit.Dp(22), "Walls").Layout)
-		}),
-		layout.Flexed(1, func(gtx C) D {
-			return insets.Layout(gtx, func(gtx C) D {
-				return p.list.Layout(gtx, len(sampleWalls), p.layoutWallItem)
-			})
-		}))
-}
-
-func (p *WallListPage) layoutWallItem(gtx C, i int) D {
-	click := &p.clicks[i]
-	dims := layout.Inset{Top: unit.Dp(6), Bottom: unit.Dp(6)}.Layout(gtx, func(gtx C) D {
-		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-			layout.Flexed(1, func(gtx C) D {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(ui.H3(theme, sampleWalls[i].Title).Layout),
-					layout.Rigid(ui.Caption(theme, "Modified Today").Layout))
-			}),
-			layout.Rigid(func(gtx C) D {
-				ico := (&ui.Icon{Src: icons.NavigationMoreVert, Size: theme.TextSize.Scale(48.0 / 16.0)}).Image(gtx.Metric, theme.Color.Text)
-				ico.Add(gtx.Ops)
-				paint.PaintOp{Rect: f32.Rectangle{Max: toPointF(ico.Size())}}.Add(gtx.Ops)
-				dims := layout.Dimensions{Size: ico.Size()}
-				dims.Size.X += gtx.Px(unit.Dp(4))
-				//pointer.Rect(image.Rectangle{Max: dims.Size}).Add(gtx.Ops)
-				//click.Add(gtx.Ops)
-				return dims
-			}))
-	})
-	pointer.Rect(image.Rectangle{Max: dims.Size}).Add(gtx.Ops)
-	click.Add(gtx.Ops)
-	fill{green}.Layout(gtx)
-	return dims
-}
-
-type Wall struct {
-	ID    xid.ID
-	Title string
-}
-
-var sampleWalls = []*Wall{
-	{xid.New(), "Hello, World"},
-	{xid.New(), "Wonderwall Sprint"},
-	{xid.New(), "Business Model Canvas"},
-	{xid.New(), "IT Network"},
-	{xid.New(), "Mind Map"},
-	{xid.New(), "Inspirational Talk"},
-}
-
 type fill struct {
 	color color.RGBA
 }
@@ -256,4 +156,15 @@ func (f fill) Layout(gtx layout.Context) layout.Dimensions {
 	paint.ColorOp{Color: f.color}.Add(gtx.Ops)
 	paint.PaintOp{Rect: dr}.Add(gtx.Ops)
 	return layout.Dimensions{Size: d, Baseline: d.Y}
+}
+
+type background struct {
+	color color.RGBA
+}
+
+func (b background) Layout(gtx C, w layout.Widget) D {
+	dims := w(gtx)
+	paint.ColorOp{Color: b.color}.Add(gtx.Ops)
+	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(dims.Size.X), Y: float32(dims.Size.Y)}}}.Add(gtx.Ops)
+	return dims
 }

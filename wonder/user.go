@@ -13,7 +13,7 @@ type UserPage struct {
 }
 
 func NewUserPage(env *Env) *UserPage {
-	return &UserPage{env: env, topbar: &Topbar{Back: true}}
+	return &UserPage{env: env, topbar: NewTopbar(true)}
 }
 
 func (p *UserPage) Start(stop <-chan struct{}) {}
@@ -41,7 +41,7 @@ func (p *UserPage) Layout(gtx C) D {
 func (p *UserPage) LayoutMenu(gtx C) D {
 	return layout.Flex{}.Layout(gtx,
 		layout.Flexed(1, func(gtx C) D {
-			return ui.Label(theme, unit.Dp(22), "Account").Layout(gtx)
+			return ui.Title(theme, "Account", gtx)
 		}))
 }
 
