@@ -20,10 +20,10 @@ type Toolbar struct {
 	strokeSize  *widget.Editor
 	strokeColor *widget.Clickable
 
-	delete   *widget.Clickable
-	undo     *widget.Clickable
-	redo     *widget.Clickable
-	listWall *widget.Clickable
+	delete *widget.Clickable
+	undo   *widget.Clickable
+	redo   *widget.Clickable
+	back   *widget.Clickable
 }
 
 func NewToolbar(theme *ui.Theme) *Toolbar {
@@ -38,7 +38,7 @@ func NewToolbar(theme *ui.Theme) *Toolbar {
 		delete:      new(widget.Clickable),
 		undo:        new(widget.Clickable),
 		redo:        new(widget.Clickable),
-		listWall:    new(widget.Clickable),
+		back:        new(widget.Clickable),
 	}
 }
 
@@ -47,6 +47,9 @@ func (t *Toolbar) Layout(gtx C) D {
 	stack := layout.Stack{Alignment: layout.NW}
 	front := layout.Stacked(func(gtx C) D {
 		tools := layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}
+		back := layout.Rigid(func(gtx C) D {
+			return ui.Item(t.theme, t.back, backIcon).Layout(gtx)
+		})
 		selection := layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.selection, mouseIcon).Layout(gtx)
 		})
@@ -71,10 +74,7 @@ func (t *Toolbar) Layout(gtx C) D {
 		redo := layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.redo, redoIcon).Layout(gtx)
 		})
-		listwall := layout.Rigid(func(gtx C) D {
-			return ui.Item(t.theme, t.listWall, exitIcon).Layout(gtx)
-		})
-		return tools.Layout(gtx, selection, pen, text, strokeSize, clr, remove, undo, redo, listwall)
+		return tools.Layout(gtx, back, selection, pen, text, strokeSize, clr, remove, undo, redo)
 	})
 	backg := layout.Expanded(func(gtx C) D {
 		cs := gtx.Constraints
@@ -99,7 +99,7 @@ func (t *Toolbar) events(gtx C) interface{} {
 		fmt.Println("clicked text")
 		t.Tool = TextTool
 	}
-	if t.listWall.Clicked() {
+	if t.back.Clicked() {
 		fmt.Println("clicked list wall")
 		return BackEvent{}
 	}
