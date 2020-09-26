@@ -132,16 +132,17 @@ func (a *App) update(gtx layout.Context) {
 		case BackEvent:
 			a.stack.Pop()
 		case LoginEvent:
-			fmt.Println("LoginEvent")
 			//a.env.client.SetAccount(e.Account)
 			a.stack.Clear(NewWallListPage(&a.env))
 			//a.stack.Clear(NewWallPage(&a.env, xid.New()))
 		case ShowWallListEvent:
-			fmt.Println("Show Wall List")
 			a.stack.Swap(NewWallListPage(&a.env))
 		case ShowWallEvent:
-			fmt.Println("Show Wall")
 			a.stack.Push(NewWallPage(&a.env, e.WallID))
+		case ShowUserEvent:
+			a.stack.Push(NewUserPage(&a.env))
+		case ShowAddWallEvent:
+			a.stack.Push(NewAddWallPage(&a.env))
 		}
 	}
 }

@@ -11,3 +11,7 @@ type ShowWallListEvent struct{}
 type ShowWallEvent struct {
 	WallID xid.ID
 }
+
+type ShowAddWallEvent struct{}
+
+type ShowUserEvent struct{}

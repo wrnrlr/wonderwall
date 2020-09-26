@@ -40,16 +40,6 @@ func (t *Topbar) Layout(gtx layout.Context, insets layout.Inset, w layout.Widget
 			return insets.Layout(gtx, func(gtx C) D {
 				return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 					layout.Rigid(func(gtx C) D {
-						ico := (&ui.Icon{Src: icons.NavigationMenu, Size: unit.Dp(24)}).Image(gtx.Metric, theme.Color.Text)
-						ico.Add(gtx.Ops)
-						paint.PaintOp{Rect: f32.Rectangle{Max: toPointF(ico.Size())}}.Add(gtx.Ops)
-						dims := layout.Dimensions{Size: ico.Size()}
-						dims.Size.X += gtx.Px(unit.Dp(4))
-						pointer.Rect(image.Rectangle{Max: dims.Size}).Add(gtx.Ops)
-						t.backClick.Add(gtx.Ops)
-						return dims
-					}),
-					layout.Rigid(func(gtx C) D {
 						if !t.Back {
 							return layout.Dimensions{}
 						}
