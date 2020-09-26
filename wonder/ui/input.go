@@ -20,6 +20,17 @@ func InputNumber(th *Theme, editor *widget.Editor) *Input {
 	}
 }
 
+func InputText(th *Theme, editor *widget.Editor, hint string) *Input {
+	return &Input{
+		Editor:    editor,
+		TextSize:  th.TextSize,
+		Color:     th.Color.Text,
+		Hint:      hint,
+		shaper:    th.Shaper,
+		HintColor: th.Color.Hint,
+	}
+}
+
 type Input struct {
 	Font     text.Font
 	TextSize unit.Value
