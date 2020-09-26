@@ -52,7 +52,6 @@ func (p *LoginPage) Layout(gtx C) D {
 			var t Topbar
 			return t.Layout(gtx, p.env.insets, func(gtx C) D {
 				lbl := ui.H6(theme, "Sign in")
-				lbl.Color = ui.Rgb(0xffffff)
 				return lbl.Layout(gtx)
 			})
 		}),
