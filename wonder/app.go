@@ -35,13 +35,17 @@ type (
 )
 
 var (
-	mouseIcon  = loadIcon(icons.ContentSelectAll)
+	mouseIcon  = loadIcon(icons.ActionPanTool)
 	brushIcon  = loadIcon(icons.ImageBrush)
 	textIcon   = loadIcon(icons.EditorTitle)
 	deleteIcon = loadIcon(icons.ActionDelete)
 	undoIcon   = loadIcon(icons.ContentUndo)
 	redoIcon   = loadIcon(icons.ContentRedo)
-	exitIcon   = loadIcon(icons.ActionExitToApp)
+	backIcon   = loadIcon(icons.NavigationArrowBack)
+	filterIcon = loadIcon(icons.HardwareKeyboardArrowDown)
+	sortIcon   = loadIcon(icons.ContentSort)
+	addBoxIcon = loadIcon(icons.ContentAddBox)
+	userIcon   = loadIcon(icons.SocialPerson)
 )
 
 var theme *ui.Theme
