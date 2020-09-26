@@ -33,3 +33,4 @@ webpack --env.NODE_ENV=dev --env.production=false --progress
 * [Font Awesome Icons](https://fontawesome.com/icons?d=gallery)
 * [Konva Data Serialization](https://konvajs.org/docs/data_and_serialization/Best_Practices.html)
 
+* [rbang](https://github.com/tidwall/rbang), RTree for Tile38
