@@ -34,7 +34,7 @@ type WallPage struct {
 }
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
-	theme := ui.CustomTheme(gofont.Collection())
+	theme := ui.MenuTheme(gofont.Collection())
 	penConfig := &PenConfig{StrokeSize: 10, StrokeColor: maroon}
 	return &WallPage{
 		env:       env,
@@ -70,6 +70,9 @@ func (p *WallPage) Event(gtx C) interface{} {
 		}
 	case TextTool:
 	default:
+	}
+	if e := p.toolbar.events(gtx); e != nil {
+		return e
 	}
 	return nil
 }

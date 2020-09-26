@@ -6,14 +6,13 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/paint"
 	"gioui.org/widget"
-	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/ui"
 	"image"
 )
 
 type Toolbar struct {
 	Tool      Tool
-	theme     *material.Theme
+	theme     *ui.Theme
 	selection *widget.Clickable
 	pen       *widget.Clickable
 	text      *widget.Clickable
@@ -21,12 +20,13 @@ type Toolbar struct {
 	strokeSize  *widget.Editor
 	strokeColor *widget.Clickable
 
-	delete *widget.Clickable
-	undo   *widget.Clickable
-	redo   *widget.Clickable
+	delete   *widget.Clickable
+	undo     *widget.Clickable
+	redo     *widget.Clickable
+	listWall *widget.Clickable
 }
 
-func NewToolbar(theme *material.Theme) *Toolbar {
+func NewToolbar(theme *ui.Theme) *Toolbar {
 	return &Toolbar{
 		Tool:        SelectionTool,
 		theme:       theme,
@@ -38,6 +38,7 @@ func NewToolbar(theme *material.Theme) *Toolbar {
 		delete:      new(widget.Clickable),
 		undo:        new(widget.Clickable),
 		redo:        new(widget.Clickable),
+		listWall:    new(widget.Clickable),
 	}
 }
 
@@ -70,7 +71,10 @@ func (t *Toolbar) Layout(gtx C) D {
 		redo := layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.redo, redoIcon).Layout(gtx)
 		})
-		return tools.Layout(gtx, selection, pen, text, strokeSize, clr, remove, undo, redo)
+		listwall := layout.Rigid(func(gtx C) D {
+			return ui.Item(t.theme, t.listWall, exitIcon).Layout(gtx)
+		})
+		return tools.Layout(gtx, selection, pen, text, strokeSize, clr, remove, undo, redo, listwall)
 	})
 	backg := layout.Expanded(func(gtx C) D {
 		cs := gtx.Constraints
@@ -82,7 +86,7 @@ func (t *Toolbar) Layout(gtx C) D {
 	return stack.Layout(gtx, backg, front)
 }
 
-func (t *Toolbar) events(gtx C) {
+func (t *Toolbar) events(gtx C) interface{} {
 	if t.selection.Clicked() {
 		fmt.Println("clicked selection")
 		t.Tool = SelectionTool
@@ -95,4 +99,9 @@ func (t *Toolbar) events(gtx C) {
 		fmt.Println("clicked text")
 		t.Tool = TextTool
 	}
+	if t.listWall.Clicked() {
+		fmt.Println("clicked list wall")
+		return BackEvent{}
+	}
+	return nil
 }

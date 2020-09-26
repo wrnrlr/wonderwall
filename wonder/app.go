@@ -13,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"github.com/Almanax/wonderwall/wonder/daabbt"
 	"github.com/Almanax/wonderwall/wonder/ui"
-	"github.com/rs/xid"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"
 	"image/color"
@@ -42,6 +41,7 @@ var (
 	deleteIcon = loadIcon(icons.ActionDelete)
 	undoIcon   = loadIcon(icons.ContentUndo)
 	redoIcon   = loadIcon(icons.ContentRedo)
+	exitIcon   = loadIcon(icons.ActionExitToApp)
 )
 
 var theme *ui.Theme
@@ -134,13 +134,14 @@ func (a *App) update(gtx layout.Context) {
 		case LoginEvent:
 			fmt.Println("LoginEvent")
 			//a.env.client.SetAccount(e.Account)
-			a.stack.Clear(NewWallPage(&a.env, xid.New()))
+			a.stack.Clear(NewWallListPage(&a.env))
+			//a.stack.Clear(NewWallPage(&a.env, xid.New()))
 		case ShowWallListEvent:
 			fmt.Println("Show Wall List")
 			a.stack.Swap(NewWallListPage(&a.env))
 		case ShowWallEvent:
 			fmt.Println("Show Wall")
-			a.stack.Swap(NewWallPage(&a.env, e.WallID))
+			a.stack.Push(NewWallPage(&a.env, e.WallID))
 		}
 	}
 }
