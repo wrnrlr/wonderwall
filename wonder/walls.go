@@ -21,7 +21,8 @@ type WallListPage struct {
 
 	list *layout.List
 
-	topbar *Topbar
+	topbar  *Topbar
+	filters *WallFilter
 
 	add  gesture.Click
 	user gesture.Click
@@ -36,6 +37,7 @@ func NewWallListPage(env *Env) *WallListPage {
 		env:     env,
 		newWall: &widget.Clickable{},
 		list:    &layout.List{Axis: layout.Vertical},
+		filters: NewWallFilter(),
 		topbar:  &Topbar{},
 		clicks:  clicks}
 }
@@ -73,6 +75,9 @@ func (p *WallListPage) Layout(gtx C) D {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx C) D {
 			return p.topbar.Layout(gtx, layout.Inset{}, p.LayoutMenu)
+		}),
+		layout.Rigid(func(gtx C) D {
+			return p.filters.Layout(gtx)
 		}),
 		layout.Flexed(1, func(gtx C) D {
 			return insets.Layout(gtx, func(gtx C) D {
@@ -146,4 +151,34 @@ var sampleWalls = []*Wall{
 	{xid.New(), "IT Network"},
 	{xid.New(), "Mind Map"},
 	{xid.New(), "Inspirational Talk"},
+}
+
+type WallFilter struct {
+	workspace *widget.Clickable
+	text      *widget.Editor
+	clear     *gesture.Click
+	submit    *gesture.Click
+	order     *widget.Clickable
+}
+
+func NewWallFilter() *WallFilter {
+	return &WallFilter{
+		workspace: new(widget.Clickable),
+		text:      &widget.Editor{SingleLine: true},
+		clear:     new(gesture.Click),
+		submit:    new(gesture.Click),
+		order:     new(widget.Clickable),
+	}
+}
+
+func (w *WallFilter) Layout(gtx C) D {
+	w.event(gtx)
+	return layout.Flex{}.Layout(gtx,
+		layout.Rigid(ui.Item(theme, w.workspace, filterIcon).Layout),
+		layout.Flexed(1, ui.InputText(theme, w.text, "Search").Layout),
+		layout.Rigid(ui.Item(theme, w.order, sortIcon).Layout))
+}
+
+func (w *WallFilter) event(gtx C) {
+	w.text.Events()
 }
