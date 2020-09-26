@@ -41,7 +41,7 @@ func (m MenuStyle) Layout(gtx C, widgets ...layout.Widget) D {
 func Item(th *Theme, button *widget.Clickable, icon *widget.Icon) ItemStyle {
 	return ItemStyle{
 		Background: th.Color.Primary,
-		Color:      th.Color.InvText,
+		Color:      th.Color.Text,
 		Icon:       icon,
 		Size:       unit.Dp(24),
 		Inset:      layout.UniformInset(unit.Dp(12)),
