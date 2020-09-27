@@ -64,13 +64,13 @@ func (p *WallPage) Event(gtx C) interface{} {
 		}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
-			l := &Line{Points: e, StrokeWidth: float32(p.penConfig.StrokeSize)}
+			l := &Line{Points: e, StrokeWidth: float32(p.penConfig.StrokeSize), StrokeColor: maroon}
 			p.lines = append(p.lines, l)
 			l.Register(p.tree)
 		}
 	case TextTool:
 		if e := p.text.Event(gtx); e != nil {
-			p.texts = append(p.texts, &Text{e.Position, "Text", blue, float32(50)})
+			p.texts = append(p.texts, &Text{"", e.Position.X, e.Position.Y, "Text", blue, float32(50)})
 		}
 	default:
 	}
@@ -96,7 +96,7 @@ func (p *WallPage) Layout(gtx C) D {
 
 func (p *WallPage) Draw(gtx C) {
 	for i := range p.lines {
-		p.lines[i].Draw(p.penConfig, gtx)
+		p.lines[i].Draw(gtx)
 	}
 	for i := range p.texts {
 		p.texts[i].Draw(gtx)

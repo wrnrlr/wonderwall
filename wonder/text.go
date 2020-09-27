@@ -13,8 +13,8 @@ import (
 )
 
 type Text struct {
-	f32.Point
 	ID          string
+	X, Y        float32
 	Text        string
 	StrokeColor color.RGBA
 	FontWidth   float32
