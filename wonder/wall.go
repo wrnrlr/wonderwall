@@ -23,14 +23,14 @@ type WallPage struct {
 
 	selection *Selection
 	pen       *Pen
-	text      *Text
+	text      *TextWriter
 
 	penConfig *PenConfig
 
 	windowSize image.Point
 	tree       *daabbt.Node
 	lines      []*Line
-	texts      []Text
+	texts      []*Text
 }
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
@@ -42,7 +42,7 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		toolbar:   NewToolbar(theme),
 		selection: new(Selection),
 		pen:       new(Pen),
-		text:      new(Text),
+		text:      new(TextWriter),
 		penConfig: penConfig,
 		tree:      nil,
 		lines:     nil,
@@ -64,11 +64,14 @@ func (p *WallPage) Event(gtx C) interface{} {
 		}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
-			l := &Line{Points: e, Width: float32(p.penConfig.StrokeSize)}
+			l := &Line{Points: e, StrokeWidth: float32(p.penConfig.StrokeSize)}
 			p.lines = append(p.lines, l)
 			l.Register(p.tree)
 		}
 	case TextTool:
+		if e := p.text.Event(gtx); e != nil {
+			p.texts = append(p.texts, &Text{e.Position, "Text", blue, float32(50)})
+		}
 	default:
 	}
 	if e := p.toolbar.events(gtx); e != nil {
@@ -94,6 +97,9 @@ func (p *WallPage) Layout(gtx C) D {
 func (p *WallPage) Draw(gtx C) {
 	for i := range p.lines {
 		p.lines[i].Draw(p.penConfig, gtx)
+	}
+	for i := range p.texts {
+		p.texts[i].Draw(gtx)
 	}
 	if p.toolbar.Tool == SelectionTool {
 		for i := range p.lines {

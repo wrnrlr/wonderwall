@@ -5,7 +5,6 @@ import (
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
-	"gioui.org/gesture"
 	"gioui.org/io/pointer"
 	"gioui.org/io/system"
 	"gioui.org/layout"
@@ -175,10 +174,6 @@ func (s *Selection) Event(tree *daabbt.Node, gtx C) []f32.Point {
 	}
 	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
 	return nil
-}
-
-type Text struct {
-	pointer gesture.Click
 }
 
 type Canvas struct{}
