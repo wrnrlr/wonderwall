@@ -10,21 +10,11 @@ import (
 	"gioui.org/op/paint"
 	"image"
 	"image/color"
-	"math"
-)
-
-type (
-	D = layout.Dimensions
-	C = layout.Context
-)
-
-const (
-	rad90 = float32(90 * math.Pi / 180)
 )
 
 type Path []f32.Point
 
-type Line struct {
+type Polyline struct {
 	Points Path
 	Color  color.RGBA
 	Width  float32
@@ -32,11 +22,11 @@ type Line struct {
 	boxes []image.Rectangle
 }
 
-func (l Line) Layout(gtx C) {
+func (l Polyline) Layout(gtx C) {
 	l.drawPolyline(l.Points, l.Width, l.Color, gtx)
 }
 
-func (l Line) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx layout.Context) {
+func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx layout.Context) {
 	length := len(points)
 	for i, p := range points {
 		l.drawCircle(p, width, col, gtx)
@@ -46,7 +36,7 @@ func (l Line) drawPolyline(points []f32.Point, width float32, col color.RGBA, gt
 	}
 }
 
-func (l Line) drawCircle(p f32.Point, radius float32, col color.RGBA, gtx layout.Context) {
+func (l Polyline) drawCircle(p f32.Point, radius float32, col color.RGBA, gtx layout.Context) {
 	d := radius * 2
 	const k = 0.551915024494 // 4*(sqrt(2)-1)/3
 	defer op.Push(gtx.Ops).Pop()
@@ -63,7 +53,7 @@ func (l Line) drawCircle(p f32.Point, radius float32, col color.RGBA, gtx layout
 	paint.PaintOp{Rect: box}.Add(gtx.Ops)
 }
 
-func (l Line) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx layout.Context) {
+func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx layout.Context) {
 	tilt := angle(p1, p2)
 	a := offsetPoint(p1, width, tilt+rad90)
 	b := offsetPoint(p2, width, tilt+rad90)
@@ -84,7 +74,7 @@ func (l Line) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx layo
 	stack.Pop()
 }
 
-func (l Line) Hit(gtx layout.Context) bool {
+func (l Polyline) Hit(gtx layout.Context) bool {
 	points := l.Points
 	width := l.Width
 	length := len(points)
@@ -122,51 +112,4 @@ func (l Line) Hit(gtx layout.Context) bool {
 	pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
 	stack.Pop()
 	return false
-}
-
-func boundingBox(points []f32.Point) (box f32.Rectangle) {
-	box.Min, box.Max = points[0], points[0]
-	for _, p := range points {
-		box.Min.X = min(box.Min.X, p.X)
-		box.Min.Y = min(box.Min.Y, p.Y)
-		box.Max.X = max(box.Max.X, p.X)
-		box.Max.Y = max(box.Max.Y, p.Y)
-	}
-	return box
-}
-
-func offsetPoint(point f32.Point, distance, angle float32) f32.Point {
-	x := point.X + distance*cos(angle)
-	y := point.Y + distance*sin(angle)
-	return f32.Point{X: x, Y: y}
-}
-
-func angle(p1, p2 f32.Point) float32 {
-	return atan2(p2.Y-p1.Y, p2.X-p1.X)
-}
-
-func cos(v float32) float32 {
-	return float32(math.Cos(float64(v)))
-}
-
-func sin(v float32) float32 {
-	return float32(math.Sin(float64(v)))
-}
-
-func min(x, y float32) float32 {
-	return float32(math.Min(float64(x), float64(y)))
-}
-
-func max(x, y float32) float32 {
-	return float32(math.Max(float64(x), float64(y)))
-}
-
-func atan2(y, x float32) float32 {
-	return float32(math.Atan2(float64(y), float64(x)))
-}
-
-func imageRect(r f32.Rectangle) image.Rectangle {
-	x1, y1 := int(r.Min.X), int(r.Min.Y)
-	x2, y2 := int(r.Max.X), int(r.Max.Y)
-	return image.Rect(x1, y1, x2, y2)
 }

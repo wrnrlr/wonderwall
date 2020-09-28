@@ -12,8 +12,28 @@ import (
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
 
 type Circle struct {
-	Center f32.Point
-	Radius float32
+	Center      f32.Point
+	Radius      float32
+	FillColor   *color.RGBA
+	StrokeColor *color.RGBA
+	StrokeWidth color.RGBA
+}
+
+func (c Circle) Bounds() f32.Rectangle {
+	return f32.Rectangle{}
+}
+
+// Hit test
+func (c Circle) Hit(p f32.Point) bool {
+	return false
+}
+
+func (c Circle) Offset(p f32.Point) Shape {
+	return nil
+}
+
+func (c Circle) Draw(ops op.Ops) {
+
 }
 
 func (cc Circle) Stroke(col color.RGBA, width float32, gtx layout.Context) f32.Rectangle {

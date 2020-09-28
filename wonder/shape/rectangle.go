@@ -9,7 +9,12 @@ import (
 	"image/color"
 )
 
-type Rectangle f32.Rectangle
+type Rectangle struct {
+	f32.Rectangle
+	FillColor   *color.RGBA
+	StrokeColor *color.RGBA
+	StrokeWidth color.RGBA
+}
 
 func (r Rectangle) Fill(rgba color.RGBA, gtx layout.Context) f32.Rectangle {
 	p1, p2 := r.Min, r.Max
