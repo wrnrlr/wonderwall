@@ -32,7 +32,7 @@ func (c Circle) Offset(p f32.Point) Shape {
 	return nil
 }
 
-func (c Circle) Draw(ops op.Ops) {
+func (c Circle) Draw(ops *op.Ops) {
 
 }
 

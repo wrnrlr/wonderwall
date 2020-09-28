@@ -20,6 +20,6 @@ func (l Label) Hit(p f32.Point) bool {
 	return false
 }
 
-func (l Label) Draw(ops op.Ops) {
+func (l Label) Draw(ops *op.Ops) {
 
 }

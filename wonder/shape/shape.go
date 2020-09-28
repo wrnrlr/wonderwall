@@ -16,5 +16,5 @@ type Shape interface {
 	Offset(p f32.Point) Shape
 
 	//
-	Draw(ops op.Ops)
+	Draw(ops *op.Ops)
 }

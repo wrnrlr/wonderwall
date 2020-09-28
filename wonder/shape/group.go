@@ -7,23 +7,27 @@ import (
 
 type Group []Shape
 
-func (s Group) Offset(p f32.Point) Shape {
+func (g Group) Offset(p f32.Point) Shape {
 	var result Group
-	for _, e := range s {
-		result = append(result, e.Offset(p))
+	for _, s := range g {
+		result = append(result, s.Offset(p))
 	}
 	return result
 }
 
-func (s Group) Bounds() f32.Rectangle {
+func (g Group) Bounds() f32.Rectangle {
 	return f32.Rectangle{}
 }
 
 // Hit test
-func (s Group) Hit(p f32.Point) bool {
+func (g Group) Hit(p f32.Point) bool {
 	return false
 }
 
-func (s Group) Draw(ops op.Ops) {
+func (g Group) Draw(ops op.Ops) {
 
+}
+
+func (g Group) Append(s Shape) Group {
+	return append(g, g)
 }

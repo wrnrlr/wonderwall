@@ -21,6 +21,6 @@ func (t Triangle) Offset(p f32.Point) Shape {
 	return nil
 }
 
-func (t Triangle) Draw(ops op.Ops) {
+func (t Triangle) Draw(ops *op.Ops) {
 
 }
