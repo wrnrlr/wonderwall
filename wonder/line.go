@@ -55,17 +55,17 @@ func (r circle) Bounds() f32.Rectangle {
 }
 
 type Line struct {
-	Points []f32.Point
-	Width  float32
-
-	parts []rect
+	Points      []f32.Point
+	StrokeWidth float32
+	StrokeColor color.RGBA
+	parts       []rect
 }
 
-func (l *Line) Draw(conf *PenConfig, gtx C) {
+func (l *Line) Draw(gtx C) {
 	if l.parts == nil {
 		l.makeParts()
 	}
-	l.drawPolyline(l.Points, l.Width, conf.StrokeColor, gtx)
+	l.drawPolyline(l.Points, l.StrokeWidth, l.StrokeColor, gtx)
 }
 
 func (l Line) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx layout.Context) {
@@ -98,7 +98,7 @@ func (l *Line) makeParts() {
 	length := len(l.Points)
 	for i, p := range l.Points {
 		if i < length-1 {
-			l.parts = append(l.parts, newRect(p, l.Points[i+1], l.Width, l))
+			l.parts = append(l.parts, newRect(p, l.Points[i+1], l.StrokeWidth, l))
 		}
 	}
 }
@@ -117,13 +117,13 @@ func (l *Line) Unregister(tree *daabbt.Node) {
 }
 
 func (l *Line) boxes(gtx C) {
-	for i := range l.parts {
-		box := l.parts[i].Bounds()
-		stack := op.Push(gtx.Ops)
-		r := shape.Rectangle(box)
-		r.Stroke(color.RGBA{0, 255, 0, 125}, 2, gtx)
-		stack.Pop()
-	}
+	//for i := range l.parts {
+	//box := l.parts[i].Bounds()
+	//stack := op.Push(gtx.Ops)
+	//r := shape.Rectangle(box)
+	//r.Stroke(color.RGBA{0, 255, 0, 125}, 2, gtx)
+	//stack.Pop()
+	//}
 }
 
 func (l *Line) Event(conf *PenConfig, gtx C) {
@@ -141,8 +141,8 @@ func (l *Line) Event(conf *PenConfig, gtx C) {
 			d := offsetPoint(p1, -width, tilt+rad90)
 			box := boundingBox([]f32.Point{a, b, c, d})
 			pointer.Rect(imageRect(box)).Add(gtx.Ops)
-			r := shape.Rectangle(box)
-			r.Stroke(color.RGBA{0, 255, 0, 125}, 2, gtx)
+			r := shape.Rectangle{box, nil, &green, float32(2)}
+			r.Draw(gtx.Ops)
 			//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
 		}
 	}
