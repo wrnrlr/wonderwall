@@ -9,14 +9,14 @@ type Plane struct {
 	Elements Group
 }
 
-func (p Plane) View(r f32.Rectangle, gtx C) {
+func (p *Plane) View(r f32.Rectangle, gtx C) {
 	// Find elements within r
-	offset := f32.Pt(r.Dx(), r.Dy())
-	for _, s := range p.Elements {
-		if intersects(r, s.Bounds()) {
-			s.Offset(offset).Draw(gtx)
-		}
-	}
+	//offset := f32.Pt(r.Dx(), r.Dy())
+	p.Elements.Draw(gtx)
+	//for _, s := range p.Elements {
+	//if intersects(r, s.Bounds()) {
+	//	s.Draw(gtx)
+	//}
 }
 
 func (p *Plane) Add(s Shape) {

@@ -26,9 +26,11 @@ func (g Group) Hit(p f32.Point) bool {
 }
 
 func (g Group) Draw(gtx C) {
-
+	for _, s := range g.Elements {
+		s.Draw(gtx)
+	}
 }
 
-func (g Group) Append(s Shape) Group {
-	return append(g, g)
+func (g *Group) Append(s Shape) {
+	g.Elements = append(g.Elements, s)
 }

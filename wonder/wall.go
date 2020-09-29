@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
 	"gioui.org/widget/material"
-	"github.com/Almanax/wonderwall/wonder/daabbt"
+	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/Almanax/wonderwall/wonder/ui"
 	"github.com/rs/xid"
 	"image"
@@ -28,9 +27,7 @@ type WallPage struct {
 	penConfig *PenConfig
 
 	windowSize image.Point
-	tree       *daabbt.Node
-	lines      []*Line
-	texts      []*Text
+	plane      *shape.Plane
 }
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
@@ -44,8 +41,7 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		pen:       new(Pen),
 		text:      new(TextWriter),
 		penConfig: penConfig,
-		tree:      nil,
-		lines:     nil,
+		plane:     &shape.Plane{},
 	}
 }
 
@@ -55,22 +51,23 @@ func (p *WallPage) Event(gtx C) interface{} {
 	size := gtx.Constraints.Max
 	if p.windowSize.X != size.X || p.windowSize.Y != size.Y {
 		p.windowSize = size
-		p.tree = daabbt.NewTree(f32.Rect(0, 0, float32(size.X), float32(size.Y)))
+		//p.tree = daabbt.NewTree(f32.Rect(0, 0, float32(size.X), float32(size.Y)))
 	}
 	switch p.toolbar.Tool {
 	case SelectionTool:
-		if e := p.selection.Event(p.tree, gtx); e != nil {
-			fmt.Printf("Selection event: %v", e)
-		}
+		//if e := p.selection.Event(p.tree, gtx); e != nil {
+		//	fmt.Printf("Selection event: %v", e)
+		//}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
-			l := &Line{Points: e, StrokeWidth: float32(p.penConfig.StrokeSize), StrokeColor: maroon}
-			p.lines = append(p.lines, l)
-			l.Register(p.tree)
+			l := &shape.Polyline{Points: e, Width: float32(p.penConfig.StrokeSize), Color: maroon}
+			p.plane.Add(l)
+			//l.Register(p.tree)
 		}
 	case TextTool:
 		if e := p.text.Event(gtx); e != nil {
-			p.texts = append(p.texts, &Text{"", e.Position.X, e.Position.Y, "Text", blue, float32(50)})
+			txt := &shape.Text{"", e.Position.X, e.Position.Y, "Text", blue, float32(50)}
+			p.plane.Add(txt)
 		}
 	default:
 	}
@@ -90,20 +87,22 @@ func (p *WallPage) Layout(gtx C) D {
 		return D{Size: max}
 	})
 	dims := stack.Layout(gtx, canvas, toolbar)
-	p.tree.Draw(gtx)
+	//p.tree.Draw(gtx)
 	return dims
 }
 
 func (p *WallPage) Draw(gtx C) {
-	for i := range p.lines {
-		p.lines[i].Draw(gtx)
-	}
-	for i := range p.texts {
-		p.texts[i].Draw(gtx)
-	}
-	if p.toolbar.Tool == SelectionTool {
-		for i := range p.lines {
-			p.lines[i].boxes(gtx)
-		}
-	}
+	view := f32.Rect(0, 0, 0, 0)
+	p.plane.View(view, gtx)
+	//for i := range p.lines {
+	//	p.lines[i].Draw(gtx)
+	//}
+	//for i := range p.texts {
+	//	p.texts[i].Draw(gtx)
+	//}
+	//if p.toolbar.Tool == SelectionTool {
+	//	for i := range p.lines {
+	//		p.lines[i].boxes(gtx)
+	//	}
+	//}
 }

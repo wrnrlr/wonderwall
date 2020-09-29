@@ -51,22 +51,23 @@ func (l *Polyline) Offset(p f32.Point) Shape {
 }
 
 func (l Polyline) Draw(gtx C) {
-	l.drawPolyline(l.Points, l.Width, l.Color, gtx.Ops)
+	l.drawPolyline(l.Points, l.Width, l.Color, gtx)
 }
 
-func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, ops *op.Ops) {
+func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx C) {
 	length := len(points)
 	for i, p := range points {
-		l.drawCircle(p, width, col, ops)
+		l.drawCircle(p, width, col, gtx)
 		if i < length-1 {
-			//l.drawLine(p, points[i+1], width, col, ops)
+			l.drawLine(p, points[i+1], width, col, gtx)
 		}
 	}
 }
 
-func (l Polyline) drawCircle(p f32.Point, radius float32, col color.RGBA, ops *op.Ops) {
+func (l Polyline) drawCircle(p f32.Point, radius float32, col color.RGBA, gtx C) {
 	d := radius * 2
 	const k = 0.551915024494 // 4*(sqrt(2)-1)/3
+	ops := gtx.Ops
 	defer op.Push(ops).Pop()
 	var path clip.Path
 	path.Begin(ops)

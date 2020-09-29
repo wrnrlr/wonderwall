@@ -2,6 +2,10 @@ package shape
 
 import (
 	"gioui.org/f32"
+	"gioui.org/font/gofont"
+	"gioui.org/op"
+	"gioui.org/unit"
+	"gioui.org/widget/material"
 	"image/color"
 )
 
@@ -27,9 +31,9 @@ func (t Text) Offset(p f32.Point) Shape {
 }
 
 func (t Text) Draw(gtx C) {
-	//defer op.Push(ops).Pop()
-	//op.Offset(f32.Point{X: t.X, Y: t.Y - t.FontWidth}).Add(gtx.Ops)
-	//l := material.Label(material.NewTheme(gofont.Collection()), unit.Px(t.FontWidth), t.Text)
-	//l.Color = t.StrokeColor
-	//l.Layout(gtx)
+	defer op.Push(gtx.Ops).Pop()
+	op.Offset(f32.Point{X: t.X, Y: t.Y - t.FontWidth}).Add(gtx.Ops)
+	l := material.Label(material.NewTheme(gofont.Collection()), unit.Px(t.FontWidth), t.Text)
+	l.Color = t.StrokeColor
+	l.Layout(gtx)
 }
