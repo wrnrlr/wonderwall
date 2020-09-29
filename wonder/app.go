@@ -12,39 +12,14 @@ import (
 	"gioui.org/unit"
 	"github.com/Almanax/wonderwall/wonder/daabbt"
 	"github.com/Almanax/wonderwall/wonder/ui"
-	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"
-	"image/color"
 	"log"
 	"os"
-)
-
-var (
-	maroon    = color.RGBA{127, 0, 0, 255}
-	lightgrey = color.RGBA{100, 100, 100, 255}
-	black     = color.RGBA{0, 0, 0, 255}
-	red       = color.RGBA{255, 0, 0, 255}
-	green     = color.RGBA{0, 255, 0, 255}
-	blue      = color.RGBA{0, 0, 255, 255}
 )
 
 type (
 	D = layout.Dimensions
 	C = layout.Context
-)
-
-var (
-	mouseIcon  = loadIcon(icons.ActionPanTool)
-	brushIcon  = loadIcon(icons.ImageBrush)
-	textIcon   = loadIcon(icons.EditorTitle)
-	deleteIcon = loadIcon(icons.ActionDelete)
-	undoIcon   = loadIcon(icons.ContentUndo)
-	redoIcon   = loadIcon(icons.ContentRedo)
-	backIcon   = loadIcon(icons.NavigationArrowBack)
-	filterIcon = loadIcon(icons.HardwareKeyboardArrowDown)
-	sortIcon   = loadIcon(icons.ContentSort)
-	addBoxIcon = loadIcon(icons.ContentAddBox)
-	userIcon   = loadIcon(icons.SocialPerson)
 )
 
 var theme *ui.Theme
@@ -168,11 +143,13 @@ func (s *Selection) Event(tree *daabbt.Node, gtx C) []f32.Point {
 				return true
 			})
 			fmt.Printf("results: %v\n", results)
+		case pointer.Scroll:
+			fmt.Printf("Scroll: %v, %v\n", e.Position, e.Scroll)
 		case pointer.Drag:
 		case pointer.Release, pointer.Cancel:
 		}
 	}
-	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
+	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll}.Add(gtx.Ops)
 	return nil
 }
 
