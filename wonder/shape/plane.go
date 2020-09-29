@@ -19,6 +19,10 @@ func (p Plane) View(r f32.Rectangle, gtx C) {
 	}
 }
 
+func (p *Plane) Add(s Shape) {
+	p.Elements.Append(s)
+}
+
 func (p Plane) Within(r f32.Rectangle) Group {
 	return Group{}
 }
