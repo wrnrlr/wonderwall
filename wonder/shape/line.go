@@ -6,7 +6,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"image"
 	"image/color"
 )
 
@@ -16,22 +15,43 @@ type Polyline struct {
 	Points Path
 	Color  color.RGBA
 	Width  float32
-
-	boxes []image.Rectangle
+	offset f32.Point
+	boxes  []f32.Rectangle
 }
 
 func (l Polyline) Bounds() f32.Rectangle {
-	return f32.Rectangle{}
+	if l.boxes != nil {
+		length := len(l.Points)
+		for i, p1 := range l.Points {
+			if i < length-1 {
+				p2 := l.Points[i+1]
+				tilt := angle(p1, p2) + rad90
+				a := offsetPoint(p1, l.Width, tilt)
+				b := offsetPoint(p2, l.Width, tilt)
+				c := offsetPoint(p2, -l.Width, tilt)
+				d := offsetPoint(p1, -l.Width, tilt)
+				box := boundingBox([]f32.Point{a, b, c, d})
+				l.boxes = append(l.boxes, box)
+				//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
+			}
+		}
+	}
+	box := l.boxes[0]
+	for _, b := range l.boxes[1:] {
+		box = box.Union(b)
+	}
+	return box
 }
 
 // Hit test
 
-func (l Polyline) Offset(p f32.Point) Shape {
-	return nil
+func (l *Polyline) Offset(p f32.Point) Shape {
+	l.offset = p
+	return l
 }
 
-func (l Polyline) Draw(ops *op.Ops) {
-	l.drawPolyline(l.Points, l.Width, l.Color, ops)
+func (l Polyline) Draw(gtx C) {
+	l.drawPolyline(l.Points, l.Width, l.Color, gtx.Ops)
 }
 
 func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, ops *op.Ops) {
@@ -39,7 +59,7 @@ func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA
 	for i, p := range points {
 		l.drawCircle(p, width, col, ops)
 		if i < length-1 {
-			l.drawLine(p, points[i+1], width, col, ops)
+			//l.drawLine(p, points[i+1], width, col, ops)
 		}
 	}
 }
@@ -83,41 +103,6 @@ func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx 
 }
 
 func (l Polyline) Hit(p f32.Point) bool {
-	//points := l.Points
-	//width := l.Width
-	//length := len(points)
-	//stack := op.Push(gtx.Ops)
-	//for i, p1 := range points {
-	//	if i < length-1 {
-	//		p2 := points[i+1]
-	//		tilt := angle(p1, p2)
-	//		a := offsetPoint(p1, width, tilt+rad90)
-	//		b := offsetPoint(p2, width, tilt+rad90)
-	//		c := offsetPoint(p2, -width, tilt+rad90)
-	//		d := offsetPoint(p1, -width, tilt+rad90)
-	//		box := boundingBox([]f32.Point{a, b, c, d})
-	//		pointer.Rect(imageRect(box)).Add(gtx.Ops)
-	//		green := &color.RGBA{0, 255, 0, 255}
-	//		Rectangle{box, nil, green, 2}.Draw(gtx.Ops)
-	//		//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
-	//	}
-	//}
-	//for _, e := range gtx.Events(&l) {
-	//	e, ok := e.(pointer.Event)
-	//	if !ok {
-	//		continue
-	//	}
-	//	fmt.Println("Pointer event")
-	//	switch e.Type {
-	//	case pointer.Press:
-	//		fmt.Print("Press")
-	//	case pointer.Drag:
-	//		fmt.Print("Drag")
-	//	case pointer.Release, pointer.Cancel:
-	//		fmt.Print("Release, Cancel")
-	//	}
-	//}
-	//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
-	//stack.Pop()
+
 	return false
 }

@@ -14,7 +14,7 @@ func (p Plane) View(r f32.Rectangle, gtx C) {
 	offset := f32.Pt(r.Dx(), r.Dy())
 	for _, s := range p.Elements {
 		if intersects(r, s.Bounds()) {
-			s.Offset(offset).Draw(gtx.Ops)
+			s.Offset(offset).Draw(gtx)
 		}
 	}
 }

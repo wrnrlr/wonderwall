@@ -2,7 +2,6 @@ package shape
 
 import (
 	"gioui.org/f32"
-	"gioui.org/op"
 	"image/color"
 )
 
@@ -25,6 +24,6 @@ func (a Arrow) Offset(p f32.Point) Shape {
 	return nil
 }
 
-func (a Arrow) Draw(ops op.Ops) {
+func (a Arrow) Draw(gtx C) {
 
 }

@@ -2,7 +2,6 @@ package shape
 
 import (
 	"gioui.org/f32"
-	"gioui.org/op"
 )
 
 type Shape interface {
@@ -16,5 +15,5 @@ type Shape interface {
 	Offset(p f32.Point) Shape
 
 	//
-	Draw(ops *op.Ops)
+	Draw(gtx C)
 }

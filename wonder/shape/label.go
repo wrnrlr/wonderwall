@@ -2,7 +2,6 @@ package shape
 
 import (
 	"gioui.org/f32"
-	"gioui.org/op"
 )
 
 type Label struct{}
@@ -20,6 +19,6 @@ func (l Label) Hit(p f32.Point) bool {
 	return false
 }
 
-func (l Label) Draw(ops *op.Ops) {
+func (l Label) Draw(gtx C) {
 
 }
