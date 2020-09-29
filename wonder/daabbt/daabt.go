@@ -4,8 +4,6 @@ package daabbt
 import (
 	"gioui.org/f32"
 	"gioui.org/layout"
-	"github.com/Almanax/wonderwall/wonder/shape"
-	"image/color"
 )
 
 var (
@@ -192,7 +190,7 @@ func (n *Node) Draw(gtx layout.Context) {
 	if n == nil {
 		return
 	}
-	shape.Rectangle(n.boundary).Stroke(color.RGBA{255, 182, 193, 255}, float32(2), gtx)
+	//shape.Rectangle(n.boundary).Stroke(color.RGBA{255, 182, 193, 255}, float32(2), gtx)
 	if n.children[0] != nil {
 		n.children[0].Draw(gtx)
 		n.children[1].Draw(gtx)
