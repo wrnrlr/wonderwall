@@ -89,8 +89,8 @@ func (l Polyline) Hit(gtx layout.Context) bool {
 			d := offsetPoint(p1, -width, tilt+rad90)
 			box := boundingBox([]f32.Point{a, b, c, d})
 			pointer.Rect(imageRect(box)).Add(gtx.Ops)
-			r := Rectangle(box)
-			r.Stroke(color.RGBA{0, 255, 0, 125}, 2, gtx)
+			green := &color.RGBA{0, 255, 0, 255}
+			Rectangle{box, nil, green, 2}.Draw(gtx.Ops)
 			//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
 		}
 	}

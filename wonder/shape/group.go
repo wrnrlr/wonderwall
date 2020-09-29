@@ -24,7 +24,7 @@ func (g Group) Hit(p f32.Point) bool {
 	return false
 }
 
-func (g Group) Draw(ops op.Ops) {
+func (g Group) Draw(ops *op.Ops) {
 
 }
 
