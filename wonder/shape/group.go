@@ -2,15 +2,16 @@ package shape
 
 import (
 	"gioui.org/f32"
-	"gioui.org/op"
 )
 
-type Group []Shape
+type Group struct {
+	Elements []Shape
+}
 
 func (g Group) Offset(p f32.Point) Shape {
 	var result Group
-	for _, s := range g {
-		result = append(result, s.Offset(p))
+	for _, s := range g.Elements {
+		result.Elements = append(result.Elements, s.Offset(p))
 	}
 	return result
 }
@@ -24,7 +25,7 @@ func (g Group) Hit(p f32.Point) bool {
 	return false
 }
 
-func (g Group) Draw(ops *op.Ops) {
+func (g Group) Draw(gtx C) {
 
 }
 
