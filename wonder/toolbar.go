@@ -16,6 +16,7 @@ type Toolbar struct {
 	selection *widget.Clickable
 	pen       *widget.Clickable
 	text      *widget.Clickable
+	image     *widget.Clickable
 
 	strokeSize  *widget.Editor
 	strokeColor *widget.Clickable
@@ -33,6 +34,7 @@ func NewToolbar(theme *ui.Theme) *Toolbar {
 		selection:   new(widget.Clickable),
 		pen:         new(widget.Clickable),
 		text:        new(widget.Clickable),
+		image:       new(widget.Clickable),
 		strokeSize:  &widget.Editor{SingleLine: true},
 		strokeColor: new(widget.Clickable),
 		delete:      new(widget.Clickable),
@@ -59,6 +61,9 @@ func (t *Toolbar) Layout(gtx C) D {
 		text := layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.text, textIcon).Layout(gtx)
 		})
+		image := layout.Rigid(func(gtx C) D {
+			return ui.Item(t.theme, t.image, imageIcon).Layout(gtx)
+		})
 		strokeSize := layout.Rigid(func(gtx C) D {
 			return ui.InputNumber(t.theme, t.strokeSize).Layout(gtx)
 		})
@@ -74,7 +79,7 @@ func (t *Toolbar) Layout(gtx C) D {
 		redo := layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.redo, redoIcon).Layout(gtx)
 		})
-		return tools.Layout(gtx, back, selection, pen, text, strokeSize, clr, remove, undo, redo)
+		return tools.Layout(gtx, back, selection, pen, text, image, strokeSize, clr, remove, undo, redo)
 	})
 	backg := layout.Expanded(func(gtx C) D {
 		cs := gtx.Constraints
@@ -98,6 +103,10 @@ func (t *Toolbar) events(gtx C) interface{} {
 	if t.text.Clicked() {
 		fmt.Println("clicked text")
 		t.Tool = TextTool
+	}
+	if t.image.Clicked() {
+		fmt.Println("clicked text")
+		t.Tool = ImageTool
 	}
 	if t.back.Clicked() {
 		fmt.Println("clicked list wall")

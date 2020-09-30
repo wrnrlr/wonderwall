@@ -14,4 +14,5 @@ var (
 	sortIcon   = loadIcon(icons.ContentSort)
 	addBoxIcon = loadIcon(icons.ContentAddBox)
 	userIcon   = loadIcon(icons.SocialPerson)
+	imageIcon  = loadIcon(icons.ImageImage)
 )

@@ -38,3 +38,7 @@ func imageRect(r f32.Rectangle) image.Rectangle {
 	x2, y2 := int(r.Max.X), int(r.Max.Y)
 	return image.Rect(x1, y1, x2, y2)
 }
+
+func toRectF(r image.Rectangle) f32.Rectangle {
+	return f32.Rect(float32(r.Min.X), float32(r.Min.Y), float32(r.Max.X), float32(r.Max.Y))
+}

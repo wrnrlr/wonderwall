@@ -24,6 +24,8 @@ type WallPage struct {
 	pen       *Pen
 	text      *TextWriter
 
+	images ImageService
+
 	penConfig *PenConfig
 
 	windowSize image.Point
@@ -68,6 +70,10 @@ func (p *WallPage) Event(gtx C) interface{} {
 		if e := p.text.Event(gtx); e != nil {
 			txt := &shape.Text{"", e.Position.X, e.Position.Y, "Text", blue, float32(50)}
 			p.plane.Add(txt)
+		}
+	case ImageTool:
+		if e := p.images.Event(gtx); e != nil {
+			p.plane.Add(e)
 		}
 	default:
 	}

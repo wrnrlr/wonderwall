@@ -7,6 +7,7 @@ const (
 	SelectionTool
 	PenTool
 	TextTool
+	ImageTool
 )
 
 func (t Tool) String() string {
