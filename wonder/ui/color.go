@@ -31,10 +31,10 @@ type ColorPicker struct {
 	active bool
 }
 
-func Color(th *Theme) *ColorPicker {
+func Color(th *Theme, col color.RGBA) *ColorPicker {
 	return &ColorPicker{
 		theme:   th,
-		Color:   th.Color.InvText,
+		Color:   col,
 		Size:    unit.Dp(24),
 		Inset:   layout.UniformInset(unit.Dp(12)),
 		Button:  &widget.Clickable{},
