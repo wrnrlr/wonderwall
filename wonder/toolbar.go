@@ -19,7 +19,7 @@ type Toolbar struct {
 	image     *widget.Clickable
 
 	strokeSize  *widget.Editor
-	strokeColor *widget.Clickable
+	strokeColor *ui.ColorPicker
 
 	delete *widget.Clickable
 	undo   *widget.Clickable
@@ -36,7 +36,7 @@ func NewToolbar(theme *ui.Theme) *Toolbar {
 		text:        new(widget.Clickable),
 		image:       new(widget.Clickable),
 		strokeSize:  &widget.Editor{SingleLine: true},
-		strokeColor: new(widget.Clickable),
+		strokeColor: ui.Color(theme),
 		delete:      new(widget.Clickable),
 		undo:        new(widget.Clickable),
 		redo:        new(widget.Clickable),
@@ -68,7 +68,7 @@ func (t *Toolbar) Layout(gtx C) D {
 			return ui.InputNumber(t.theme, t.strokeSize).Layout(gtx)
 		})
 		clr := layout.Rigid(func(gtx C) D {
-			return ui.Color(t.theme, t.strokeColor).Layout(gtx)
+			return t.strokeColor.Layout(gtx)
 		})
 		remove := layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.delete, deleteIcon).Layout(gtx)
@@ -111,6 +111,9 @@ func (t *Toolbar) events(gtx C) interface{} {
 	if t.back.Clicked() {
 		fmt.Println("clicked list wall")
 		return BackEvent{}
+	}
+	if clr := t.strokeColor.Event(gtx); clr != nil {
+
 	}
 	return nil
 }

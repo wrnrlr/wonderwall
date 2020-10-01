@@ -68,7 +68,7 @@ type ItemStyle struct {
 
 func (b ItemStyle) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Stack{Alignment: layout.Center}.Layout(gtx,
-		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+		layout.Expanded(func(gtx C) D {
 			clip.Rect{Max: gtx.Constraints.Min}.Add(gtx.Ops)
 
 			background := b.Background
@@ -81,19 +81,19 @@ func (b ItemStyle) Layout(gtx layout.Context) layout.Dimensions {
 			}
 			return dims
 		}),
-		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-			return b.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		layout.Stacked(func(gtx C) D {
+			return b.Inset.Layout(gtx, func(gtx C) D {
 				size := gtx.Px(b.Size)
 				if b.Icon != nil {
 					b.Icon.Color = b.Color
 					b.Icon.Layout(gtx, unit.Px(float32(size)))
 				}
-				return layout.Dimensions{
+				return D{
 					Size: image.Point{X: size, Y: size},
 				}
 			})
 		}),
-		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+		layout.Expanded(func(gtx layout.Context) D {
 			pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
 			return b.Button.Layout(gtx)
 		}),

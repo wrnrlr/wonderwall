@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -22,6 +23,9 @@ type ColorPicker struct {
 
 	Color color.RGBA
 
+	grid    *Grid
+	buttons [30]widget.Clickable
+
 	hex *widget.Editor
 
 	active bool
@@ -29,13 +33,15 @@ type ColorPicker struct {
 
 func Color(th *Theme) *ColorPicker {
 	return &ColorPicker{
-		theme:  th,
-		Color:  th.Color.InvText,
-		Size:   unit.Dp(24),
-		Inset:  layout.UniformInset(unit.Dp(12)),
-		Button: &widget.Clickable{},
-		hex:    &widget.Editor{SingleLine: true},
-		active: false,
+		theme:   th,
+		Color:   th.Color.InvText,
+		Size:    unit.Dp(24),
+		Inset:   layout.UniformInset(unit.Dp(12)),
+		Button:  &widget.Clickable{},
+		grid:    &Grid{Columns: 6, Rows: 5, Width: int(unit.Sp(300).V), Height: int(unit.Sp(200).V)},
+		buttons: [30]widget.Clickable{},
+		hex:     &widget.Editor{SingleLine: true},
+		active:  false,
 	}
 }
 
@@ -72,7 +78,7 @@ func (cp *ColorPicker) layoutButton(gtx C) D {
 				height := int(cp.Size.V)
 				gtx.Constraints.Min.X = width
 				gtx.Constraints.Min.Y = height
-				Fill(gtx, Rgb(0x0000ff))
+				Fill(gtx, cp.Color)
 				return D{Size: image.Point{X: width, Y: height}}
 			})
 		}),
@@ -86,9 +92,12 @@ func (cp *ColorPicker) layoutButton(gtx C) D {
 func (cp *ColorPicker) layoutPanel(gtx C) D {
 	gtx.Constraints.Max.X = 400
 	colors := layout.Rigid(func(gtx C) D {
-		grid := Grid{Columns: 6, Rows: 5, Width: 600, Height: 400}
-		return grid.Layout(gtx, func(i, j int, gtx C) D {
-			col := colorPalet[i*grid.Columns+j]
+		return cp.grid.Layout(gtx, func(i, j int, gtx C) D {
+			index := i*cp.grid.Columns + j
+			//pointer.Rect(image.Rectangle{Max: gtx.Constraints.Max}).Add(gtx.Ops)
+			//pointer.InputOp{Tag: &colorPalet[index], Grab: false, Types: pointer.Press}.Add(gtx.Ops)
+			cp.buttons[index].Layout(gtx)
+			col := colorPalet[index]
 			return Fill(gtx, Rgb(col))
 		})
 	})
@@ -98,13 +107,23 @@ func (cp *ColorPicker) layoutPanel(gtx C) D {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, colors, hexinput)
 }
 
-func (cp *ColorPicker) Event(gtx C) {
+func (cp *ColorPicker) Event(gtx C) (col *color.RGBA) {
 	if cp.Button.Clicked() {
 		cp.active = !cp.active
 	}
+	if !cp.active {
+		return nil
+	}
+	for i := range cp.buttons {
+		if cp.buttons[i].Clicked() {
+			fmt.Printf("Color grid clicked: \n")
+			cp.Color = Rgb(colorPalet[i])
+		}
+	}
+	return col
 }
 
-var colorPalet []uint32 = []uint32{
+var colorPalet = []uint32{
 	0x41B0F6,
 	0x74FBEA,
 	0x89F94F,
