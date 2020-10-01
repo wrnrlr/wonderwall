@@ -9,19 +9,14 @@ import (
 	"image/color"
 )
 
-type PenConfig struct {
-	StrokeSize  int
-	StrokeColor color.RGBA
-}
-
 type Pen struct {
 	events []f32.Point
 	grab   bool
 }
 
-func (p *Pen) Draw(gtx C, conf *PenConfig) {
+func (p *Pen) Draw(gtx C, width float32, col color.RGBA) {
 	if p.events != nil {
-		polyline.Draw(p.events, float32(conf.StrokeSize), maroon, gtx)
+		polyline.Draw(p.events, width, col, gtx)
 	}
 }
 

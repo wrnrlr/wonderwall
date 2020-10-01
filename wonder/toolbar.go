@@ -36,7 +36,7 @@ func NewToolbar(theme *ui.Theme) *Toolbar {
 		text:        new(widget.Clickable),
 		image:       new(widget.Clickable),
 		strokeSize:  &widget.Editor{SingleLine: true},
-		strokeColor: ui.Color(theme),
+		strokeColor: ui.Color(theme, maroon),
 		delete:      new(widget.Clickable),
 		undo:        new(widget.Clickable),
 		redo:        new(widget.Clickable),

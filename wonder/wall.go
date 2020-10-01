@@ -4,6 +4,7 @@ import (
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/Almanax/wonderwall/wonder/ui"
@@ -26,15 +27,12 @@ type WallPage struct {
 
 	images ImageService
 
-	penConfig *PenConfig
-
 	windowSize image.Point
 	plane      *shape.Plane
 }
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 	theme := ui.MenuTheme(gofont.Collection())
-	penConfig := &PenConfig{StrokeSize: 10, StrokeColor: maroon}
 	return &WallPage{
 		env:       env,
 		WallID:    wallID,
@@ -42,7 +40,6 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		selection: new(Selection),
 		pen:       new(Pen),
 		text:      new(TextWriter),
-		penConfig: penConfig,
 		plane:     &shape.Plane{},
 	}
 }
@@ -62,7 +59,7 @@ func (p *WallPage) Event(gtx C) interface{} {
 		//}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
-			l := &shape.Polyline{Points: e, Width: float32(p.penConfig.StrokeSize), Color: maroon}
+			l := &shape.Polyline{Points: e, Width: unit.Dp(10).V, Color: p.toolbar.strokeColor.Color}
 			p.plane.Add(l)
 			//l.Register(p.tree)
 		}
@@ -88,7 +85,7 @@ func (p *WallPage) Layout(gtx C) D {
 	toolbar := layout.Stacked(p.toolbar.Layout)
 	canvas := layout.Expanded(func(gtx C) D {
 		p.Draw(gtx)
-		p.pen.Draw(gtx, p.penConfig)
+		p.pen.Draw(gtx, float32(10), p.toolbar.strokeColor.Color)
 		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 		return D{Size: max}
 	})
