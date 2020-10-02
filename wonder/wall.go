@@ -4,7 +4,6 @@ import (
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
-	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/Almanax/wonderwall/wonder/ui"
@@ -59,7 +58,7 @@ func (p *WallPage) Event(gtx C) interface{} {
 		//}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
-			l := &shape.Polyline{Points: e, Width: unit.Dp(10).V, Color: p.toolbar.strokeColor.Color}
+			l := &shape.Polyline{Points: e, Width: float32(p.toolbar.strokeSize.Value), Color: p.toolbar.strokeColor.Color}
 			p.plane.Add(l)
 			//l.Register(p.tree)
 		}
@@ -85,7 +84,7 @@ func (p *WallPage) Layout(gtx C) D {
 	toolbar := layout.Stacked(p.toolbar.Layout)
 	canvas := layout.Expanded(func(gtx C) D {
 		p.Draw(gtx)
-		p.pen.Draw(gtx, float32(10), p.toolbar.strokeColor.Color)
+		p.pen.Draw(gtx, float32(p.toolbar.strokeSize.Value), p.toolbar.strokeColor.Color)
 		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 		return D{Size: max}
 	})

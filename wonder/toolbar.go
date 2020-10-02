@@ -18,7 +18,7 @@ type Toolbar struct {
 	text      *widget.Clickable
 	image     *widget.Clickable
 
-	strokeSize  *widget.Editor
+	strokeSize  *ui.InputNumberStyle
 	strokeColor *ui.ColorPicker
 
 	delete *widget.Clickable
@@ -35,7 +35,7 @@ func NewToolbar(theme *ui.Theme) *Toolbar {
 		pen:         new(widget.Clickable),
 		text:        new(widget.Clickable),
 		image:       new(widget.Clickable),
-		strokeSize:  &widget.Editor{SingleLine: true},
+		strokeSize:  ui.InputNumber(theme, 10),
 		strokeColor: ui.Color(theme, maroon),
 		delete:      new(widget.Clickable),
 		undo:        new(widget.Clickable),
@@ -65,7 +65,7 @@ func (t *Toolbar) Layout(gtx C) D {
 			return ui.Item(t.theme, t.image, imageIcon).Layout(gtx)
 		})
 		strokeSize := layout.Rigid(func(gtx C) D {
-			return ui.InputNumber(t.theme, t.strokeSize).Layout(gtx)
+			return t.strokeSize.Layout(gtx)
 		})
 		clr := layout.Rigid(func(gtx C) D {
 			return t.strokeColor.Layout(gtx)
