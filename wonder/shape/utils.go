@@ -27,6 +27,10 @@ func boundingBox(points []f32.Point) (box f32.Rectangle) {
 	return box
 }
 
+func circleBox(p f32.Point, r float32) f32.Rectangle {
+	return f32.Rect(p.X-r, p.Y-r, p.X+r, p.Y+r)
+}
+
 func offsetPoint(point f32.Point, distance, angle float32) f32.Point {
 	x := point.X + distance*cos(angle)
 	y := point.Y + distance*sin(angle)

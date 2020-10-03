@@ -23,6 +23,8 @@ func (l Polyline) Bounds() f32.Rectangle {
 	if l.boxes != nil {
 		length := len(l.Points)
 		for i, p1 := range l.Points {
+			b := circleBox(p1, l.Width)
+			l.boxes = append(l.boxes, b)
 			if i < length-1 {
 				p2 := l.Points[i+1]
 				tilt := angle(p1, p2) + rad90
@@ -32,9 +34,12 @@ func (l Polyline) Bounds() f32.Rectangle {
 				d := offsetPoint(p1, -l.Width, tilt)
 				box := boundingBox([]f32.Point{a, b, c, d})
 				l.boxes = append(l.boxes, box)
-				//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
+				//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Insert(gtx.Ops)
 			}
 		}
+	}
+	if len(l.boxes) == 0 {
+		return f32.Rectangle{}
 	}
 	box := l.boxes[0]
 	for _, b := range l.boxes[1:] {
