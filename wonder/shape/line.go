@@ -11,19 +11,32 @@ import (
 
 type Path []f32.Point
 
+type point [2]float32
+
+type circle [3]float32
+
+type rect [4]f32.Point
+
+func (r rect) hit(p f32.Point) bool {
+	return pointInTriangle(p, r[0], r[1], r[2]) || pointInTriangle(p, r[0], r[3], r[2])
+}
+
 type Polyline struct {
 	Points Path
 	Color  color.RGBA
 	Width  float32
 	offset f32.Point
+	rects  []rect
 	boxes  []f32.Rectangle
+	box    []f32.Rectangle
 }
 
-func (l Polyline) Bounds() f32.Rectangle {
-	if l.boxes != nil {
+func (l *Polyline) Bounds() f32.Rectangle {
+	r := l.Width
+	if l.boxes == nil {
 		length := len(l.Points)
 		for i, p1 := range l.Points {
-			b := circleBox(p1, l.Width)
+			b := f32.Rect(p1.X-r, p1.Y-r, p1.X+r, p1.Y+r)
 			l.boxes = append(l.boxes, b)
 			if i < length-1 {
 				p2 := l.Points[i+1]
@@ -32,6 +45,7 @@ func (l Polyline) Bounds() f32.Rectangle {
 				b := offsetPoint(p2, l.Width, tilt)
 				c := offsetPoint(p2, -l.Width, tilt)
 				d := offsetPoint(p1, -l.Width, tilt)
+				l.rects = append(l.rects, rect{a, b, c, d})
 				box := boundingBox([]f32.Point{a, b, c, d})
 				l.boxes = append(l.boxes, box)
 				//pointer.InputOp{Tag: &l, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Insert(gtx.Ops)
@@ -108,7 +122,11 @@ func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx 
 	stack.Pop()
 }
 
-func (l Polyline) Hit(p f32.Point) bool {
-
+func (l *Polyline) Hit(p f32.Point) bool {
+	for _, r := range l.rects {
+		if r.hit(p) {
+			return true
+		}
+	}
 	return false
 }

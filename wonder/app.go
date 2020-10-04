@@ -3,16 +3,13 @@ package main
 import (
 	"fmt"
 	"gioui.org/app"
-	"gioui.org/f32"
 	"gioui.org/font/gofont"
-	"gioui.org/io/pointer"
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"github.com/Almanax/wonderwall/wonder/daabbt"
 	"github.com/Almanax/wonderwall/wonder/ui"
-	"image"
+	"github.com/rs/xid"
 	"log"
 	"os"
 )
@@ -77,7 +74,9 @@ func (a *App) loop(w *app.Window) error {
 					//	defer a.env.client.unregister(a)
 					//}
 					if a.stack.Len() == 0 {
-						a.stack.Push(NewLoginPage(&a.env))
+						//a.stack.Push(NewLoginPage(&a.env))
+						a.stack.Push(NewWallListPage(&a.env))
+						a.stack.Push(NewWallPage(&a.env, xid.New()))
 					}
 				}
 			case *system.CommandEvent:
@@ -123,34 +122,6 @@ func (a *App) update(gtx layout.Context) {
 			a.stack.Push(NewAddWallPage(&a.env))
 		}
 	}
-}
-
-type Selection struct {
-	events []f32.Point
-}
-
-func (s *Selection) Event(tree *daabbt.Node, gtx C) []f32.Point {
-	defer op.Push(gtx.Ops).Pop()
-	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
-	for _, e := range gtx.Events(s) {
-		e, ok := e.(pointer.Event)
-		if !ok {
-			continue
-		}
-		switch e.Type {
-		case pointer.Press:
-			results := tree.KNearest(e.Position, 10, func(p f32.Point) bool {
-				return true
-			})
-			fmt.Printf("results: %v\n", results)
-		case pointer.Scroll:
-			fmt.Printf("Scroll: %v, %v\n", e.Position, e.Scroll)
-		case pointer.Drag:
-		case pointer.Release, pointer.Cancel:
-		}
-	}
-	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll}.Add(gtx.Ops)
-	return nil
 }
 
 type Canvas struct{}

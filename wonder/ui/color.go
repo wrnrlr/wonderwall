@@ -94,8 +94,8 @@ func (cp *ColorPicker) layoutPanel(gtx C) D {
 	colors := layout.Rigid(func(gtx C) D {
 		return cp.grid.Layout(gtx, func(i, j int, gtx C) D {
 			index := i*cp.grid.Columns + j
-			//pointer.Rect(image.Rectangle{Max: gtx.Constraints.Max}).Add(gtx.Ops)
-			//pointer.InputOp{Tag: &colorPalet[index], Grab: false, Types: pointer.Press}.Add(gtx.Ops)
+			//pointer.Rect(image.Rectangle{Max: gtx.Constraints.Max}).Insert(gtx.Ops)
+			//pointer.InputOp{Tag: &colorPalet[index], Grab: false, Types: pointer.Press}.Insert(gtx.Ops)
 			cp.buttons[index].Layout(gtx)
 			col := colorPalet[index]
 			return Fill(gtx, Rgb(col))

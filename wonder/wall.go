@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/Almanax/wonderwall/wonder/ui"
@@ -36,7 +38,7 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		env:       env,
 		WallID:    wallID,
 		toolbar:   NewToolbar(theme),
-		selection: new(Selection),
+		selection: NewSelection(),
 		pen:       new(Pen),
 		text:      new(TextWriter),
 		plane:     &shape.Plane{},
@@ -53,23 +55,23 @@ func (p *WallPage) Event(gtx C) interface{} {
 	}
 	switch p.toolbar.Tool {
 	case SelectionTool:
-		//if e := p.selection.Event(p.tree, gtx); e != nil {
-		//	fmt.Printf("Selection event: %v", e)
-		//}
+		if e := p.selection.Event(p.plane, gtx); e != nil {
+			fmt.Printf("Selection event: %v", e)
+		}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
 			l := &shape.Polyline{Points: e, Width: float32(p.toolbar.strokeSize.Value), Color: p.toolbar.strokeColor.Color}
-			p.plane.Add(l)
+			p.plane.Insert(l)
 			//l.Register(p.tree)
 		}
 	case TextTool:
 		if e := p.text.Event(gtx); e != nil {
 			txt := &shape.Text{"", e.Position.X, e.Position.Y, "Text", blue, float32(50)}
-			p.plane.Add(txt)
+			p.plane.Insert(txt)
 		}
 	case ImageTool:
 		if e := p.images.Event(gtx); e != nil {
-			p.plane.Add(e)
+			p.plane.Insert(e)
 		}
 	default:
 	}
@@ -86,6 +88,12 @@ func (p *WallPage) Layout(gtx C) D {
 		p.Draw(gtx)
 		p.pen.Draw(gtx, float32(p.toolbar.strokeSize.Value), p.toolbar.strokeColor.Color)
 		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
+		if p.toolbar.Tool == SelectionTool {
+			for s, _ := range p.selection.selection {
+				b := s.Bounds()
+				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &green, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
+			}
+		}
 		return D{Size: max}
 	})
 	dims := stack.Layout(gtx, canvas, toolbar)

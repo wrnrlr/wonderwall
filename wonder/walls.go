@@ -108,8 +108,6 @@ func (p *WallListPage) layoutWallItem(gtx C, i int) D {
 				paint.PaintOp{Rect: f32.Rectangle{Max: toPointF(ico.Size())}}.Add(gtx.Ops)
 				dims := layout.Dimensions{Size: ico.Size()}
 				dims.Size.X += gtx.Px(unit.Dp(4))
-				//pointer.Rect(image.Rectangle{Max: dims.Size}).Add(gtx.Ops)
-				//click.Add(gtx.Ops)
 				return dims
 			}))
 	})
