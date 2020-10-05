@@ -11,12 +11,13 @@ type Image struct {
 }
 
 func (i Image) Bounds() f32.Rectangle {
-	return toRectF(i.Image.Rect)
+	r := toRectF(i.Image.Rect)
+	return r.Add(f32.Pt(i.X, i.Y))
 }
 
 // Hit test
 func (i Image) Hit(p f32.Point) bool {
-	return false
+	return true
 }
 
 func (i Image) Offset(p f32.Point) Shape {
