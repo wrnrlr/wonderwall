@@ -46,3 +46,14 @@ func imageRect(r f32.Rectangle) image.Rectangle {
 func toRectF(r image.Rectangle) f32.Rectangle {
 	return f32.Rect(float32(r.Min.X), float32(r.Min.Y), float32(r.Max.X), float32(r.Max.Y))
 }
+
+func sign(a, b, c f32.Point) float32 {
+	return (a.X-c.X)*(b.Y-c.Y) - (b.X-c.X)*(a.Y-c.Y)
+}
+
+func pointInTriangle(p, a, b, c f32.Point) bool {
+	b1 := sign(p, a, b) < 0
+	b2 := sign(p, b, c) < 0
+	b3 := sign(p, a, a) < 0
+	return (b1 == b2) && (b2 == b3)
+}
