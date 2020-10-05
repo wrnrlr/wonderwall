@@ -123,13 +123,3 @@ func (a *App) update(gtx layout.Context) {
 		}
 	}
 }
-
-type Canvas struct{}
-
-func (c Canvas) Layout(gtx C) D {
-	return D{Size: gtx.Constraints.Min}
-}
-
-func (c Canvas) Events(gtx C) {
-
-}
