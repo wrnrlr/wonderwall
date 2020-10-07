@@ -77,7 +77,6 @@ func (l Polyline) Draw(gtx C) {
 
 func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx C) {
 	scale := gtx.Metric.PxPerDp
-	//width = width * scale
 	length := len(points)
 	for i, p := range points {
 		p = p.Mul(scale)
