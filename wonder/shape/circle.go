@@ -38,8 +38,9 @@ func (c Circle) Draw(gtx C) {
 
 func (cc Circle) Stroke(col color.RGBA, width float32, gtx layout.Context) f32.Rectangle {
 	r := cc.Radius
+	scale := gtx.Metric.PxPerDp
 	w, h := r*2, r*2
-	p := cc.Center
+	p := cc.Center.Mul(scale)
 	box := f32.Rectangle{Max: f32.Point{X: p.X + w, Y: p.Y + h}}
 	defer op.Push(gtx.Ops).Pop()
 	paint.ColorOp{col}.Add(gtx.Ops)
@@ -52,8 +53,8 @@ func (cc Circle) Stroke(col color.RGBA, width float32, gtx layout.Context) f32.R
 	path.Cube(f32.Point{X: 0, Y: -r * c}, f32.Point{X: r - r*c, Y: -r}, f32.Point{X: r, Y: -r})   // NW
 	path.Cube(f32.Point{X: r * c, Y: 0}, f32.Point{X: r, Y: r - r*c}, f32.Point{X: r, Y: r})      // NE
 	path.Move(f32.Point{X: -w, Y: -r})                                                            // Return to origin
-	scale := (r - width*2) / r
-	path.Move(f32.Point{X: w * (1 - scale) * .5, Y: h * (1 - scale) * .5})
+	scaledWidth := (r - width*2) / r
+	path.Move(f32.Point{X: w * (1 - scaledWidth) * .5, Y: h * (1 - scaledWidth) * .5})
 	w *= scale
 	h *= scale
 	r *= scale
