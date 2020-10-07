@@ -39,3 +39,5 @@ Draw Polyline
 ## Research
 
 * [Draw sin wave with brezier curves](https://stackoverflow.com/questions/29022438/how-to-approximate-a-half-cosine-curve-with-bezier-paths-in-svg)
+
+* [Check if point is inside of a rectangle](https://math.stackexchange.com/questions/190111/how-to-check-if-a-point-is-inside-a-rectangle)
