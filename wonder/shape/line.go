@@ -6,6 +6,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"github.com/rs/xid"
 	"image/color"
 )
 
@@ -30,6 +31,15 @@ type Polyline struct {
 	rects  []rect
 	boxes  []f32.Rectangle
 	box    []f32.Rectangle
+}
+
+func NewPolyline(points []f32.Point, col color.RGBA, width float32) *Polyline {
+	return &Polyline{
+		ID:     xid.New().String(),
+		Points: points,
+		Color:  col,
+		Width:  width,
+	}
 }
 
 func (l *Polyline) Bounds() f32.Rectangle {

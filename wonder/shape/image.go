@@ -3,12 +3,22 @@ package shape
 import (
 	"gioui.org/f32"
 	"gioui.org/op/paint"
+	"github.com/rs/xid"
 )
 
 type Image struct {
 	ID    string
 	X, Y  float32
 	Image paint.ImageOp
+}
+
+func NewImage(x, y float32, img paint.ImageOp) *Image {
+	return &Image{
+		ID:    xid.New().String(),
+		X:     x,
+		Y:     y,
+		Image: img,
+	}
 }
 
 func (i Image) Bounds() f32.Rectangle {
