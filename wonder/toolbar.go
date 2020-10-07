@@ -112,6 +112,10 @@ func (t *Toolbar) events(gtx C) interface{} {
 		fmt.Println("clicked list wall")
 		return BackEvent{}
 	}
+	if t.delete.Clicked() {
+		fmt.Println("Delete selection")
+		return DeleteEvent{}
+	}
 	if clr := t.strokeColor.Event(gtx); clr != nil {
 
 	}

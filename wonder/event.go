@@ -15,3 +15,5 @@ type ShowWallEvent struct {
 type ShowAddWallEvent struct{}
 
 type ShowUserEvent struct{}
+
+type DeleteEvent struct{}

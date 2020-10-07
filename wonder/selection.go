@@ -56,6 +56,13 @@ func (s *Selection) ToggleSelection(sh shape.Shape) {
 	}
 }
 
+func (s *Selection) Elements() (shapes []shape.Shape) {
+	for e := range s.selection {
+		shapes = append(shapes, e)
+	}
+	return shapes
+}
+
 func (s *Selection) Clear() {
 	s.selection = map[shape.Shape]bool{}
 }

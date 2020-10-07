@@ -41,7 +41,7 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		selection: NewSelection(),
 		pen:       new(Pen),
 		text:      new(TextWriter),
-		plane:     &shape.Plane{},
+		plane:     shape.NewPlane(),
 	}
 }
 
@@ -60,7 +60,7 @@ func (p *WallPage) Event(gtx C) interface{} {
 		}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
-			l := &shape.Polyline{Points: e, Width: float32(p.toolbar.strokeSize.Value), Color: p.toolbar.strokeColor.Color}
+			l := shape.NewPolyline(e, p.toolbar.strokeColor.Color, float32(p.toolbar.strokeSize.Value))
 			p.plane.Insert(l)
 			//l.Register(p.tree)
 		}
@@ -78,9 +78,19 @@ func (p *WallPage) Event(gtx C) interface{} {
 	default:
 	}
 	if e := p.toolbar.events(gtx); e != nil {
-		return e
+		switch e.(type) {
+		case DeleteEvent:
+			p.DeleteSelection()
+		default:
+			return e
+		}
 	}
 	return nil
+}
+
+func (p *WallPage) DeleteSelection() {
+	p.plane.RemoveAll(p.selection.Elements())
+	p.selection.Clear()
 }
 
 func (p *WallPage) Layout(gtx C) D {
@@ -91,6 +101,19 @@ func (p *WallPage) Layout(gtx C) D {
 		p.pen.Draw(gtx, float32(p.toolbar.strokeSize.Value), p.toolbar.strokeColor.Color)
 		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 		if p.toolbar.Tool == SelectionTool {
+			for _, s := range p.plane.Elements {
+				b := s.Bounds()
+				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &lightpink, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
+			}
+			p.plane.Index.Scan(func(min, max [2]float32, data interface{}) bool {
+				//s, ok := data.(shape.Shape)
+				//if !ok {
+				//	return true
+				//}
+				b := f32.Rect(min[0], min[1], max[0], max[1])
+				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &lightgrey, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
+				return true
+			})
 			for s, _ := range p.selection.selection {
 				b := s.Bounds()
 				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &green, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
