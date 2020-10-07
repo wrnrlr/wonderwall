@@ -66,7 +66,7 @@ func (p *WallPage) Event(gtx C) interface{} {
 		}
 	case TextTool:
 		if e := p.text.Event(gtx); e != nil {
-			txt := &shape.Text{"", e.Position.X, e.Position.Y, "Text", blue, float32(50)}
+			txt := shape.NewText(e.Position.X, e.Position.Y, "Text", blue, float32(30), theme.Shaper)
 			p.plane.Insert(txt)
 		}
 	case ImageTool:
