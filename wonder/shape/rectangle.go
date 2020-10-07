@@ -29,16 +29,19 @@ func (r Rectangle) Offset(p f32.Point) Shape {
 }
 
 func (r Rectangle) Draw(gtx layout.Context) {
+	scale := gtx.Metric.PxPerDp
+	rec := f32.Rectangle{Min: r.Rectangle.Min.Mul(scale), Max: r.Rectangle.Max.Mul(scale)}
 	if r.StrokeColor != nil {
+		width := r.StrokeWidth * scale
 		stack := op.Push(gtx.Ops)
-		clip.Border{Rect: r.Rectangle, Width: r.StrokeWidth}.Add(gtx.Ops)
-		dr := f32.Rectangle{Max: r.Max}
+		clip.Border{Rect: rec, Width: width}.Add(gtx.Ops)
+		dr := f32.Rectangle{Max: rec.Max}
 		paint.ColorOp{Color: *r.StrokeColor}.Add(gtx.Ops)
 		paint.PaintOp{Rect: dr}.Add(gtx.Ops)
 		stack.Pop()
 	}
 	if r.FillColor != nil {
-		p1, p2 := r.Min, r.Max
+		p1, p2 := rec.Min, rec.Max
 		stack := op.Push(gtx.Ops)
 		paint.ColorOp{Color: *r.FillColor}.Add(gtx.Ops)
 		var path clip.Path
