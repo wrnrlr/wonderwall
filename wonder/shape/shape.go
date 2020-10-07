@@ -18,4 +18,6 @@ type Shape interface {
 	Draw(gtx C)
 
 	Eq(s2 Shape) bool
+
+	Identity() string
 }

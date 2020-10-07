@@ -35,9 +35,13 @@ func (i Image) Draw(gtx C) {
 }
 
 func (i *Image) Eq(s Shape) bool {
-	i2, ok := s.(Group)
+	i2, ok := s.(*Image)
 	if !ok {
 		return false
 	}
 	return i.ID == i2.ID
+}
+
+func (i Image) Identity() string {
+	return i.ID
 }

@@ -9,12 +9,12 @@ type Group struct {
 	Elements []Shape
 }
 
-func (g Group) Offset(p f32.Point) Shape {
+func (g *Group) Offset(p f32.Point) Shape {
 	var result Group
 	for _, s := range g.Elements {
 		result.Elements = append(result.Elements, s.Offset(p))
 	}
-	return result
+	return &result
 }
 
 func (g Group) Bounds() f32.Rectangle {
@@ -36,10 +36,14 @@ func (g *Group) Append(s Shape) {
 	g.Elements = append(g.Elements, s)
 }
 
-func (g Group) Eq(s2 Shape) bool {
-	g2, ok := s2.(Group)
+func (g *Group) Eq(s2 Shape) bool {
+	g2, ok := s2.(*Group)
 	if !ok {
 		return false
 	}
 	return g.ID == g2.ID
+}
+
+func (g *Group) Identity() string {
+	return g.ID
 }

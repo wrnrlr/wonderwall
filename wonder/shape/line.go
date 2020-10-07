@@ -22,6 +22,7 @@ func (r rect) hit(p f32.Point) bool {
 }
 
 type Polyline struct {
+	ID     string
 	Points Path
 	Color  color.RGBA
 	Width  float32
@@ -136,6 +137,10 @@ func (l *Polyline) Hit(p f32.Point) bool {
 	return false
 }
 
-func (p *Polyline) Eq(s2 Shape) bool {
+func (l *Polyline) Eq(s2 Shape) bool {
 	return false
+}
+
+func (l *Polyline) Identity() string {
+	return l.ID
 }

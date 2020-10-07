@@ -242,9 +242,13 @@ func align(align text.Alignment, width fixed.Int26_6, maxWidth int) fixed.Int26_
 }
 
 func (t *Text) Eq(s Shape) bool {
-	t2, ok := s.(Group)
+	t2, ok := s.(*Text)
 	if !ok {
 		return false
 	}
 	return t.ID == t2.ID
+}
+
+func (t *Text) Identity() string {
+	return t.ID
 }
