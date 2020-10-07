@@ -30,7 +30,8 @@ func (s *Selection) Event(plane *shape.Plane, gtx C) []f32.Point {
 		}
 		switch e.Type {
 		case pointer.Press:
-			sh := plane.Hits(e.Position)
+			pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+			sh := plane.Hits(pos)
 			if sh != nil {
 				s.ToggleSelection(sh)
 			} else {
