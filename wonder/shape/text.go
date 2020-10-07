@@ -55,8 +55,11 @@ func (t Text) Offset(p f32.Point) Shape {
 
 func (t Text) Draw(gtx C) {
 	defer op.Push(gtx.Ops).Pop()
-	op.Offset(f32.Point{X: t.X, Y: t.Y - t.FontWidth/2}).Add(gtx.Ops)
-	l := material.Label(material.NewTheme(gofont.Collection()), unit.Px(t.FontWidth), t.Text)
+	scale := gtx.Metric.PxPerDp
+	p := f32.Point{X: t.X, Y: t.Y - t.FontWidth/2}.Mul(scale)
+	width := t.FontWidth * scale
+	op.Offset(p).Add(gtx.Ops)
+	l := material.Label(material.NewTheme(gofont.Collection()), unit.Px(width), t.Text)
 	l.Color = t.StrokeColor
 	l.Layout(gtx)
 }

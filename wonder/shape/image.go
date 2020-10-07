@@ -26,8 +26,9 @@ func (i Image) Offset(p f32.Point) Shape {
 
 func (i Image) Draw(gtx C) {
 	b := i.Image.Rect
-	w, h := float32(b.Max.X), float32(b.Max.Y)
-	ops := gtx.Ops
-	i.Image.Add(ops)
-	paint.PaintOp{Rect: f32.Rect(i.X, i.Y, i.X+w, i.Y+h)}.Add(ops)
+	scale := gtx.Metric.PxPerDp
+	p := f32.Point{X: i.X, Y: i.Y}.Mul(scale)
+	w, h := float32(b.Max.X)*scale, float32(b.Max.Y)*scale
+	i.Image.Add(gtx.Ops)
+	paint.PaintOp{Rect: f32.Rect(p.X, p.Y, p.X+w, p.Y+h)}.Add(gtx.Ops)
 }

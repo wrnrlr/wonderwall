@@ -70,15 +70,21 @@ func (l *Polyline) Offset(p f32.Point) Shape {
 }
 
 func (l Polyline) Draw(gtx C) {
-	l.drawPolyline(l.Points, l.Width, l.Color, gtx)
+	scale := gtx.Metric.PxPerDp
+	width := l.Width * scale
+	l.drawPolyline(l.Points, width, l.Color, gtx)
 }
 
 func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx C) {
+	scale := gtx.Metric.PxPerDp
+	//width = width * scale
 	length := len(points)
 	for i, p := range points {
+		p = p.Mul(scale)
 		l.drawCircle(p, width, col, gtx)
 		if i < length-1 {
-			l.drawLine(p, points[i+1], width, col, gtx)
+			p2 := points[i+1].Mul(scale)
+			l.drawLine(p, p2, width, col, gtx)
 		}
 	}
 }
