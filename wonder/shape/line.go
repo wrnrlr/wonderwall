@@ -135,3 +135,7 @@ func (l *Polyline) Hit(p f32.Point) bool {
 	}
 	return false
 }
+
+func (p *Polyline) Eq(s2 Shape) bool {
+	return false
+}

@@ -6,6 +6,7 @@ import (
 )
 
 type Image struct {
+	ID    string
 	X, Y  float32
 	Image paint.ImageOp
 }
@@ -31,4 +32,12 @@ func (i Image) Draw(gtx C) {
 	w, h := float32(b.Max.X)*scale, float32(b.Max.Y)*scale
 	i.Image.Add(gtx.Ops)
 	paint.PaintOp{Rect: f32.Rect(p.X, p.Y, p.X+w, p.Y+h)}.Add(gtx.Ops)
+}
+
+func (i *Image) Eq(s Shape) bool {
+	i2, ok := s.(Group)
+	if !ok {
+		return false
+	}
+	return i.ID == i2.ID
 }

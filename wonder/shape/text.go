@@ -240,3 +240,11 @@ func align(align text.Alignment, width fixed.Int26_6, maxWidth int) fixed.Int26_
 		panic(fmt.Errorf("unknown alignment %v", align))
 	}
 }
+
+func (t *Text) Eq(s Shape) bool {
+	t2, ok := s.(Group)
+	if !ok {
+		return false
+	}
+	return t.ID == t2.ID
+}

@@ -5,6 +5,7 @@ import (
 )
 
 type Group struct {
+	ID       string
 	Elements []Shape
 }
 
@@ -33,4 +34,12 @@ func (g Group) Draw(gtx C) {
 
 func (g *Group) Append(s Shape) {
 	g.Elements = append(g.Elements, s)
+}
+
+func (g Group) Eq(s2 Shape) bool {
+	g2, ok := s2.(Group)
+	if !ok {
+		return false
+	}
+	return g.ID == g2.ID
 }
