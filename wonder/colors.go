@@ -1,6 +1,9 @@
 package main
 
-import "image/color"
+import (
+	"github.com/Almanax/wonderwall/wonder/ui"
+	"image/color"
+)
 
 var (
 	maroon    = color.RGBA{127, 0, 0, 255}
@@ -9,4 +12,5 @@ var (
 	red       = color.RGBA{255, 0, 0, 255}
 	green     = color.RGBA{0, 255, 0, 255}
 	blue      = color.RGBA{0, 0, 255, 255}
+	lightpink = ui.Rgb(0xFFB6C1)
 )
