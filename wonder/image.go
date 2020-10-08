@@ -39,7 +39,7 @@ func (s *ImageService) Event(gtx C) shape.Shape {
 			scale := 1 / gtx.Metric.PxPerDp
 			img := paint.NewImageOp(src)
 			pos := e.Position.Mul(scale)
-			sh = &shape.Image{X: pos.X, Y: pos.Y, Image: img}
+			sh = shape.NewImage(pos.X, pos.Y, &img)
 		case pointer.Release, pointer.Cancel:
 		case pointer.Drag:
 		}

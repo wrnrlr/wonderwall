@@ -9,10 +9,10 @@ import (
 type Image struct {
 	ID    string
 	X, Y  float32
-	Image paint.ImageOp
+	Image *paint.ImageOp
 }
 
-func NewImage(x, y float32, img paint.ImageOp) *Image {
+func NewImage(x, y float32, img *paint.ImageOp) *Image {
 	return &Image{
 		ID:    xid.New().String(),
 		X:     x,
