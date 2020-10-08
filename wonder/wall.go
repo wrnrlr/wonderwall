@@ -101,7 +101,8 @@ func (p *WallPage) Layout(gtx C) D {
 		p.pen.Draw(gtx, float32(p.toolbar.strokeSize.Value), p.toolbar.strokeColor.Color)
 		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 		if p.toolbar.Tool == SelectionTool {
-			for _, s := range p.plane.Elements {
+			for pair := p.plane.Elements.Oldest(); pair != nil; pair = pair.Next() {
+				s, _ := pair.Value.(shape.Shape)
 				b := s.Bounds()
 				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &lightpink, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
 			}

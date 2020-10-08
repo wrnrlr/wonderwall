@@ -3,24 +3,26 @@ package shape
 import (
 	"gioui.org/f32"
 	"github.com/Almanax/wonderwall/wonder/rtree"
+	orderedmap "github.com/wk8/go-ordered-map"
 )
 
 // A two-dimensional surface that extends infinitely far
 type Plane struct {
-	Elements map[string]Shape
+	Elements *orderedmap.OrderedMap
 	Index    rtree.RTree
 }
 
 func NewPlane() *Plane {
 	return &Plane{
-		Elements: map[string]Shape{},
+		Elements: orderedmap.New(),
 	}
 }
 
 func (p *Plane) View(r f32.Rectangle, gtx C) {
 	// Find elements within r
 	//offset := f32.Pt(r.Dx(), r.Dy())
-	for _, s := range p.Elements {
+	for pair := p.Elements.Oldest(); pair != nil; pair = pair.Next() {
+		s, _ := pair.Value.(Shape)
 		s.Draw(gtx)
 	}
 	//for _, s := range p.Elements {
@@ -30,7 +32,7 @@ func (p *Plane) View(r f32.Rectangle, gtx C) {
 }
 
 func (p *Plane) Insert(s Shape) {
-	p.Elements[s.Identity()] = s
+	p.Elements.Set(s.Identity(), s)
 	bounds := s.Bounds()
 	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
 	p.Index.Insert(min, max, s)
@@ -77,7 +79,7 @@ func (p Plane) Hits(pos f32.Point) Shape {
 
 func (p *Plane) RemoveAll(ss []Shape) {
 	for _, s := range ss {
-		delete(p.Elements, s.Identity())
+		p.Elements.Delete(s.Identity())
 		bounds := s.Bounds()
 		min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
 		p.Index.Delete(min, max, s)
