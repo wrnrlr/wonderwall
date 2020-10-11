@@ -4,6 +4,7 @@ import (
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/shape"
@@ -58,7 +59,7 @@ func (p *WallPage) Event(gtx C) interface{} {
 	switch p.toolbar.Tool {
 	case SelectionTool:
 		e := p.selection.Event(p.plane, gtx)
-		if e != nil {
+		if e == nil {
 			return nil
 		}
 		switch e := e.(type) {
@@ -119,7 +120,28 @@ func (p *WallPage) Layout(gtx C) D {
 	stack := layout.Stack{}
 	toolbar := layout.Stacked(p.toolbar.Layout)
 	canvas := layout.Expanded(func(gtx C) D {
-		p.Draw(gtx)
+
+		cons := gtx.Constraints
+		r := f32.Rectangle{Min: f32.Point{X: 0, Y: 0}, Max: layout.FPt(cons.Max)}
+		scale := p.scale
+		width := r.Dx()
+		height := r.Dy()
+		scaledWidth := width * scale
+		scaledHeight := height * scale
+		centerX := r.Min.X + width/2
+		centerY := r.Min.Y + height/2
+		center := f32.Pt(centerX, centerY)
+		minX := r.Min.X + width/2 - scaledWidth/2
+		minY := r.Min.Y + height/2 - scaledHeight/2
+		maxX := r.Max.X + width/2 - scaledWidth/2
+		maxY := r.Max.Y + height/2 - scaledHeight/2
+		op.InvalidateOp{}.Add(gtx.Ops)
+		defer op.Push(gtx.Ops).Pop()
+		tr := f32.Affine2D{}
+		tr = tr.Scale(center, f32.Pt(scale, scale))
+		op.Affine(tr).Add(gtx.Ops)
+		view := f32.Rect(minX, minY, maxX, maxY)
+		p.plane.View(view, scale, gtx)
 		p.pen.Draw(gtx, float32(p.toolbar.strokeSize.Value), p.toolbar.strokeColor.Color)
 		max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 		if p.toolbar.Tool == SelectionTool {
@@ -145,23 +167,21 @@ func (p *WallPage) Layout(gtx C) D {
 }
 
 // https://math.stackexchange.com/questions/514212/how-to-scale-a-rectangle
-func (p *WallPage) Draw(gtx C) {
-	cons := gtx.Constraints
-	gtx.Disabled()
-	scale := p.scale
-	min := f32.Point{X: 0, Y: 0} //.Add(p.offset)
-	max := layout.FPt(cons.Max)  //.Add(p.offset)
-	view := f32.Rectangle{Min: min, Max: max}
-	p.plane.View(view, scale, gtx)
-	//for i := range p.lines {
-	//	p.lines[i].Draw(gtx)
-	//}
-	//for i := range p.texts {
-	//	p.texts[i].Draw(gtx)
-	//}
-	//if p.toolbar.Tool == SelectionTool {
-	//	for i := range p.lines {
-	//		p.lines[i].boxes(gtx)
-	//	}
-	//}
-}
+//func (p *WallPage) Draw(gtx C) {
+//	cons := gtx.Constraints
+//	scale := p.scale
+//	min := f32.Point{X: 0, Y: 0} //.Add(p.offset)
+//	max := layout.FPt(cons.Max)  //.Add(p.offset)
+//	view := f32.Rectangle{Min: min, Max: max}
+//	//for i := range p.lines {
+//	//	p.lines[i].Draw(gtx)
+//	//}
+//	//for i := range p.texts {
+//	//	p.texts[i].Draw(gtx)
+//	//}
+//	//if p.toolbar.Tool == SelectionTool {
+//	//	for i := range p.lines {
+//	//		p.lines[i].boxes(gtx)
+//	//	}
+//	//}
+//}

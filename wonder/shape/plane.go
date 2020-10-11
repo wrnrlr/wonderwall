@@ -20,7 +20,7 @@ func NewPlane() *Plane {
 }
 
 func (p *Plane) View(r f32.Rectangle, scale float32, gtx C) {
-	fmt.Printf("View: %v\n", r)
+	fmt.Printf("View: %v %f\n", r, scale)
 	p.printElements()
 	min := [2]float32{r.Min.X, r.Min.Y}
 	max := [2]float32{r.Max.X, r.Max.Y}
