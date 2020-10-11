@@ -1,6 +1,7 @@
 package shape
 
 import (
+	"fmt"
 	"gioui.org/f32"
 	"github.com/Almanax/wonderwall/wonder/rtree"
 	orderedmap "github.com/wk8/go-ordered-map"
@@ -18,17 +19,16 @@ func NewPlane() *Plane {
 	}
 }
 
-func (p *Plane) View(r f32.Rectangle, gtx C) {
-	// Find elements within r
-	//offset := f32.Pt(r.Dx(), r.Dy())
-	for pair := p.Elements.Oldest(); pair != nil; pair = pair.Next() {
-		s, _ := pair.Value.(Shape)
+func (p *Plane) View(r f32.Rectangle, scale float32, gtx C) {
+	fmt.Printf("View: %v\n", r)
+	p.printElements()
+	min := [2]float32{r.Min.X, r.Min.Y}
+	max := [2]float32{r.Max.X, r.Max.Y}
+	p.Index.Search(min, max, func(min, max [2]float32, value interface{}) bool {
+		s, _ := value.(Shape)
 		s.Draw(gtx)
-	}
-	//for _, s := range p.Elements {
-	//if intersects(r, s.Bounds()) {
-	//	s.Draw(gtx)
-	//}
+		return true
+	})
 }
 
 func (p *Plane) Insert(s Shape) {
@@ -84,6 +84,14 @@ func (p *Plane) RemoveAll(ss []Shape) {
 		min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
 		p.Index.Delete(min, max, s)
 	}
+}
+
+func (p Plane) printElements() {
+	p.Index.Scan(func(min, max [2]float32, data interface{}) bool {
+		s, _ := data.(Shape)
+		fmt.Printf("shape: %v\n", s.Bounds())
+		return true
+	})
 }
 
 func intersects(r1, r2 f32.Rectangle) bool {
