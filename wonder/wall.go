@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
@@ -28,8 +27,9 @@ type WallPage struct {
 
 	images ImageService
 
-	windowSize image.Point
-	plane      *shape.Plane
+	offset f32.Point
+	scale  float32
+	plane  *shape.Plane
 }
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
@@ -41,6 +41,8 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		selection: NewSelection(),
 		pen:       new(Pen),
 		text:      new(TextWriter),
+		offset:    f32.Pt(0, 0),
+		scale:     1,
 		plane:     shape.NewPlane(),
 	}
 }
@@ -48,15 +50,22 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 func (p *WallPage) Start(stop <-chan struct{}) {}
 
 func (p *WallPage) Event(gtx C) interface{} {
-	size := gtx.Constraints.Max
-	if p.windowSize.X != size.X || p.windowSize.Y != size.Y {
-		p.windowSize = size
-		//p.tree = daabbt.NewTree(f32.Rect(0, 0, float32(size.X), float32(size.Y)))
-	}
+	//size := gtx.Constraints.Max
+	//if p.windowSize.X != size.X || p.windowSize.Y != size.Y {
+	//	p.windowSize = size
+	//	//p.tree = daabbt.NewTree(f32.Rect(0, 0, float32(size.X), float32(size.Y)))
+	//}
 	switch p.toolbar.Tool {
 	case SelectionTool:
-		if e := p.selection.Event(p.plane, gtx); e != nil {
-			fmt.Printf("Selection event: %v", e)
+		e := p.selection.Event(p.plane, gtx)
+		if e != nil {
+			return nil
+		}
+		switch e := e.(type) {
+		case PanEvent:
+			p.pan(e.Offset)
+		case ZoomEvent:
+			p.zoom(e.Scroll)
 		}
 	case PenTool:
 		if e := p.pen.Event(gtx); e != nil {
@@ -93,6 +102,19 @@ func (p *WallPage) DeleteSelection() {
 	p.selection.Clear()
 }
 
+func (p *WallPage) pan(offset f32.Point) {
+	p.offset = p.offset.Add(offset)
+}
+
+func (p *WallPage) zoom(x float32) {
+	const scaleBy = 1.1
+	if scaleBy > x {
+		p.scale *= scaleBy
+	} else {
+		p.scale /= scaleBy
+	}
+}
+
 func (p *WallPage) Layout(gtx C) D {
 	stack := layout.Stack{}
 	toolbar := layout.Stacked(p.toolbar.Layout)
@@ -107,10 +129,6 @@ func (p *WallPage) Layout(gtx C) D {
 				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &lightpink, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
 			}
 			p.plane.Index.Scan(func(min, max [2]float32, data interface{}) bool {
-				//s, ok := data.(shape.Shape)
-				//if !ok {
-				//	return true
-				//}
 				b := f32.Rect(min[0], min[1], max[0], max[1])
 				shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &lightgrey, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
 				return true
@@ -123,13 +141,18 @@ func (p *WallPage) Layout(gtx C) D {
 		return D{Size: max}
 	})
 	dims := stack.Layout(gtx, canvas, toolbar)
-	//p.tree.Draw(gtx)
 	return dims
 }
 
+// https://math.stackexchange.com/questions/514212/how-to-scale-a-rectangle
 func (p *WallPage) Draw(gtx C) {
-	view := f32.Rect(0, 0, 0, 0)
-	p.plane.View(view, gtx)
+	cons := gtx.Constraints
+	gtx.Disabled()
+	scale := p.scale
+	min := f32.Point{X: 0, Y: 0} //.Add(p.offset)
+	max := layout.FPt(cons.Max)  //.Add(p.offset)
+	view := f32.Rectangle{Min: min, Max: max}
+	p.plane.View(view, scale, gtx)
 	//for i := range p.lines {
 	//	p.lines[i].Draw(gtx)
 	//}
