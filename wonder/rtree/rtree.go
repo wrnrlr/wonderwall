@@ -277,8 +277,7 @@ func (r *rect) search(
 	if height == 0 {
 		for i := 0; i < n.count; i++ {
 			if target.intersects(&n.rects[i]) {
-				if !iter(n.rects[i].min, n.rects[i].max,
-					n.rects[i].data) {
+				if !iter(n.rects[i].min, n.rects[i].max, n.rects[i].data) {
 					return false
 				}
 			}
@@ -289,8 +288,7 @@ func (r *rect) search(
 				cn := n.rects[i].data.(*node)
 				for i := 0; i < cn.count; i++ {
 					if target.intersects(&cn.rects[i]) {
-						if !iter(cn.rects[i].min, cn.rects[i].max,
-							cn.rects[i].data) {
+						if !iter(cn.rects[i].min, cn.rects[i].max, cn.rects[i].data) {
 							return false
 						}
 					}
