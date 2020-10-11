@@ -74,6 +74,9 @@ class ConfigMenu extends HTMLElement {
         if (name === 'tool') {
             this.display(oldValue, 'none')
             this.display(newValue, 'flex')
+
+
+
         }
     }
     display(name, value) {
