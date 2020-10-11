@@ -108,7 +108,7 @@ func (p *WallPage) pan(offset f32.Point) {
 }
 
 func (p *WallPage) zoom(x float32) {
-	const scaleBy = 1.1
+	const scaleBy = 1.2
 	if scaleBy > x {
 		p.scale *= scaleBy
 	} else {
@@ -120,7 +120,6 @@ func (p *WallPage) Layout(gtx C) D {
 	stack := layout.Stack{}
 	toolbar := layout.Stacked(p.toolbar.Layout)
 	canvas := layout.Expanded(func(gtx C) D {
-
 		cons := gtx.Constraints
 		r := f32.Rectangle{Min: f32.Point{X: 0, Y: 0}, Max: layout.FPt(cons.Max)}
 		scale := p.scale
@@ -135,7 +134,6 @@ func (p *WallPage) Layout(gtx C) D {
 		minY := r.Min.Y + height/2 - scaledHeight/2
 		maxX := r.Max.X + width/2 - scaledWidth/2
 		maxY := r.Max.Y + height/2 - scaledHeight/2
-		op.InvalidateOp{}.Add(gtx.Ops)
 		defer op.Push(gtx.Ops).Pop()
 		tr := f32.Affine2D{}
 		tr = tr.Scale(center, f32.Pt(scale, scale))
