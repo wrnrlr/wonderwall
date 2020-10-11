@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gioui.org/f32"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/op"
 	"github.com/Almanax/wonderwall/wonder/shape"
@@ -20,7 +21,7 @@ func NewSelection() *Selection {
 	}
 }
 
-func (s *Selection) Event(plane *shape.Plane, gtx C) []f32.Point {
+func (s *Selection) Event(plane *shape.Plane, gtx C) interface{} {
 	defer op.Push(gtx.Ops).Pop()
 	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
 	for _, e := range gtx.Events(s) {
@@ -39,7 +40,11 @@ func (s *Selection) Event(plane *shape.Plane, gtx C) []f32.Point {
 			}
 			fmt.Printf("results: %v\n", sh)
 		case pointer.Scroll:
-			fmt.Printf("Scroll: %v, %v\n", e.Position, e.Scroll)
+			if e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl) {
+				return ZoomEvent{Scroll: e.Scroll.Y, Pos: e.Position}
+			} else {
+				return PanEvent{Offset: e.Scroll, Pos: e.Position}
+			}
 		case pointer.Drag:
 		case pointer.Release, pointer.Cancel:
 		}
