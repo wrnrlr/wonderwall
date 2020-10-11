@@ -123,20 +123,14 @@ func (p *WallPage) Layout(gtx C) D {
 		cons := gtx.Constraints
 		r := f32.Rectangle{Min: f32.Point{X: 0, Y: 0}, Max: layout.FPt(cons.Max)}
 		scale := p.scale
-		width := r.Dx()
-		height := r.Dy()
-		scaledWidth := width * scale
-		scaledHeight := height * scale
-		centerX := r.Min.X + width/2
-		centerY := r.Min.Y + height/2
-		center := f32.Pt(centerX, centerY)
-		minX := r.Min.X + width/2 - scaledWidth/2
-		minY := r.Min.Y + height/2 - scaledHeight/2
-		maxX := r.Max.X + width/2 - scaledWidth/2
-		maxY := r.Max.Y + height/2 - scaledHeight/2
+		width, height := r.Dx(), r.Dy()
+		scaledWidth, scaledHeight := width*scale, height*scale
+		centerX, centerY := r.Min.X+width/2, r.Min.Y+height/2
+		minX, minY := centerX-scaledWidth/2, centerY-scaledHeight/2
+		maxX, maxY := centerX+scaledWidth/2, centerY+scaledHeight/2
 		defer op.Push(gtx.Ops).Pop()
 		tr := f32.Affine2D{}
-		tr = tr.Scale(center, f32.Pt(scale, scale))
+		tr = tr.Scale(f32.Pt(centerX, centerY), f32.Pt(scale, scale))
 		op.Affine(tr).Add(gtx.Ops)
 		view := f32.Rect(minX, minY, maxX, maxY)
 		p.plane.View(view, scale, gtx)
@@ -165,21 +159,3 @@ func (p *WallPage) Layout(gtx C) D {
 }
 
 // https://math.stackexchange.com/questions/514212/how-to-scale-a-rectangle
-//func (p *WallPage) Draw(gtx C) {
-//	cons := gtx.Constraints
-//	scale := p.scale
-//	min := f32.Point{X: 0, Y: 0} //.Add(p.offset)
-//	max := layout.FPt(cons.Max)  //.Add(p.offset)
-//	view := f32.Rectangle{Min: min, Max: max}
-//	//for i := range p.lines {
-//	//	p.lines[i].Draw(gtx)
-//	//}
-//	//for i := range p.texts {
-//	//	p.texts[i].Draw(gtx)
-//	//}
-//	//if p.toolbar.Tool == SelectionTool {
-//	//	for i := range p.lines {
-//	//		p.lines[i].boxes(gtx)
-//	//	}
-//	//}
-//}
