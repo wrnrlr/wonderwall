@@ -8,6 +8,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/Almanax/wonderwall/wonder/shape"
 	"image"
 	"image/color"
 )
@@ -32,7 +33,7 @@ type TextWriter struct {
 	pointer gesture.Click
 }
 
-func (t *TextWriter) Event(gtx C) (pe *pointer.Event) {
+func (t *TextWriter) Event(plane *shape.Plane, gtx C) (pe *pointer.Event) {
 	defer op.Push(gtx.Ops).Pop()
 	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
 	for _, e := range gtx.Events(t) {

@@ -21,7 +21,7 @@ func (s *ImageService) Get(location string) (image.Image, error) {
 	return img, nil
 }
 
-func (s *ImageService) Event(gtx C) shape.Shape {
+func (s *ImageService) Event(plane *shape.Plane, gtx C) shape.Shape {
 	var sh shape.Shape
 	defer op.Push(gtx.Ops).Pop()
 	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
@@ -36,9 +36,8 @@ func (s *ImageService) Event(gtx C) shape.Shape {
 			if err != nil {
 				break
 			}
-			scale := 1 / gtx.Metric.PxPerDp
 			img := paint.NewImageOp(src)
-			pos := e.Position.Mul(scale)
+			pos := plane.GetTransform().Invert().Transform(e.Position.Mul(1 / gtx.Metric.PxPerDp))
 			sh = shape.NewImage(pos.X, pos.Y, &img)
 		case pointer.Release, pointer.Cancel:
 		case pointer.Drag:
