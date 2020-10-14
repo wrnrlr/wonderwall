@@ -5,7 +5,9 @@ import (
 	"gioui.org/f32"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
+	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/unit"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"image"
 )
@@ -18,6 +20,16 @@ type Selection struct {
 func NewSelection() *Selection {
 	return &Selection{
 		selection: map[shape.Shape]bool{},
+	}
+}
+
+func (s Selection) Draw(plane *shape.Plane, gtx layout.Context) {
+	tr := plane.GetTransform()
+	defer op.Push(gtx.Ops).Pop()
+	op.Affine(tr).Add(gtx.Ops)
+	for sh, _ := range s.selection {
+		b := sh.Bounds()
+		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &green, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
 	}
 }
 

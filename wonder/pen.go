@@ -20,7 +20,7 @@ func (p *Pen) Draw(gtx C, width float32, col color.RGBA) {
 	}
 }
 
-func (p *Pen) Event(gtx C) []f32.Point {
+func (p *Pen) Event(plane *shape.Plane, gtx C) []f32.Point {
 	var l []f32.Point
 	scale := 1 / gtx.Metric.PxPerDp
 	defer op.Push(gtx.Ops).Pop()

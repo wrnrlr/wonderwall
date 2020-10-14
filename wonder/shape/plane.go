@@ -3,6 +3,7 @@ package shape
 import (
 	"fmt"
 	"gioui.org/f32"
+	"gioui.org/op"
 	"github.com/Almanax/wonderwall/wonder/rtree"
 	orderedmap "github.com/wk8/go-ordered-map"
 )
@@ -11,19 +12,34 @@ import (
 type Plane struct {
 	Elements *orderedmap.OrderedMap
 	Index    rtree.RTree
+	Offset   f32.Point
+	Scale    float32
+	Width    float32
+	Height   float32
 }
 
 func NewPlane() *Plane {
 	return &Plane{
 		Elements: orderedmap.New(),
+		Scale:    1,
 	}
 }
 
-func (p *Plane) View(r f32.Rectangle, scale float32, gtx C) {
-	fmt.Printf("View: %v %f\n", r, scale)
-	p.printElements()
-	min := [2]float32{r.Min.X, r.Min.Y}
-	max := [2]float32{r.Max.X, r.Max.Y}
+func (p *Plane) View(gtx C) {
+	//fmt.Printf("View: %v %f\n", r, scale)
+	//p.printElements()
+	cons := gtx.Constraints
+	p.Width, p.Height = float32(cons.Max.X), float32(cons.Max.Y)
+
+	center := p.Center()
+	scaledWidth, scaledHeight := p.Width*p.Scale, p.Height*p.Scale
+	min := [2]float32{center.X - scaledWidth/2, center.Y - scaledHeight/2}
+	max := [2]float32{center.X + scaledWidth/2, center.Y + scaledHeight/2}
+
+	tr := p.GetTransform()
+	defer op.Push(gtx.Ops).Pop()
+	op.Affine(tr).Add(gtx.Ops)
+
 	p.Index.Search(min, max, func(min, max [2]float32, value interface{}) bool {
 		s, _ := value.(Shape)
 		s.Draw(gtx)
@@ -101,4 +117,16 @@ func intersects(r1, r2 f32.Rectangle) bool {
 		return false
 	}
 	return true
+}
+
+func (p Plane) RelativePoint(point f32.Point, gtx C) f32.Point {
+	return point
+}
+
+func (p Plane) Center() f32.Point {
+	return f32.Pt(p.Offset.X+p.Width/2, p.Offset.Y+p.Height/2)
+}
+
+func (p Plane) GetTransform() f32.Affine2D {
+	return f32.Affine2D{}.Scale(p.Center(), f32.Pt(p.Scale, p.Scale))
 }
