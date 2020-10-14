@@ -22,6 +22,8 @@ type ShowUserEvent struct{}
 
 type DeleteEvent struct{}
 
+type InsertShapeEvent struct{}
+
 type MoveShapeEvent struct {
 	Offset f32.Point
 }
