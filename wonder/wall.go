@@ -85,7 +85,8 @@ func (p *WallPage) Layout(gtx C) D {
 
 func (p *WallPage) canvasLayout(gtx C) D {
 	p.plane.View(gtx)
-	p.pen.Draw(gtx, float32(p.toolbar.strokeSize.Value), p.toolbar.strokeColor.Color)
+	width := float32(p.toolbar.strokeSize.Value) * gtx.Metric.PxPerDp
+	p.pen.Draw(gtx, width, p.toolbar.strokeColor.Color)
 	max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	if p.toolbar.Tool == SelectionTool {
 		p.selection.Draw(p.plane, gtx)
@@ -107,15 +108,15 @@ func (p *WallPage) canvasEvent(gtx C) {
 			p.zoom(e.Scroll)
 		}
 	case PenTool:
-		e := p.pen.Event(p.plane, gtx)
-		if e != nil {
-			l := shape.NewPolyline(e, p.toolbar.strokeColor.Color, float32(p.toolbar.strokeSize.Value))
+		points := p.pen.Event(p.plane, gtx)
+		if points != nil {
+			points = p.transformPoints(points)
+			l := shape.NewPolyline(points, p.toolbar.strokeColor.Color, float32(p.toolbar.strokeSize.Value))
 			p.plane.Insert(l)
 		}
 	case TextTool:
 		if e := p.text.Event(p.plane, gtx); e != nil {
-			scale := 1 / gtx.Metric.PxPerDp
-			pos := e.Position.Mul(scale)
+			pos := p.transformPoint(e.Position.Mul(gtx.Metric.PxPerDp))
 			txt := shape.NewText(pos.X, pos.Y, "Text", blue, float32(30), theme.Shaper)
 			p.plane.Insert(txt)
 		}
@@ -125,6 +126,19 @@ func (p *WallPage) canvasEvent(gtx C) {
 		}
 	default:
 	}
+}
+
+func (p *WallPage) transformPoint(point f32.Point) f32.Point {
+	tr := p.plane.GetTransform().Invert()
+	return tr.Transform(point)
+}
+
+func (p *WallPage) transformPoints(points []f32.Point) []f32.Point {
+	tr := p.plane.GetTransform().Invert()
+	for i, point := range points {
+		points[i] = tr.Transform(point)
+	}
+	return points
 }
 
 // https://math.stackexchange.com/questions/514212/how-to-scale-a-rectangle
