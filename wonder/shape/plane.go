@@ -6,6 +6,7 @@ import (
 	"gioui.org/op"
 	"github.com/Almanax/wonderwall/wonder/rtree"
 	orderedmap "github.com/wk8/go-ordered-map"
+	"golang.org/x/image/colornames"
 )
 
 // A two-dimensional surface that extends infinitely far
@@ -45,13 +46,11 @@ func (p *Plane) View(gtx C) {
 		s.Draw(gtx)
 		return true
 	})
-}
 
-func (p *Plane) Insert(s Shape) {
-	p.Elements.Set(s.Identity(), s)
-	bounds := s.Bounds()
-	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
-	p.Index.Insert(min, max, s)
+	for pair := p.Elements.Oldest(); pair != nil; pair = pair.Next() {
+		s, _ := pair.Value.(Shape)
+		Rectangle{s.Bounds(), nil, &colornames.Lightgray, float32(1)}.Draw(gtx)
+	}
 }
 
 func (p Plane) Within(r f32.Rectangle) Group {
@@ -93,12 +92,40 @@ func (p Plane) Hits(pos f32.Point) Shape {
 	return result
 }
 
+func (p *Plane) Insert(s Shape) {
+	p.Elements.Set(s.Identity(), s)
+	bounds := s.Bounds()
+	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
+	p.Index.Insert(min, max, s)
+}
+
+func (p *Plane) InsertAll(ss []Shape) {
+	for _, s := range ss {
+		p.Insert(s)
+	}
+}
+
+func (p *Plane) Update(s Shape) {
+	p.Remove(s)
+	p.Insert(s)
+}
+
+func (p *Plane) UpdateAll(ss []Shape) {
+	for _, s := range ss {
+		p.Update(s)
+	}
+}
+
+func (p *Plane) Remove(s Shape) {
+	p.Elements.Delete(s.Identity())
+	bounds := s.Bounds()
+	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
+	p.Index.Delete(min, max, s)
+}
+
 func (p *Plane) RemoveAll(ss []Shape) {
 	for _, s := range ss {
-		p.Elements.Delete(s.Identity())
-		bounds := s.Bounds()
-		min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
-		p.Index.Delete(min, max, s)
+		p.Remove(s)
 	}
 }
 
