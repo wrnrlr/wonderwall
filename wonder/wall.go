@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/io/key"
@@ -30,7 +31,8 @@ type WallPage struct {
 
 	images ImageService
 
-	plane *shape.Plane
+	plane  *shape.Plane
+	client Client
 }
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
@@ -121,7 +123,7 @@ func (p *WallPage) toolEvent(e pointer.Event, gtx layout.Context) {
 	var ev interface{}
 	switch p.toolbar.Tool {
 	case SelectionTool:
-		p.selection.Event(p.plane, gtx)
+		ev = p.selection.Event(e, p.plane, gtx)
 	case PenTool:
 		ev = p.pen.Event(e, gtx)
 	case TextTool:
@@ -142,6 +144,16 @@ func (p *WallPage) toolEvent(e pointer.Event, gtx layout.Context) {
 		img := paint.NewImageOp(ev.Image)
 		sh := shape.NewImage(e.Position.X, e.Position.Y, &img)
 		p.plane.Insert(sh)
+	case MoveSelectionEvent:
+		p.moveSelection(ev.Point)
+		fmt.Printf("Move selection by: %v\n", ev)
+	}
+}
+
+func (p *WallPage) moveSelection(delta f32.Point) {
+	for sh, _ := range p.selection.selection {
+		sh.Move(delta)
+		p.plane.Update(sh)
 	}
 }
 
@@ -157,5 +169,3 @@ func (p *WallPage) transformPoints(points []f32.Point) []f32.Point {
 	}
 	return points
 }
-
-// https://math.stackexchange.com/questions/514212/how-to-scale-a-rectangle

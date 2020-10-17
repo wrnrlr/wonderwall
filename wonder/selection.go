@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
@@ -9,11 +8,13 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"github.com/Almanax/wonderwall/wonder/shape"
+	"golang.org/x/image/colornames"
 )
 
 type Selection struct {
 	events    []f32.Point
 	selection map[shape.Shape]bool
+	prev      f32.Point
 }
 
 func NewSelection() *Selection {
@@ -28,27 +29,38 @@ func (s Selection) Draw(plane *shape.Plane, gtx layout.Context) {
 	op.Affine(tr).Add(gtx.Ops)
 	for sh, _ := range s.selection {
 		b := sh.Bounds()
-		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &green, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
+		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &colornames.Lightblue, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
 	}
+	shape.Circle{Center: s.prev, Radius: unit.Dp(5).V, FillColor: &red, StrokeColor: nil}.Fill(red, gtx)
 }
 
 func (s *Selection) Event(e pointer.Event, plane *shape.Plane, gtx C) interface{} {
+	var result interface{}
 	switch e.Type {
 	case pointer.Press:
 		pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
-		sh := plane.Hits(pos)
-		if sh == nil {
-			s.Clear()
-		} else if e.Modifiers.Contain(key.ModShift) {
-			s.ToggleSelection(sh)
-		} else {
-			s.SetSelection(sh)
-		}
-		fmt.Printf("Selected: %v\n", sh)
+		pos = plane.GetTransform().Invert().Transform(pos)
+		s.prev = pos
 	case pointer.Drag:
-	case pointer.Release, pointer.Cancel:
+	case pointer.Release:
+		pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+		pos = plane.GetTransform().Invert().Transform(pos)
+		if s.prev.X == pos.X && s.prev.Y == pos.Y {
+			sh := plane.Hits(pos)
+			if sh == nil {
+				s.Clear()
+			} else if e.Modifiers.Contain(key.ModShift) {
+				s.ToggleSelection(sh)
+			} else {
+				s.SetSelection(sh)
+			}
+		} else {
+			delta := pos.Sub(s.prev)
+			result = MoveSelectionEvent{delta}
+		}
+	case pointer.Cancel:
 	}
-	return nil
+	return result
 }
 
 func (s *Selection) SetSelection(sh shape.Shape) {

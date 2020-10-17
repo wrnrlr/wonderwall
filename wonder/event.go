@@ -52,6 +52,10 @@ type SelectionEvent struct {
 	Shape shape.Shape
 }
 
+type MoveSelectionEvent struct {
+	Point f32.Point /**/
+}
+
 type ZoomEvent struct {
 	Scroll float32
 	Pos    f32.Point
