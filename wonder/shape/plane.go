@@ -80,13 +80,18 @@ func (p Plane) Intersects(r f32.Rectangle) []Shape {
 func (p Plane) Hits(pos f32.Point) Shape {
 	var result Shape
 	min, max := [2]float32{pos.X, pos.Y}, [2]float32{pos.X, pos.Y}
-	p.Index.Search(min, max, func(min [2]float32, max [2]float32, value interface{}) bool {
+	p.Index.Search(min, max, func(min [2]float32, max [2]float32, key interface{}) bool {
+		value, found := p.Elements.Get(key)
+		if !found {
+			return false
+		}
 		s, ok := value.(Shape)
 		if !ok {
 			return false
 		}
 		if s.Hit(pos) {
 			result = s
+			return true
 		}
 		return false
 	})
