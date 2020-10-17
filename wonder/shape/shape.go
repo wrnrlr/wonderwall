@@ -20,4 +20,6 @@ type Shape interface {
 	Eq(s2 Shape) bool
 
 	Identity() string
+
+	Move(p f32.Point)
 }

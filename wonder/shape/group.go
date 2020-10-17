@@ -32,6 +32,8 @@ func (g Group) Draw(gtx C) {
 	}
 }
 
+func (g *Group) Move(delta f32.Point) {}
+
 func (g *Group) Append(s Shape) {
 	g.Elements = append(g.Elements, s)
 }

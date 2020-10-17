@@ -44,6 +44,11 @@ func (i Image) Draw(gtx C) {
 	paint.PaintOp{Rect: f32.Rect(p.X, p.Y, p.X+w, p.Y+h)}.Add(gtx.Ops)
 }
 
+func (i *Image) Move(delta f32.Point) {
+	pos := f32.Point{i.X, i.Y}.Add(delta)
+	i.X, i.Y = pos.X, pos.Y
+}
+
 func (i *Image) Eq(s Shape) bool {
 	i2, ok := s.(*Image)
 	if !ok {

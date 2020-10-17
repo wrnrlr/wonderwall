@@ -16,7 +16,7 @@ type Circle struct {
 	Radius      float32
 	FillColor   *color.RGBA
 	StrokeColor *color.RGBA
-	StrokeWidth color.RGBA
+	StrokeWidth float32
 }
 
 func (c Circle) Bounds() f32.Rectangle {
@@ -34,6 +34,10 @@ func (c Circle) Offset(p f32.Point) Shape {
 
 func (c Circle) Draw(gtx C) {
 
+}
+
+func (c Circle) Move(delta f32.Point) {
+	c.Center = c.Center.Add(delta)
 }
 
 func (cc Circle) Stroke(col color.RGBA, width float32, gtx layout.Context) f32.Rectangle {
@@ -68,7 +72,7 @@ func (cc Circle) Stroke(col color.RGBA, width float32, gtx layout.Context) f32.R
 	return box
 }
 
-func (cc Circle) Fill(col color.RGBA, gtx *layout.Context) f32.Rectangle {
+func (cc Circle) Fill(col color.RGBA, gtx layout.Context) f32.Rectangle {
 	p := cc.Center
 	r := cc.Radius
 	d := r * 2
@@ -84,7 +88,6 @@ func (cc Circle) Fill(col color.RGBA, gtx *layout.Context) f32.Rectangle {
 	path.Cube(f32.Point{X: r * c, Y: 0}, f32.Point{X: r, Y: r - r*c}, f32.Point{X: r, Y: r})      // NE
 	path.End().Add(gtx.Ops)
 	box := f32.Rectangle{Min: f32.Point{X: p.X - r, Y: p.Y - r}, Max: f32.Point{X: p.X + d, Y: p.Y + d}}
-	paint.ColorOp{col}.Add(gtx.Ops)
 	paint.PaintOp{box}.Add(gtx.Ops)
 	return box
 }

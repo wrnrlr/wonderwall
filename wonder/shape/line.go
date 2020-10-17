@@ -86,6 +86,12 @@ func (l Polyline) Draw(gtx C) {
 	l.drawPolyline(l.Points, width, l.Color, gtx)
 }
 
+func (l *Polyline) Move(delta f32.Point) {
+	for i, p := range l.Points {
+		l.Points[i] = p.Add(delta)
+	}
+}
+
 func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx C) {
 	scale := gtx.Metric.PxPerDp
 	length := len(points)

@@ -64,6 +64,11 @@ func (t Text) Draw(gtx C) {
 	l.Layout(gtx)
 }
 
+func (t *Text) Move(delta f32.Point) {
+	pos := f32.Point{t.X, t.Y}.Add(delta)
+	t.X, t.Y = pos.X, pos.Y
+}
+
 // Label stuff
 
 // Label is a widget for laying out and drawing text.
