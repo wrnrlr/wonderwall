@@ -36,15 +36,16 @@ func (s Selection) Draw(plane *shape.Plane, gtx layout.Context) {
 
 func (s *Selection) Event(e pointer.Event, plane *shape.Plane, gtx C) interface{} {
 	var result interface{}
+	pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+	pos = plane.GetTransform().Invert().Transform(pos)
 	switch e.Type {
 	case pointer.Press:
-		pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
-		pos = plane.GetTransform().Invert().Transform(pos)
 		s.prev = pos
 	case pointer.Drag:
+		delta := pos.Sub(s.prev)
+		s.prev = pos
+		result = DragSelectionEvent{delta}
 	case pointer.Release:
-		pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
-		pos = plane.GetTransform().Invert().Transform(pos)
 		if s.prev.X == pos.X && s.prev.Y == pos.Y {
 			sh := plane.Hits(pos)
 			if sh == nil {
@@ -58,7 +59,6 @@ func (s *Selection) Event(e pointer.Event, plane *shape.Plane, gtx C) interface{
 			delta := pos.Sub(s.prev)
 			result = MoveSelectionEvent{delta}
 		}
-	case pointer.Cancel:
 	}
 	return result
 }

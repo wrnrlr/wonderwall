@@ -52,8 +52,11 @@ type SelectionEvent struct {
 	Shape shape.Shape
 }
 
+type DragSelectionEvent struct {
+	Point f32.Point
+}
 type MoveSelectionEvent struct {
-	Point f32.Point /**/
+	Point f32.Point
 }
 
 type ZoomEvent struct {

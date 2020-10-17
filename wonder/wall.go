@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/io/key"
@@ -144,9 +143,10 @@ func (p *WallPage) toolEvent(e pointer.Event, gtx layout.Context) {
 		img := paint.NewImageOp(ev.Image)
 		sh := shape.NewImage(e.Position.X, e.Position.Y, &img)
 		p.plane.Insert(sh)
+	case DragSelectionEvent:
+		p.moveSelection(ev.Point)
 	case MoveSelectionEvent:
 		p.moveSelection(ev.Point)
-		fmt.Printf("Move selection by: %v\n", ev)
 	}
 }
 
