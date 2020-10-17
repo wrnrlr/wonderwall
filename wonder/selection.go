@@ -29,7 +29,7 @@ func (s Selection) Draw(plane *shape.Plane, gtx layout.Context) {
 	op.Affine(tr).Add(gtx.Ops)
 	for sh, _ := range s.selection {
 		b := sh.Bounds()
-		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &colornames.Lightblue, StrokeWidth: unit.Dp(1).V}.Draw(gtx)
+		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &colornames.Lightblue, StrokeWidth: unit.Dp(3).V}.Draw(gtx)
 	}
 	shape.Circle{Center: s.prev, Radius: unit.Dp(5).V, FillColor: &red, StrokeColor: nil}.Fill(red, gtx)
 }
