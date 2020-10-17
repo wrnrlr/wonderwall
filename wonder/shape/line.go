@@ -30,7 +30,6 @@ type Polyline struct {
 	offset f32.Point
 	rects  []rect
 	boxes  []f32.Rectangle
-	box    []f32.Rectangle
 }
 
 func NewPolyline(points []f32.Point, col color.RGBA, width float32) *Polyline {
@@ -90,6 +89,8 @@ func (l *Polyline) Move(delta f32.Point) {
 	for i, p := range l.Points {
 		l.Points[i] = p.Add(delta)
 	}
+	l.boxes = nil
+	l.rects = nil
 }
 
 func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx C) {
