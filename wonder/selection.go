@@ -9,7 +9,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"github.com/Almanax/wonderwall/wonder/shape"
-	"image"
 )
 
 type Selection struct {
@@ -33,36 +32,28 @@ func (s Selection) Draw(plane *shape.Plane, gtx layout.Context) {
 	}
 }
 
-func (s *Selection) Event(plane *shape.Plane, gtx C) interface{} {
-	defer op.Push(gtx.Ops).Pop()
-	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
-	for _, e := range gtx.Events(s) {
-		e, ok := e.(pointer.Event)
-		if !ok {
-			continue
+func (s *Selection) Event(e pointer.Event, plane *shape.Plane, gtx C) interface{} {
+	switch e.Type {
+	case pointer.Press:
+		pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+		sh := plane.Hits(pos)
+		if sh == nil {
+			s.Clear()
+		} else if e.Modifiers.Contain(key.ModShift) {
+			s.ToggleSelection(sh)
+		} else {
+			s.SetSelection(sh)
 		}
-		switch e.Type {
-		case pointer.Press:
-			pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
-			sh := plane.Hits(pos)
-			if sh != nil {
-				s.ToggleSelection(sh)
-			} else {
-				s.Clear()
-			}
-			fmt.Printf("results: %v\n", sh)
-		case pointer.Scroll:
-			if e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl) {
-				return ZoomEvent{Scroll: e.Scroll.Y, Pos: e.Position}
-			} else {
-				return PanEvent{Offset: e.Scroll, Pos: e.Position}
-			}
-		case pointer.Drag:
-		case pointer.Release, pointer.Cancel:
-		}
+		fmt.Printf("Selected: %v\n", sh)
+	case pointer.Drag:
+	case pointer.Release, pointer.Cancel:
 	}
-	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll}.Add(gtx.Ops)
 	return nil
+}
+
+func (s *Selection) SetSelection(sh shape.Shape) {
+	s.Clear()
+	s.selection[sh] = true
 }
 
 func (s *Selection) ToggleSelection(sh shape.Shape) {
