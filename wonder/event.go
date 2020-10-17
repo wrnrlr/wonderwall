@@ -4,6 +4,7 @@ import (
 	"gioui.org/f32"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/rs/xid"
+	"image"
 )
 
 type BackEvent struct{}
@@ -22,7 +23,26 @@ type ShowUserEvent struct{}
 
 type DeleteEvent struct{}
 
-type InsertShapeEvent struct{}
+type AddLineEvent struct {
+	Points []f32.Point
+}
+
+type AddTextEvent struct {
+	Position f32.Point
+}
+
+type AddImageEvent struct {
+	Position f32.Point
+	Image    image.Image
+}
+
+type InsertShapeEvent struct {
+	Shape shape.Shape
+}
+
+type UpdateShapeEvent struct {
+	Shape shape.Shape
+}
 
 type MoveShapeEvent struct {
 	Offset f32.Point

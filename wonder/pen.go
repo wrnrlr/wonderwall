@@ -2,10 +2,9 @@ package main
 
 import (
 	"gioui.org/f32"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
-	"gioui.org/op"
 	"github.com/Almanax/wonderwall/wonder/shape"
-	"image"
 	"image/color"
 )
 
@@ -20,27 +19,24 @@ func (p *Pen) Draw(gtx C, width float32, col color.RGBA) {
 	}
 }
 
-func (p *Pen) Event(plane *shape.Plane, gtx C) []f32.Point {
-	var l []f32.Point
-	scale := 1 / gtx.Metric.PxPerDp
-	defer op.Push(gtx.Ops).Pop()
-	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
-	for _, e := range gtx.Events(p) {
-		e, ok := e.(pointer.Event)
-		if !ok {
-			continue
-		}
-		pos := e.Position.Mul(scale)
-		switch e.Type {
-		case pointer.Press:
-			p.events = append(p.events, pos)
-		case pointer.Drag:
-			p.events = append(p.events, pos)
-		case pointer.Release, pointer.Cancel:
-			l = append(p.events, pos)
-			p.events = nil
+func (p *Pen) Event(e pointer.Event, gtx C) interface{} {
+	var result interface{}
+	pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+	switch e.Type {
+	case pointer.Press:
+		p.events = []f32.Point{e.Position}
+	case pointer.Drag:
+		p.events = append(p.events, pos)
+	case pointer.Release, pointer.Cancel:
+		p.events = append(p.events, pos)
+		result = AddLineEvent{Points: p.events}
+		p.events = nil
+	case pointer.Scroll:
+		if e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl) {
+			result = ZoomEvent{Scroll: e.Scroll.Y, Pos: pos}
+		} else {
+			result = PanEvent{Offset: e.Scroll, Pos: pos}
 		}
 	}
-	pointer.InputOp{Tag: p, Grab: p.grab, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
-	return l
+	return result
 }

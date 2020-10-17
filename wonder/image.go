@@ -2,9 +2,6 @@ package main
 
 import (
 	"gioui.org/io/pointer"
-	"gioui.org/op"
-	"gioui.org/op/paint"
-	"github.com/Almanax/wonderwall/wonder/shape"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -21,30 +18,19 @@ func (s *ImageService) Get(location string) (image.Image, error) {
 	return img, nil
 }
 
-func (s *ImageService) Event(plane *shape.Plane, gtx C) shape.Shape {
-	var sh shape.Shape
-	defer op.Push(gtx.Ops).Pop()
+func (s *ImageService) Event(e pointer.Event, gtx C) interface{} {
+	var result interface{}
 	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
-	for _, e := range gtx.Events(s) {
-		e, ok := e.(pointer.Event)
-		if !ok {
-			continue
+	pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+	switch e.Type {
+	case pointer.Press:
+		src, err := s.Get("")
+		if err != nil {
+			break
 		}
-		switch e.Type {
-		case pointer.Press:
-			src, err := s.Get("")
-			if err != nil {
-				break
-			}
-			img := paint.NewImageOp(src)
-			pos := plane.GetTransform().Invert().Transform(e.Position.Mul(1 / gtx.Metric.PxPerDp))
-			sh = shape.NewImage(pos.X, pos.Y, &img)
-		case pointer.Release, pointer.Cancel:
-		case pointer.Drag:
-		}
+		result = AddImageEvent{Position: pos, Image: src}
 	}
-	pointer.InputOp{Tag: s, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
-	return sh
+	return result
 }
 
 func getimage(s string) (image.Image, error) {

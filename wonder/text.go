@@ -4,12 +4,11 @@ import (
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/gesture"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/Almanax/wonderwall/wonder/shape"
-	"image"
 	"image/color"
 )
 
@@ -33,21 +32,18 @@ type TextWriter struct {
 	pointer gesture.Click
 }
 
-func (t *TextWriter) Event(plane *shape.Plane, gtx C) (pe *pointer.Event) {
-	defer op.Push(gtx.Ops).Pop()
-	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
-	for _, e := range gtx.Events(t) {
-		e, ok := e.(pointer.Event)
-		if !ok {
-			continue
-		}
-		switch e.Type {
-		case pointer.Press:
-		case pointer.Drag:
-		case pointer.Release, pointer.Cancel:
-			pe = &e
+func (t *TextWriter) Event(e pointer.Event, gtx C) interface{} {
+	var result interface{}
+	pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
+	switch e.Type {
+	case pointer.Release, pointer.Cancel:
+		result = AddTextEvent{Position: pos}
+	case pointer.Scroll:
+		if e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl) {
+			result = ZoomEvent{Scroll: e.Scroll.Y, Pos: pos}
+		} else {
+			result = PanEvent{Offset: e.Scroll, Pos: pos}
 		}
 	}
-	pointer.InputOp{Tag: t, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release}.Add(gtx.Ops)
-	return pe
+	return result
 }

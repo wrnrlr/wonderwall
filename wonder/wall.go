@@ -3,7 +3,11 @@ package main
 import (
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
+	"gioui.org/io/key"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/op/paint"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/Almanax/wonderwall/wonder/ui"
@@ -95,36 +99,49 @@ func (p *WallPage) canvasLayout(gtx C) D {
 }
 
 func (p *WallPage) canvasEvent(gtx C) {
+	defer op.Push(gtx.Ops).Pop()
+	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
+	for _, e := range gtx.Events(p) {
+		e, ok := e.(pointer.Event)
+		if !ok {
+			continue
+		}
+		if e.Type == pointer.Scroll && (e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl)) {
+			p.zoom(e.Scroll.Y)
+		} else if e.Type == pointer.Scroll {
+			p.pan(e.Scroll)
+		} else {
+			p.toolEvent(e, gtx)
+		}
+	}
+	pointer.InputOp{Tag: p, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll}.Add(gtx.Ops)
+}
+
+func (p *WallPage) toolEvent(e pointer.Event, gtx layout.Context) {
+	var ev interface{}
 	switch p.toolbar.Tool {
 	case SelectionTool:
-		e := p.selection.Event(p.plane, gtx)
-		if e == nil {
-			return
-		}
-		switch e := e.(type) {
-		case PanEvent:
-			p.pan(e.Offset)
-		case ZoomEvent:
-			p.zoom(e.Scroll)
-		}
+		p.selection.Event(p.plane, gtx)
 	case PenTool:
-		points := p.pen.Event(p.plane, gtx)
-		if points != nil {
-			points = p.transformPoints(points)
-			l := shape.NewPolyline(points, p.toolbar.strokeColor.Color, float32(p.toolbar.strokeSize.Value))
-			p.plane.Insert(l)
-		}
+		ev = p.pen.Event(e, gtx)
 	case TextTool:
-		if e := p.text.Event(p.plane, gtx); e != nil {
-			pos := p.transformPoint(e.Position.Mul(gtx.Metric.PxPerDp))
-			txt := shape.NewText(pos.X, pos.Y, "Text", blue, float32(30), theme.Shaper)
-			p.plane.Insert(txt)
-		}
+		ev = p.text.Event(e, gtx)
 	case ImageTool:
-		if e := p.images.Event(p.plane, gtx); e != nil {
-			p.plane.Insert(e)
-		}
-	default:
+		ev = p.images.Event(e, gtx)
+	}
+	switch ev := ev.(type) {
+	case AddLineEvent:
+		points := p.transformPoints(ev.Points)
+		l := shape.NewPolyline(points, p.toolbar.strokeColor.Color, float32(p.toolbar.strokeSize.Value))
+		p.plane.Insert(l)
+	case AddTextEvent:
+		pos := p.transformPoint(e.Position.Mul(gtx.Metric.PxPerDp))
+		txt := shape.NewText(pos.X, pos.Y, "Text", blue, float32(30), theme.Shaper)
+		p.plane.Insert(txt)
+	case AddImageEvent:
+		img := paint.NewImageOp(ev.Image)
+		sh := shape.NewImage(e.Position.X, e.Position.Y, &img)
+		p.plane.Insert(sh)
 	}
 }
 
