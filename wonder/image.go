@@ -20,7 +20,6 @@ func (s *ImageService) Get(location string) (image.Image, error) {
 
 func (s *ImageService) Event(e pointer.Event, gtx C) interface{} {
 	var result interface{}
-	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
 	pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
 	switch e.Type {
 	case pointer.Press:
