@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/io/key"
@@ -81,18 +82,16 @@ func (p *WallPage) zoom(x float32) {
 }
 
 func (p *WallPage) Layout(gtx C) D {
-	stack := layout.Stack{}
-	toolbar := layout.Stacked(p.toolbar.Layout)
-	canvas := layout.Expanded(p.canvasLayout)
-	dims := stack.Layout(gtx, canvas, toolbar)
-	return dims
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(p.toolbar.Layout),
+		layout.Flexed(1, p.canvasLayout))
 }
 
 func (p *WallPage) canvasLayout(gtx C) D {
+	max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	p.plane.View(gtx)
 	width := float32(p.toolbar.strokeSize.Value) * gtx.Metric.PxPerDp
 	p.pen.Draw(gtx, width, p.toolbar.strokeColor.Color)
-	max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	if p.toolbar.Tool == SelectionTool {
 		p.selection.Draw(p.plane, gtx)
 	}
@@ -100,13 +99,15 @@ func (p *WallPage) canvasLayout(gtx C) D {
 }
 
 func (p *WallPage) canvasEvent(gtx C) {
+	cons := gtx.Constraints
 	defer op.Push(gtx.Ops).Pop()
-	pointer.Rect(image.Rectangle{Max: gtx.Constraints.Min}).Add(gtx.Ops)
+	pointer.Rect(image.Rectangle{Max: cons.Max}).Add(gtx.Ops)
 	for _, e := range gtx.Events(p) {
 		e, ok := e.(pointer.Event)
 		if !ok {
 			continue
 		}
+		fmt.Printf("Click on canvas\n")
 		if e.Type == pointer.Scroll && (e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl)) {
 			p.zoom(e.Scroll.Y)
 		} else if e.Type == pointer.Scroll {
