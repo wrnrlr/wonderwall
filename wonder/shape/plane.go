@@ -43,7 +43,10 @@ func (p *Plane) View(gtx C) {
 
 	p.Index.Search(min, max, func(min, max [2]float32, key interface{}) bool {
 		value, _ := p.Elements.Get(key)
-		s, _ := value.(Shape)
+		s, ok := value.(Shape)
+		if !ok {
+			return true
+		}
 		s.Draw(gtx)
 		return true
 	})
@@ -112,19 +115,20 @@ func (p *Plane) InsertAll(ss []Shape) {
 }
 
 func (p *Plane) Update(s Shape) {
-	old, found := p.Elements.Get(s.Identity())
+	id := s.Identity()
+	old, found := p.Elements.Get(id)
 	if !found {
 		return
 	}
 	olds := old.(Shape)
 	bounds := olds.Bounds()
 	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
-	p.Index.Delete(min, max, s.Identity())
+	p.Index.Delete(min, max, id)
 
-	p.Elements.Set(s.Identity(), s)
+	p.Elements.Set(id, s)
 	bounds = s.Bounds()
 	min, max = [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
-	p.Index.Insert(min, max, s.Identity())
+	p.Index.Insert(min, max, id)
 }
 
 func (p *Plane) UpdateAll(ss []Shape) {
