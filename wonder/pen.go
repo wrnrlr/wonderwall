@@ -24,7 +24,7 @@ func (p *Pen) Event(e pointer.Event, gtx C) interface{} {
 	pos := e.Position.Mul(1 / gtx.Metric.PxPerDp)
 	switch e.Type {
 	case pointer.Press:
-		p.events = []f32.Point{e.Position}
+		p.events = []f32.Point{pos}
 	case pointer.Drag:
 		p.events = append(p.events, pos)
 	case pointer.Release, pointer.Cancel:
