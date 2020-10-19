@@ -96,7 +96,7 @@ func (p *WallPage) canvasLayout(gtx C) D {
 	p.canvasEvent(gtx)
 	max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	p.plane.View(gtx)
-	width := float32(p.toolbar.strokeSize.Value)
+	width := float32(p.toolbar.strokeSize.Value) * p.plane.Scale
 	p.pen.Draw(gtx, width, p.toolbar.strokeColor.Color)
 	if p.toolbar.Tool == SelectionTool {
 		p.selection.Draw(p.plane, gtx)
