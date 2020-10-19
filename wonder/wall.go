@@ -51,7 +51,6 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 func (p *WallPage) Start(stop <-chan struct{}) {}
 
 func (p *WallPage) Event(gtx C) interface{} {
-	p.canvasEvent(gtx)
 	if e := p.toolbar.events(gtx); e != nil {
 		switch e.(type) {
 		case DeleteEvent:
@@ -82,12 +81,19 @@ func (p *WallPage) zoom(x float32) {
 }
 
 func (p *WallPage) Layout(gtx C) D {
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(p.toolbar.Layout),
-		layout.Flexed(1, p.canvasLayout))
+	macro := op.Record(gtx.Ops)
+	d1 := p.toolbar.Layout(gtx)
+	toolbar := macro.Stop()
+	stack := op.Push(gtx.Ops)
+	op.Offset(f32.Pt(0, float32(d1.Size.Y)))
+	d2 := p.canvasLayout(gtx)
+	stack.Pop()
+	toolbar.Add(gtx.Ops)
+	return D{Size: image.Pt(d1.Size.X, d1.Size.Y+d2.Size.Y)}
 }
 
 func (p *WallPage) canvasLayout(gtx C) D {
+	p.canvasEvent(gtx)
 	max := image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	p.plane.View(gtx)
 	width := float32(p.toolbar.strokeSize.Value)
