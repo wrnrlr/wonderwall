@@ -59,7 +59,6 @@ func (cp *ColorPicker) Layout(gtx C) D {
 }
 
 func (cp *ColorPicker) layoutButton(gtx C) D {
-	width := gtx.Px(unit.Dp(40))
 	return layout.Stack{Alignment: layout.Center}.Layout(gtx,
 		layout.Expanded(func(gtx C) D {
 			clip.Rect{Max: gtx.Constraints.Min}.Add(gtx.Ops)
@@ -76,10 +75,10 @@ func (cp *ColorPicker) layoutButton(gtx C) D {
 		layout.Stacked(func(gtx C) D {
 			return cp.Inset.Layout(gtx, func(gtx C) D {
 				height := gtx.Px(cp.Size)
-				gtx.Constraints.Min.X = width
+				gtx.Constraints.Min.X = height
 				gtx.Constraints.Min.Y = height
 				Fill(gtx, cp.Color)
-				return D{Size: image.Point{X: width, Y: height}}
+				return D{Size: image.Point{X: height, Y: height}}
 			})
 		}),
 		layout.Expanded(func(gtx C) D {
