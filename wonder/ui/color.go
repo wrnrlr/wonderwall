@@ -38,7 +38,7 @@ func Color(th *Theme, col color.RGBA) *ColorPicker {
 		Size:    unit.Dp(24),
 		Inset:   layout.UniformInset(unit.Dp(12)),
 		Button:  &widget.Clickable{},
-		grid:    &Grid{Columns: 6, Rows: 5, Width: int(unit.Sp(300).V), Height: int(unit.Sp(200).V)},
+		grid:    &Grid{Columns: 6, Rows: 5, Width: 300, Height: 200},
 		buttons: [30]widget.Clickable{},
 		hex:     &widget.Editor{SingleLine: true},
 		active:  false,
@@ -59,7 +59,7 @@ func (cp *ColorPicker) Layout(gtx C) D {
 }
 
 func (cp *ColorPicker) layoutButton(gtx C) D {
-	width := int(unit.Dp(40).V)
+	width := gtx.Px(unit.Dp(40))
 	return layout.Stack{Alignment: layout.Center}.Layout(gtx,
 		layout.Expanded(func(gtx C) D {
 			clip.Rect{Max: gtx.Constraints.Min}.Add(gtx.Ops)
@@ -75,7 +75,7 @@ func (cp *ColorPicker) layoutButton(gtx C) D {
 		}),
 		layout.Stacked(func(gtx C) D {
 			return cp.Inset.Layout(gtx, func(gtx C) D {
-				height := int(cp.Size.V)
+				height := gtx.Px(cp.Size)
 				gtx.Constraints.Min.X = width
 				gtx.Constraints.Min.Y = height
 				Fill(gtx, cp.Color)
@@ -90,12 +90,9 @@ func (cp *ColorPicker) layoutButton(gtx C) D {
 }
 
 func (cp *ColorPicker) layoutPanel(gtx C) D {
-	gtx.Constraints.Max.X = 400
 	colors := layout.Rigid(func(gtx C) D {
 		return cp.grid.Layout(gtx, func(i, j int, gtx C) D {
 			index := i*cp.grid.Columns + j
-			//pointer.Rect(image.Rectangle{Max: gtx.Constraints.Max}).Insert(gtx.Ops)
-			//pointer.InputOp{Tag: &colorPalet[index], Grab: false, Types: pointer.Press}.Insert(gtx.Ops)
 			cp.buttons[index].Layout(gtx)
 			col := colorPalet[index]
 			return Fill(gtx, Rgb(col))
