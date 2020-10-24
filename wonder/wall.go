@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/font/gofont"
 	"gioui.org/io/key"
@@ -68,7 +67,7 @@ func (p *WallPage) DeleteSelection() {
 }
 
 func (p *WallPage) pan(offset f32.Point) {
-	p.plane.Offset = p.plane.Offset.Add(offset)
+	p.plane.Offset = p.plane.Offset.Add(offset.Mul(-1))
 }
 
 func (p *WallPage) zoom(x float32) {
@@ -113,7 +112,6 @@ func (p *WallPage) canvasEvent(gtx C) {
 		if !ok {
 			continue
 		}
-		fmt.Printf("Click on canvas\n")
 		if e.Type == pointer.Scroll && (e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl)) {
 			p.zoom(e.Scroll.Y)
 		} else if e.Type == pointer.Scroll {
