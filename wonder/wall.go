@@ -70,13 +70,17 @@ func (p *WallPage) pan(offset f32.Point) {
 	p.plane.Offset = p.plane.Offset.Add(offset.Mul(-1))
 }
 
-func (p *WallPage) zoom(x float32) {
+func (p *WallPage) scale(x float32) {
 	const scaleBy = 1.2
 	if scaleBy > x {
 		p.plane.Scale *= scaleBy
 	} else {
 		p.plane.Scale /= scaleBy
 	}
+}
+
+func (p *WallPage) zoom(x float32) {
+	p.plane.Scale += x
 }
 
 func (p *WallPage) Layout(gtx C) D {
@@ -113,14 +117,16 @@ func (p *WallPage) canvasEvent(gtx C) {
 			continue
 		}
 		if e.Type == pointer.Scroll && (e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl)) {
-			p.zoom(e.Scroll.Y)
+			p.scale(e.Scroll.Y)
+		} else if e.Type == pointer.Pinch {
+			p.zoom(e.Magnification)
 		} else if e.Type == pointer.Scroll {
 			p.pan(e.Scroll)
 		} else {
 			p.toolEvent(e, gtx)
 		}
 	}
-	pointer.InputOp{Tag: p, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll}.Add(gtx.Ops)
+	pointer.InputOp{Tag: p, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll | pointer.Pinch}.Add(gtx.Ops)
 }
 
 func (p *WallPage) toolEvent(e pointer.Event, gtx layout.Context) {
