@@ -12,6 +12,7 @@ type User struct {
 	Email        Email
 	PasswordHash PasswordHash
 	Name         string
+	Roles        []Role
 }
 
 func (u *User) Eq(other *User) bool {

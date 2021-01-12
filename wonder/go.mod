@@ -1,11 +1,11 @@
 module github.com/Almanax/wonderwall/wonder
 
-go 1.13
+go 1.15
 
 require (
-	gioui.org v0.0.0-20200912153211-2f67feafc0a2
+	gioui.org v0.0.0-20210103130323-7bfdafb7b15d
 	github.com/rs/xid v1.2.1
 	github.com/wk8/go-ordered-map v0.2.0
-	golang.org/x/exp v0.0.0-20200915172826-20d5ce0eab31
-	golang.org/x/image v0.0.0-20200801110659-972c09e46d76
+	golang.org/x/exp v0.0.0-20201229011636-eab1b5eb1a03
+	golang.org/x/image v0.0.0-20201208152932-35266b937fa6
 )

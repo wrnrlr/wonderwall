@@ -368,17 +368,17 @@ func (tr *RTree) Scan(iter func(min, max [2]float32, data interface{}) bool) {
 }
 
 // Delete data from tree
-func (tr *RTree) Delete(min, max [2]float32, data interface{}) {
+func (tr *RTree) Delete(min, max [2]float32, data interface{}) bool {
 	var item rect
 	fit(min, max, data, &item)
 	if tr.root.data == nil || !tr.root.contains(&item) {
-		return
+		return false
 	}
 	var removed, recalced bool
 	removed, recalced, tr.reinsert =
 		tr.root.delete(&item, tr.height, tr.reinsert[:0])
 	if !removed {
-		return
+		return false
 	}
 	tr.count -= len(tr.reinsert) + 1
 	if tr.count == 0 {
@@ -398,6 +398,7 @@ func (tr *RTree) Delete(min, max [2]float32, data interface{}) {
 		tr.insert(&tr.reinsert[i])
 		tr.reinsert[i].data = nil
 	}
+	return removed
 }
 
 func (r *rect) delete(item *rect, height int, reinsert []rect) (

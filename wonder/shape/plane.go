@@ -12,7 +12,7 @@ import (
 // A two-dimensional surface that extends infinitely far
 type Plane struct {
 	Elements *orderedmap.OrderedMap
-	Index    rtree.RTree
+	Index    *rtree.RTree
 	Offset   f32.Point
 	Scale    float32
 	Width    float32
@@ -22,24 +22,33 @@ type Plane struct {
 func NewPlane() *Plane {
 	return &Plane{
 		Elements: orderedmap.New(),
+		Index:    &rtree.RTree{},
+		Offset:   f32.Point{X: 0, Y: 0},
 		Scale:    1,
 	}
 }
 
 func (p *Plane) View(gtx C) {
-	//fmt.Printf("View: %v %f\n", r, scale)
 	//p.printElements()
+	pxs := gtx.Metric.PxPerDp
 	cons := gtx.Constraints
-	p.Width, p.Height = float32(cons.Max.X), float32(cons.Max.Y)
+	width, height := float32(cons.Max.X)/pxs, float32(cons.Max.Y)/pxs
+	p.Width, p.Height = width, height
+	center := f32.Pt(p.Offset.X+p.Width/2, p.Offset.Y+p.Height/2)
+	tr := f32.Affine2D{}.Offset(p.Offset).Scale(f32.Point{}, f32.Pt(p.Scale, p.Scale)) //.Offset(p.Center())
 
-	center := p.Center()
-	scaledWidth, scaledHeight := p.Width*p.Scale, p.Height*p.Scale
+	//tr := p.GetTransform()
+	defer op.Push(gtx.Ops).Pop()
+	op.Affine(tr).Add(gtx.Ops)
+
+	scaledWidth, scaledHeight := width*p.Scale, height*p.Scale
 	min := [2]float32{center.X - scaledWidth/2, center.Y - scaledHeight/2}
 	max := [2]float32{center.X + scaledWidth/2, center.Y + scaledHeight/2}
 
-	tr := p.GetTransform()
-	defer op.Push(gtx.Ops).Pop()
-	op.Affine(tr).Add(gtx.Ops)
+	fmt.Printf("Window: %f,%f, Offset: %v, Scale: %f\n", p.Width, p.Height, p.Offset, p.Scale)
+	fmt.Printf("Min, Max: %v %v\n", min, max)
+	minr, maxr := p.Index.Bounds()
+	fmt.Printf("RTRee Min, Max: %v %v\n", minr, maxr)
 
 	p.Index.Search(min, max, func(min, max [2]float32, key interface{}) bool {
 		value, _ := p.Elements.Get(key)
@@ -86,7 +95,7 @@ func (p Plane) Hits(pos f32.Point) Shape {
 	p.Index.Search(min, max, func(min [2]float32, max [2]float32, key interface{}) bool {
 		value, found := p.Elements.Get(key)
 		if !found {
-			return false
+			return false // TODO this should not be happening
 		}
 		s, ok := value.(Shape)
 		if !ok {
@@ -123,7 +132,8 @@ func (p *Plane) Update(s Shape) {
 	olds := old.(Shape)
 	bounds := olds.Bounds()
 	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
-	p.Index.Delete(min, max, id)
+	removed := p.Index.Delete(min, max, id)
+	fmt.Printf("Removed element: %s: %v\n", id, removed)
 
 	p.Elements.Set(id, s)
 	bounds = s.Bounds()
@@ -141,7 +151,8 @@ func (p *Plane) Remove(s Shape) {
 	p.Elements.Delete(s.Identity())
 	bounds := s.Bounds()
 	min, max := [2]float32{bounds.Min.X, bounds.Min.Y}, [2]float32{bounds.Max.X, bounds.Max.Y}
-	p.Index.Delete(min, max, s.Identity())
+	removed := p.Index.Delete(min, max, s.Identity())
+	fmt.Printf("Removed element: %s: %v\n", s.Identity(), removed)
 }
 
 func (p *Plane) RemoveAll(ss []Shape) {
@@ -175,6 +186,10 @@ func (p Plane) Center() f32.Point {
 	return f32.Pt(p.Offset.X+p.Width/2, p.Offset.Y+p.Height/2)
 }
 
+func (p Plane) GetTransform2() f32.Affine2D {
+	return f32.Affine2D{}.Scale(p.Center(), f32.Pt(p.Scale, p.Scale)).Offset(p.Center())
+}
+
 func (p Plane) GetTransform() f32.Affine2D {
-	return f32.Affine2D{}.Scale(p.Center(), f32.Pt(p.Scale, p.Scale))
+	return f32.Affine2D{}.Offset(p.Offset).Scale(f32.Point{}, f32.Pt(p.Scale, p.Scale))
 }

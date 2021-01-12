@@ -59,11 +59,11 @@ func StartServer() {
 	router.HandlerFunc("GET", "/reset-password", wrapper(RenderTemplate("reset-password")))
 	router.HandlerFunc("POST", "/reset-password", wrapper(postRegistration))
 
-	router.HandlerFunc("GET", "/wall", wrapper(GetWallHandler(security)))
-	router.HandlerFunc("POST", "/wall", wrapper(PostWallHandler(security)))
+	router.HandlerFunc("GET", "/wall", wrapper(GetWallHandler(store, security, walls)))
+	router.HandlerFunc("POST", "/wall", wrapper(PostWallHandler(store, security, walls)))
 	router.HandlerFunc("GET", "/wall/:id", wrapper(WallCollab(collabConfig, store, walls)))
 	router.HandlerFunc("PATCH", "/wall/:id", wrapper(PatchWallHandler(security)))
-	router.HandlerFunc("DELETE", "/wall/:id", wrapper(DeleteWallHandler(security)))
+	router.HandlerFunc("DELETE", "/wall/:id", wrapper(DeleteWallHandler(store, security, walls)))
 
 	router.HandlerFunc("GET", "/static/*filepath", wrapper(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP))
 

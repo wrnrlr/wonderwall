@@ -66,7 +66,7 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 				return emailNotRegistered
 			}
 			// TODO store session
-			//s, err = sessions.CreateSession(txn, u.ID.String())
+			//s, err = sessions.CreateSession(txn, u.WallID.String())
 			//if err != nil {
 			//	return err
 			//}
@@ -86,7 +86,7 @@ func PostLogin(db *Store, users FindUserByEmail, registrations FindRegistrationB
 		//	return
 		//}
 		// Then make the privilege-level change.
-		//sessionManager.Put(r.Context(), "userID", u.ID.String())
+		//sessionManager.Put(r.Context(), "userID", u.WallID.String())
 		//msg := &LoginMsg{Name: u.Name, Origin: origin}
 		//emails.SendEmail("login", u.Email, msg)
 

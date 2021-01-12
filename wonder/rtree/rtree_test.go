@@ -17,6 +17,7 @@ func TestRTree(t *testing.T) {
 	testResultLength(t, tree, [2]float32{0, 0}, [2]float32{120, 120}, 2)
 	testResultLength(t, tree, [2]float32{60, 60}, [2]float32{120, 130}, 2)
 	testResultLength(t, tree, [2]float32{150, 150}, [2]float32{160, 160}, 0)
+	testResultLength(t, tree, [2]float32{-20, -20}, [2]float32{-9, -9}, 1)
 }
 
 func testResultLength(t *testing.T, tree RTree, min, max [2]float32, length int) {

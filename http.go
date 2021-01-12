@@ -39,3 +39,23 @@ func RenderTemplate(name string) http.HandlerFunc {
 		writeTmpl(w, name, nil)
 	}
 }
+
+type Result2 struct {
+	Result   []interface{}
+	Previous *string
+	Next     *string
+	Error    error `json:"error"`
+}
+
+type Result interface {
+	MarshalJSON() ([]byte, error)
+	ContentType() string
+}
+
+type ErrorResult struct {
+	Message string
+}
+
+type JsonResult struct{}
+
+type RawResult struct{}
