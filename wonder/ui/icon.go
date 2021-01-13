@@ -28,8 +28,7 @@ func (ic *Icon) Image(c unit.Metric, col color.NRGBA) paint.ImageOp {
 	img := image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
 	var ico iconvg.Rasterizer
 	ico.SetDstImage(img, img.Bounds(), draw.Src)
-	r, g, b, a := col.RGBA()
-	m.Palette[0] = color.RGBA{r, rgba.G, rgba.B, a}
+	m.Palette[0] = color.RGBAModel.Convert(col).(color.RGBA)
 	iconvg.Decode(&ico, ic.Src, &iconvg.DecodeOptions{
 		Palette: &m.Palette,
 	})
