@@ -56,9 +56,9 @@ func Item(th *Theme, button *widget.Clickable, icon *widget.Icon) ItemStyle {
 }
 
 type ItemStyle struct {
-	Background color.RGBA
+	Background color.NRGBA
 	// Color is the icon color.
-	Color color.RGBA
+	Color color.NRGBA
 	Icon  *widget.Icon
 	// Size is the icon Size.
 	Size   unit.Value
@@ -108,10 +108,10 @@ type EnumMenu struct {
 type ButtonStyle struct {
 	Text string
 	// Color is the text color.
-	Color        color.RGBA
+	Color        color.NRGBA
 	Font         text.Font
 	TextSize     unit.Value
-	Background   color.RGBA
+	Background   color.NRGBA
 	CornerRadius unit.Value
 	Inset        layout.Inset
 	Button       *widget.Clickable
@@ -119,15 +119,15 @@ type ButtonStyle struct {
 }
 
 type ButtonLayoutStyle struct {
-	Background   color.RGBA
+	Background   color.NRGBA
 	CornerRadius unit.Value
 	Button       *widget.Clickable
 }
 
 type IconButtonStyle struct {
-	Background color.RGBA
+	Background color.NRGBA
 	// Color is the icon color.
-	Color color.RGBA
+	Color color.NRGBA
 	Icon  *widget.Icon
 	// Size is the icon Size.
 	Size   unit.Value
@@ -154,15 +154,15 @@ func Button(th *Theme, button *widget.Clickable, txt string) ButtonStyle {
 func ButtonLayout(th *material.Theme, button *widget.Clickable) ButtonLayoutStyle {
 	return ButtonLayoutStyle{
 		Button:       button,
-		Background:   th.Color.Primary,
+		Background:   th.Bg,
 		CornerRadius: unit.Dp(4),
 	}
 }
 
 func IconButton(th *material.Theme, button *widget.Clickable, icon *widget.Icon) IconButtonStyle {
 	return IconButtonStyle{
-		Background: th.Color.Primary,
-		Color:      th.Color.InvText,
+		Background: th.Bg,
+		Color:      th.Fg,
 		Icon:       icon,
 		Size:       unit.Dp(24),
 		Inset:      layout.UniformInset(unit.Dp(12)),
@@ -362,7 +362,7 @@ func drawInk(gtx layout.Context, c widget.Press) {
 	const col = 0.8
 	ba, bc := byte(alpha*0xff), byte(alpha*col*0xff)
 	defer op.Push(gtx.Ops).Pop()
-	ink := paint.ColorOp{Color: color.RGBA{A: ba, R: bc, G: bc, B: bc}}
+	ink := paint.ColorOp{Color: color.NRGBA{A: ba, R: bc, G: bc, B: bc}}
 	ink.Add(gtx.Ops)
 	rr := size * .5
 	op.Offset(c.Position.Add(f32.Point{
@@ -376,32 +376,30 @@ func drawInk(gtx layout.Context, c widget.Press) {
 		}},
 		NE: rr, NW: rr, SE: rr, SW: rr,
 	}.Add(gtx.Ops)
-	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(size), Y: float32(size)}}}.Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
 }
 
-func Rgb(c uint32) color.RGBA {
+func Rgb(c uint32) color.NRGBA {
 	return Argb(0xff000000 | c)
 }
 
-func Argb(c uint32) color.RGBA {
-	return color.RGBA{A: uint8(c >> 24), R: uint8(c >> 16), G: uint8(c >> 8), B: uint8(c)}
+func Argb(c uint32) color.NRGBA {
+	return color.NRGBA{A: uint8(c >> 24), R: uint8(c >> 16), G: uint8(c >> 8), B: uint8(c)}
 }
 
-func Fill(gtx layout.Context, col color.RGBA) layout.Dimensions {
+func Fill(gtx layout.Context, col color.NRGBA) layout.Dimensions {
 	cs := gtx.Constraints
-	d := cs.Min
-	dr := f32.Rectangle{
-		Max: f32.Point{X: float32(d.X), Y: float32(d.Y)},
-	}
 	paint.ColorOp{Color: col}.Add(gtx.Ops)
-	paint.PaintOp{Rect: dr}.Add(gtx.Ops)
-	return layout.Dimensions{Size: d}
+	clip.Rect{Max: cs.Min}.Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
+	paint.Fill(gtx.Ops, col)
+	return layout.Dimensions{Size: cs.Min}
 }
 
 // mulAlpha scales all color components by alpha/255.
-func mulAlpha(c color.RGBA, alpha uint8) color.RGBA {
+func mulAlpha(c color.NRGBA, alpha uint8) color.NRGBA {
 	a := uint16(alpha)
-	return color.RGBA{
+	return color.NRGBA{
 		A: uint8(uint16(c.A) * a / 255),
 		R: uint8(uint16(c.R) * a / 255),
 		G: uint8(uint16(c.G) * a / 255),

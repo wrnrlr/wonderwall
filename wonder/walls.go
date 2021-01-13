@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gioui.org/f32"
 	"gioui.org/gesture"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
@@ -105,7 +104,7 @@ func (p *WallListPage) layoutWallItem(gtx C, i int) D {
 			layout.Rigid(func(gtx C) D {
 				ico := (&ui.Icon{Src: icons.NavigationMoreVert, Size: theme.TextSize.Scale(48.0 / 16.0)}).Image(gtx.Metric, theme.Color.Text)
 				ico.Add(gtx.Ops)
-				paint.PaintOp{Rect: f32.Rectangle{Max: toPointF(ico.Size())}}.Add(gtx.Ops)
+				paint.PaintOp{}.Add(gtx.Ops)
 				dims := layout.Dimensions{Size: ico.Size()}
 				dims.Size.X += gtx.Px(unit.Dp(4))
 				return dims
@@ -154,9 +153,8 @@ func (w *WallFilter) Layout(gtx C) D {
 	stack := layout.Stack{Alignment: layout.NW}
 	bg := layout.Expanded(func(gtx C) D {
 		cs := gtx.Constraints
-		dr := f32.Rectangle{Max: f32.Point{X: float32(cs.Max.X), Y: float32(cs.Min.Y)}}
 		paint.ColorOp{Color: theme.Color.Primary}.Add(gtx.Ops)
-		paint.PaintOp{Rect: dr}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
 		return layout.Dimensions{Size: image.Point{X: cs.Max.X, Y: cs.Min.Y}}
 	})
 	fg := layout.Stacked(func(gtx C) D {

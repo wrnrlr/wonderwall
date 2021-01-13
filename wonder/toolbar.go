@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op/paint"
 	"gioui.org/widget"
@@ -83,9 +82,9 @@ func (t *Toolbar) Layout(gtx C) D {
 	})
 	backg := layout.Expanded(func(gtx C) D {
 		cs := gtx.Constraints
-		dr := f32.Rectangle{Max: f32.Point{X: float32(cs.Max.X), Y: float32(cs.Min.Y)}}
+		//dr := f32.Rectangle{Max: f32.Point{X: float32(cs.Max.X), Y: float32(cs.Min.Y)}}
 		paint.ColorOp{Color: t.theme.Color.Primary}.Add(gtx.Ops)
-		paint.PaintOp{Rect: dr}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
 		return layout.Dimensions{Size: image.Point{X: cs.Max.X, Y: cs.Min.Y}}
 	})
 	return stack.Layout(gtx, backg, front)

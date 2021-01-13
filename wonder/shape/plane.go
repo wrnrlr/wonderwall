@@ -6,7 +6,7 @@ import (
 	"gioui.org/op"
 	"github.com/Almanax/wonderwall/wonder/rtree"
 	orderedmap "github.com/wk8/go-ordered-map"
-	"golang.org/x/image/colornames"
+	"image/color"
 )
 
 // A two-dimensional surface that extends infinitely far
@@ -60,9 +60,10 @@ func (p *Plane) View(gtx C) {
 		return true
 	})
 
+	col := color.NRGBA{0xd3, 0xd3, 0xd3, 0xff}
 	for pair := p.Elements.Oldest(); pair != nil; pair = pair.Next() {
 		s, _ := pair.Value.(Shape)
-		Rectangle{s.Bounds(), nil, &colornames.Lightgray, float32(1)}.Draw(gtx)
+		Rectangle{s.Bounds(), nil, &col, float32(1)}.Draw(gtx)
 	}
 }
 

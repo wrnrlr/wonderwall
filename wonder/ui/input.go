@@ -28,7 +28,7 @@ type InputNumberStyle struct {
 	Font     text.Font
 	TextSize unit.Value
 	// Color is the text color.§
-	Color color.RGBA
+	Color color.NRGBA
 	// Hint contains the text displayed when the editor is empty.
 	Editor *widget.Editor
 
@@ -90,10 +90,10 @@ type Input struct {
 	Font     text.Font
 	TextSize unit.Value
 	// Color is the text color.
-	Color color.RGBA
+	Color color.NRGBA
 	// Hint contains the text displayed when the editor is empty.
 	Hint      string
-	HintColor color.RGBA
+	HintColor color.NRGBA
 	Editor    *widget.Editor
 
 	shaper text.Shaper

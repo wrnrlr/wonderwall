@@ -144,27 +144,24 @@ func (s *pageStack) Clear(p Page) {
 }
 
 type fill struct {
-	color color.RGBA
+	color color.NRGBA
 }
 
 func (f fill) Layout(gtx layout.Context) layout.Dimensions {
 	cs := gtx.Constraints
 	d := cs.Min
-	dr := f32.Rectangle{
-		Max: f32.Point{X: float32(d.X), Y: float32(d.Y)},
-	}
 	paint.ColorOp{Color: f.color}.Add(gtx.Ops)
-	paint.PaintOp{Rect: dr}.Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
 	return layout.Dimensions{Size: d, Baseline: d.Y}
 }
 
 type background struct {
-	color color.RGBA
+	color color.NRGBA
 }
 
 func (b background) Layout(gtx C, w layout.Widget) D {
 	dims := w(gtx)
 	paint.ColorOp{Color: b.color}.Add(gtx.Ops)
-	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(dims.Size.X), Y: float32(dims.Size.Y)}}}.Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
 	return dims
 }

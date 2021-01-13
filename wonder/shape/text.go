@@ -6,6 +6,7 @@ import (
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
@@ -21,14 +22,14 @@ type Text struct {
 	ID          string
 	X, Y        float32
 	Text        string
-	StrokeColor color.RGBA
+	StrokeColor color.NRGBA
 	FontWidth   float32
 
 	font   text.Font
 	shaper text.Shaper
 }
 
-func NewText(x, y float32, txt string, col color.RGBA, width float32, sh text.Shaper) *Text {
+func NewText(x, y float32, txt string, col color.NRGBA, width float32, sh text.Shaper) *Text {
 	id := xid.New().String()
 	return &Text{ID: id, X: x, Y: y, Text: txt, StrokeColor: col, FontWidth: width, shaper: sh}
 }
@@ -92,7 +93,7 @@ type lineIterator struct {
 
 const inf = 1e6
 
-func (l *lineIterator) Next() (int, int, []text.Glyph, f32.Point, bool) {
+func (l *lineIterator) Next() (text.Layout, image.Point, bool) {
 	for len(l.Lines) > 0 {
 		line := l.Lines[0]
 		l.Lines = l.Lines[1:]
@@ -108,34 +109,38 @@ func (l *lineIterator) Next() (int, int, []text.Glyph, f32.Point, bool) {
 		}
 		layout := line.Layout
 		start := l.txtOff
-		l.txtOff += line.Len
+		l.txtOff += len(line.Layout.Text)
 		if (off.Y + line.Bounds.Max.Y).Ceil() < l.Clip.Min.Y {
 			continue
 		}
-		for len(layout) > 0 {
-			g := layout[0]
-			adv := g.Advance
+		for len(layout.Advances) > 0 {
+			_, n := utf8.DecodeRuneInString(layout.Text)
+			adv := layout.Advances[0]
 			if (off.X + adv + line.Bounds.Max.X - line.Width).Ceil() >= l.Clip.Min.X {
 				break
 			}
 			off.X += adv
-			layout = layout[1:]
-			start += utf8.RuneLen(g.Rune)
+			layout.Text = layout.Text[n:]
+			layout.Advances = layout.Advances[1:]
+			start += n
 		}
 		end := start
 		endx := off.X
-		for i, g := range layout {
+		rune := 0
+		for n, r := range layout.Text {
 			if (endx + line.Bounds.Min.X).Floor() > l.Clip.Max.X {
-				layout = layout[:i]
+				layout.Advances = layout.Advances[:rune]
+				layout.Text = layout.Text[:n]
 				break
 			}
-			end += utf8.RuneLen(g.Rune)
-			endx += g.Advance
+			end += utf8.RuneLen(r)
+			endx += layout.Advances[rune]
+			rune++
 		}
-		offf := f32.Point{X: float32(off.X) / 64, Y: float32(off.Y) / 64}
-		return start, end, layout, offf, true
+		offf := image.Point{X: off.X.Floor(), Y: off.Y.Floor()}
+		return layout, offf, true
 	}
-	return 0, 0, nil, f32.Point{}, false
+	return text.Layout{}, image.Point{}, false
 }
 
 func (l label) bounds(gtx layout.Context, s text.Shaper, font text.Font, size unit.Value, txt string) layout.Dimensions {
@@ -161,25 +166,24 @@ func (l label) Layout(gtx layout.Context, s text.Shaper, font text.Font, size un
 	}
 	dims := linesDimens(lines)
 	dims.Size = cs.Constrain(dims.Size)
-	clip := textPadding(lines)
-	clip.Max = clip.Max.Add(dims.Size)
+	cl := textPadding(lines)
+	cl.Max = cl.Max.Add(dims.Size)
 	it := lineIterator{
 		Lines:     lines,
-		Clip:      clip,
+		Clip:      cl,
 		Alignment: l.Alignment,
 		Width:     dims.Size.X,
 	}
 	for {
-		start, end, l, off, ok := it.Next()
+		l, off, ok := it.Next()
 		if !ok {
 			break
 		}
-		lclip := layout.FRect(clip).Sub(off)
 		stack := op.Push(gtx.Ops)
-		op.Offset(off).Add(gtx.Ops)
-		str := txt[start:end]
-		s.ShapeString(font, textSize, str, l).Add(gtx.Ops)
-		paint.PaintOp{Rect: lclip}.Add(gtx.Ops)
+		op.Offset(layout.FPt(off)).Add(gtx.Ops)
+		s.Shape(font, textSize, l).Add(gtx.Ops)
+		clip.Rect(cl.Sub(off)).Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
 		stack.Pop()
 	}
 	return dims

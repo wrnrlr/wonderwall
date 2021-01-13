@@ -11,8 +11,8 @@ import (
 
 type Rectangle struct {
 	f32.Rectangle
-	FillColor   *color.RGBA
-	StrokeColor *color.RGBA
+	FillColor   *color.NRGBA
+	StrokeColor *color.NRGBA
 	StrokeWidth float32
 }
 
@@ -35,9 +35,8 @@ func (r Rectangle) Draw(gtx layout.Context) {
 		width := r.StrokeWidth * scale
 		stack := op.Push(gtx.Ops)
 		clip.Border{Rect: rec, Width: width}.Add(gtx.Ops)
-		dr := f32.Rectangle{Max: rec.Max}
 		paint.ColorOp{Color: *r.StrokeColor}.Add(gtx.Ops)
-		paint.PaintOp{Rect: dr}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
 		stack.Pop()
 	}
 	if r.FillColor != nil {
@@ -51,9 +50,8 @@ func (r Rectangle) Draw(gtx layout.Context) {
 		path.Line(f32.Point{X: 0, Y: p2.Y})
 		path.Line(f32.Point{X: -p2.X, Y: 0})
 		path.Line(f32.Point{X: 0, Y: -p2.Y})
-		path.End().Add(gtx.Ops)
-		box := f32.Rectangle{Min: p1, Max: p2}
-		paint.PaintOp{box}.Add(gtx.Ops)
+		clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
 		stack.Pop()
 	}
 }

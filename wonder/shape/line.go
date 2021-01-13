@@ -25,14 +25,14 @@ func (r rect) hit(p f32.Point) bool {
 type Polyline struct {
 	ID     string
 	Points Path
-	Color  color.RGBA
+	Color  color.NRGBA
 	Width  float32
 	offset f32.Point
 	rects  []rect
 	boxes  []f32.Rectangle
 }
 
-func NewPolyline(points []f32.Point, col color.RGBA, width float32) *Polyline {
+func NewPolyline(points []f32.Point, col color.NRGBA, width float32) *Polyline {
 	return &Polyline{
 		ID:     xid.New().String(),
 		Points: points,
@@ -93,7 +93,7 @@ func (l *Polyline) Move(delta f32.Point) {
 	l.rects = nil
 }
 
-func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA, gtx C) {
+func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.NRGBA, gtx C) {
 	scale := gtx.Metric.PxPerDp
 	length := len(points)
 	for i, p := range points {
@@ -106,8 +106,7 @@ func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.RGBA
 	}
 }
 
-func (l Polyline) drawCircle(p f32.Point, radius float32, col color.RGBA, gtx C) {
-	d := radius * 2
+func (l Polyline) drawCircle(p f32.Point, radius float32, col color.NRGBA, gtx C) {
 	const k = 0.551915024494 // 4*(sqrt(2)-1)/3
 	ops := gtx.Ops
 	defer op.Push(ops).Pop()
@@ -118,13 +117,12 @@ func (l Polyline) drawCircle(p f32.Point, radius float32, col color.RGBA, gtx C)
 	path.Cube(f32.Point{X: -radius * k, Y: 0}, f32.Point{X: -radius, Y: -radius + radius*k}, f32.Point{X: -radius, Y: -radius}) // SW
 	path.Cube(f32.Point{X: 0, Y: -radius * k}, f32.Point{X: radius - radius*k, Y: -radius}, f32.Point{X: radius, Y: -radius})   // NW
 	path.Cube(f32.Point{X: radius * k, Y: 0}, f32.Point{X: radius, Y: radius - radius*k}, f32.Point{X: radius, Y: radius})      // NE
-	path.End().Add(ops)
-	box := f32.Rectangle{Min: f32.Point{X: p.X - radius, Y: p.Y - radius}, Max: f32.Point{X: p.X + d, Y: p.Y + d}}
+	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
 	paint.ColorOp{Color: col}.Add(ops)
-	paint.PaintOp{Rect: box}.Add(ops)
+	paint.PaintOp{}.Add(ops)
 }
 
-func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx layout.Context) {
+func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.NRGBA, gtx layout.Context) {
 	tilt := angle(p1, p2)
 	a := offsetPoint(p1, width, tilt+rad90)
 	b := offsetPoint(p2, width, tilt+rad90)
@@ -139,9 +137,8 @@ func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.RGBA, gtx 
 	path.Line(c.Sub(b))
 	path.Line(d.Sub(c))
 	path.Line(a.Sub(d))
-	path.End().Add(gtx.Ops)
-	box := boundingBox([]f32.Point{a, b, c, d})
-	paint.PaintOp{Rect: box}.Add(gtx.Ops)
+	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
 	stack.Pop()
 }
 

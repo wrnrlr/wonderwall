@@ -14,8 +14,8 @@ const c = 0.55228475 // 4*(sqrt(2)-1)/3
 type Circle struct {
 	Center      f32.Point
 	Radius      float32
-	FillColor   *color.RGBA
-	StrokeColor *color.RGBA
+	FillColor   *color.NRGBA
+	StrokeColor *color.NRGBA
 	StrokeWidth float32
 }
 

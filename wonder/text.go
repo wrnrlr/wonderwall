@@ -16,7 +16,7 @@ type Text struct {
 	ID          string
 	X, Y        float32
 	Text        string
-	StrokeColor color.RGBA
+	StrokeColor color.NRGBA
 	FontWidth   float32
 }
 

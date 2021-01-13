@@ -10,12 +10,12 @@ import (
 type Theme struct {
 	Shaper text.Shaper
 	Color  struct {
-		Primary color.RGBA
-		Light   color.RGBA
-		Dark    color.RGBA
-		Text    color.RGBA
-		Hint    color.RGBA
-		InvText color.RGBA
+		Primary color.NRGBA
+		Light   color.NRGBA
+		Dark    color.NRGBA
+		Text    color.NRGBA
+		Hint    color.NRGBA
+		InvText color.NRGBA
 	}
 	TextSize unit.Value
 }

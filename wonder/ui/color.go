@@ -16,12 +16,12 @@ import (
 type ColorPicker struct {
 	theme      *Theme
 	Button     *widget.Clickable
-	Background color.RGBA
+	Background color.NRGBA
 	// Color is the icon color.
 	Size  unit.Value
 	Inset layout.Inset
 
-	Color color.RGBA
+	Color color.NRGBA
 
 	grid    *Grid
 	buttons [30]widget.Clickable
@@ -31,7 +31,7 @@ type ColorPicker struct {
 	active bool
 }
 
-func Color(th *Theme, col color.RGBA) *ColorPicker {
+func Color(th *Theme, col color.NRGBA) *ColorPicker {
 	return &ColorPicker{
 		theme:   th,
 		Color:   col,
