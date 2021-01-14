@@ -361,7 +361,7 @@ func drawInk(gtx layout.Context, c widget.Press) {
 	alpha := 0.7 * alphaBezier
 	const col = 0.8
 	ba, bc := byte(alpha*0xff), byte(alpha*col*0xff)
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	ink := paint.ColorOp{Color: color.NRGBA{A: ba, R: bc, G: bc, B: bc}}
 	ink.Add(gtx.Ops)
 	rr := size * .5

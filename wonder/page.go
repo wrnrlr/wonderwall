@@ -33,7 +33,7 @@ func (t *Transition) Event(gtx layout.Context) interface{} {
 }
 
 func (t *Transition) Layout(gtx layout.Context) layout.Dimensions {
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	prev, page := t.prev, t.page
 	if prev != nil {
 		if t.reverse {

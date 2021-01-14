@@ -33,15 +33,15 @@ func (r Rectangle) Draw(gtx layout.Context) {
 	rec := f32.Rectangle{Min: r.Rectangle.Min.Mul(scale), Max: r.Rectangle.Max.Mul(scale)}
 	if r.StrokeColor != nil {
 		width := r.StrokeWidth * scale
-		stack := op.Push(gtx.Ops)
+		stack := op.Save(gtx.Ops)
 		clip.Border{Rect: rec, Width: width}.Add(gtx.Ops)
 		paint.ColorOp{Color: *r.StrokeColor}.Add(gtx.Ops)
 		paint.PaintOp{}.Add(gtx.Ops)
-		stack.Pop()
+		stack.Load()
 	}
 	if r.FillColor != nil {
 		p1, p2 := rec.Min, rec.Max
-		stack := op.Push(gtx.Ops)
+		stack := op.Save(gtx.Ops)
 		paint.ColorOp{Color: *r.FillColor}.Add(gtx.Ops)
 		var path clip.Path
 		path.Begin(gtx.Ops)
@@ -52,6 +52,6 @@ func (r Rectangle) Draw(gtx layout.Context) {
 		path.Line(f32.Point{X: 0, Y: -p2.Y})
 		clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
 		paint.PaintOp{}.Add(gtx.Ops)
-		stack.Pop()
+		stack.Load()
 	}
 }

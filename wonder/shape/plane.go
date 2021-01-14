@@ -38,7 +38,7 @@ func (p *Plane) View(gtx C) {
 	tr := f32.Affine2D{}.Offset(p.Offset).Scale(f32.Point{}, f32.Pt(p.Scale, p.Scale)) //.Offset(p.Center())
 
 	//tr := p.GetTransform()
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	op.Affine(tr).Add(gtx.Ops)
 
 	scaledWidth, scaledHeight := width*p.Scale, height*p.Scale

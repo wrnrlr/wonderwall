@@ -13,7 +13,7 @@ type Pen struct {
 	grab   bool
 }
 
-func (p *Pen) Draw(gtx C, width float32, col color.RGBA) {
+func (p *Pen) Draw(gtx C, width float32, col color.NRGBA) {
 	if p.events != nil {
 		shape.Polyline{Points: p.events, Width: width, Color: col}.Draw(gtx)
 	}

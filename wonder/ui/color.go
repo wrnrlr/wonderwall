@@ -48,12 +48,12 @@ func Color(th *Theme, col color.NRGBA) *ColorPicker {
 func (cp *ColorPicker) Layout(gtx C) D {
 	dims := cp.layoutButton(gtx)
 	if cp.active {
-		stack := op.Push(gtx.Ops)
+		stack := op.Save(gtx.Ops)
 		c := gtx.Constraints
 		op.Offset(f32.Pt(0, float32(dims.Size.Y))).Add(gtx.Ops)
 		cp.layoutPanel(gtx)
 		gtx.Constraints = c
-		stack.Pop()
+		stack.Load()
 	}
 	return dims
 }

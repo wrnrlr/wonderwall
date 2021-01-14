@@ -46,7 +46,7 @@ func (cc Circle) Stroke(col color.NRGBA, width float32, gtx layout.Context) f32.
 	w, h := r*2, r*2
 	p := cc.Center.Mul(scale)
 	box := f32.Rectangle{Max: f32.Point{X: p.X + w, Y: p.Y + h}}
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	paint.ColorOp{col}.Add(gtx.Ops)
 	var path clip.Path
 	path.Begin(gtx.Ops)
@@ -77,7 +77,7 @@ func (cc Circle) Fill(col color.NRGBA, gtx layout.Context) f32.Rectangle {
 	p := cc.Center
 	r := cc.Radius
 	d := r * 2
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	paint.ColorOp{col}.Add(gtx.Ops)
 	paint.ColorOp{col}.Add(gtx.Ops)
 	rr := (p.X + p.Y) * .25

@@ -109,7 +109,7 @@ func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.NRGB
 func (l Polyline) drawCircle(p f32.Point, radius float32, col color.NRGBA, gtx C) {
 	const k = 0.551915024494 // 4*(sqrt(2)-1)/3
 	ops := gtx.Ops
-	defer op.Push(ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
 	path.Begin(ops)
 	path.Move(f32.Point{X: p.X + radius, Y: p.Y})
@@ -128,7 +128,7 @@ func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.NRGBA, gtx
 	b := offsetPoint(p2, width, tilt+rad90)
 	c := offsetPoint(p2, -width, tilt+rad90)
 	d := offsetPoint(p1, -width, tilt+rad90)
-	stack := op.Push(gtx.Ops)
+	stack := op.Save(gtx.Ops)
 	paint.ColorOp{Color: col}.Add(gtx.Ops)
 	var path clip.Path
 	path.Begin(gtx.Ops)
@@ -139,7 +139,7 @@ func (l Polyline) drawLine(p1, p2 f32.Point, width float32, col color.NRGBA, gtx
 	path.Line(a.Sub(d))
 	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
-	stack.Pop()
+	stack.Load()
 }
 
 func (l *Polyline) Hit(p f32.Point) bool {

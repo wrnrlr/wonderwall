@@ -25,17 +25,17 @@ func (g *Grid) Layout(gtx C, cell Cell) D {
 	rowHeight := h / g.Rows
 	size := image.Pt(columnWidth, rowHeight)
 	gtx.Constraints = layout.Constraints{Min: size, Max: size}
-	stack1 := op.Push(gtx.Ops)
+	stack1 := op.Save(gtx.Ops)
 	for i := 0; i < g.Rows; i++ {
-		stack2 := op.Push(gtx.Ops)
+		stack2 := op.Save(gtx.Ops)
 		for j := 0; j < g.Columns; j++ {
 			cell(i, j, gtx)
 			op.Offset(f32.Pt(float32(size.X), 0)).Add(gtx.Ops)
 		}
-		stack2.Pop()
+		stack2.Load()
 		op.Offset(f32.Pt(0, float32(size.Y))).Add(gtx.Ops)
 	}
-	stack1.Pop()
+	stack1.Load()
 	return D{Size: image.Pt(w, h)}
 }
 

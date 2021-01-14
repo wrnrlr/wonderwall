@@ -36,7 +36,7 @@ type InputNumberStyle struct {
 }
 
 func (in *InputNumberStyle) Layout(gtx C) D {
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	in.Event(gtx)
 	dims := in.Editor.Layout(gtx, in.shaper, in.Font, in.TextSize)
 	disabled := gtx.Queue == nil
@@ -100,7 +100,7 @@ type Input struct {
 }
 
 func (e Input) Layout(gtx C) D {
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	macro := op.Record(gtx.Ops)
 	paint.ColorOp{Color: e.HintColor}.Add(gtx.Ops)
 	tl := widget.Label{Alignment: e.Editor.Alignment}

@@ -13,4 +13,5 @@ var (
 	green     = color.NRGBA{0, 255, 0, 255}
 	blue      = color.NRGBA{0, 0, 255, 255}
 	lightpink = ui.Rgb(0xFFB6C1)
+	Lightblue = color.NRGBA{0xad, 0xd8, 0xe6, 0xff} // rgb(173, 216, 230)
 )
