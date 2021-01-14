@@ -8,7 +8,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"github.com/Almanax/wonderwall/wonder/shape"
-	"golang.org/x/image/colornames"
 )
 
 type Selection struct {
@@ -25,11 +24,11 @@ func NewSelection() *Selection {
 
 func (s Selection) Draw(plane *shape.Plane, gtx layout.Context) {
 	tr := plane.GetTransform()
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	op.Affine(tr).Add(gtx.Ops)
 	for sh, _ := range s.selection {
 		b := sh.Bounds()
-		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &colornames.Lightblue, StrokeWidth: unit.Dp(3).V}.Draw(gtx)
+		shape.Rectangle{Rectangle: b, FillColor: nil, StrokeColor: &Lightblue, StrokeWidth: unit.Dp(3).V}.Draw(gtx)
 	}
 	shape.Circle{Center: s.prev, Radius: unit.Dp(5).V, FillColor: &red, StrokeColor: nil}.Fill(red, gtx)
 }

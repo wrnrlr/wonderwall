@@ -21,7 +21,7 @@ type Text struct {
 }
 
 func (t Text) Draw(gtx C) {
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	op.Offset(f32.Point{X: t.X, Y: t.Y - t.FontWidth}).Add(gtx.Ops)
 	l := material.Label(material.NewTheme(gofont.Collection()), unit.Px(t.FontWidth), t.Text)
 	l.Color = t.StrokeColor

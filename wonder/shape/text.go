@@ -55,7 +55,7 @@ func (t Text) Offset(p f32.Point) Shape {
 }
 
 func (t Text) Draw(gtx C) {
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	scale := gtx.Metric.PxPerDp
 	p := f32.Point{X: t.X, Y: t.Y - t.FontWidth/2}.Mul(scale)
 	width := t.FontWidth * scale
@@ -179,12 +179,12 @@ func (l label) Layout(gtx layout.Context, s text.Shaper, font text.Font, size un
 		if !ok {
 			break
 		}
-		stack := op.Push(gtx.Ops)
+		stack := op.Save(gtx.Ops)
 		op.Offset(layout.FPt(off)).Add(gtx.Ops)
 		s.Shape(font, textSize, l).Add(gtx.Ops)
 		clip.Rect(cl.Sub(off)).Add(gtx.Ops)
 		paint.PaintOp{}.Add(gtx.Ops)
-		stack.Pop()
+		stack.Load()
 	}
 	return dims
 }

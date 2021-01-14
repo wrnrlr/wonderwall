@@ -87,10 +87,10 @@ func (p *WallPage) Layout(gtx C) D {
 	macro := op.Record(gtx.Ops)
 	d1 := p.toolbar.Layout(gtx)
 	toolbar := macro.Stop()
-	stack := op.Push(gtx.Ops)
+	stack := op.Save(gtx.Ops)
 	op.Offset(f32.Pt(0, float32(d1.Size.Y)))
 	d2 := p.canvasLayout(gtx)
-	stack.Pop()
+	stack.Load()
 	toolbar.Add(gtx.Ops)
 	return D{Size: image.Pt(d1.Size.X, d1.Size.Y+d2.Size.Y)}
 }
@@ -109,7 +109,7 @@ func (p *WallPage) canvasLayout(gtx C) D {
 
 func (p *WallPage) canvasEvent(gtx C) {
 	cons := gtx.Constraints
-	defer op.Push(gtx.Ops).Pop()
+	defer op.Save(gtx.Ops).Load()
 	pointer.Rect(image.Rectangle{Max: cons.Max}).Add(gtx.Ops)
 	for _, e := range gtx.Events(p) {
 		e, ok := e.(pointer.Event)
@@ -118,15 +118,15 @@ func (p *WallPage) canvasEvent(gtx C) {
 		}
 		if e.Type == pointer.Scroll && (e.Modifiers.Contain(key.ModCommand) || e.Modifiers.Contain(key.ModCtrl)) {
 			p.scale(e.Scroll.Y)
-		} else if e.Type == pointer.Pinch {
-			p.zoom(e.Magnification)
+			//} else if e.Type == pointer.Pinch { TODO
+			//p.zoom(e.Magnification)
 		} else if e.Type == pointer.Scroll {
 			p.pan(e.Scroll)
 		} else {
 			p.toolEvent(e, gtx)
 		}
 	}
-	pointer.InputOp{Tag: p, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll | pointer.Pinch}.Add(gtx.Ops)
+	pointer.InputOp{Tag: p, Grab: false, Types: pointer.Press | pointer.Drag | pointer.Release | pointer.Scroll}.Add(gtx.Ops) // TODO pointer.Pinch
 }
 
 func (p *WallPage) toolEvent(e pointer.Event, gtx layout.Context) {
