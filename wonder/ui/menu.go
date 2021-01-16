@@ -389,10 +389,7 @@ func Argb(c uint32) color.NRGBA {
 
 func Fill(gtx layout.Context, col color.NRGBA) layout.Dimensions {
 	cs := gtx.Constraints
-	paint.ColorOp{Color: col}.Add(gtx.Ops)
-	clip.Rect{Max: cs.Min}.Add(gtx.Ops)
-	paint.PaintOp{}.Add(gtx.Ops)
-	paint.Fill(gtx.Ops, col)
+	paint.FillShape(gtx.Ops, col, clip.Rect{Max: cs.Max}.Op())
 	return layout.Dimensions{Size: cs.Min}
 }
 
