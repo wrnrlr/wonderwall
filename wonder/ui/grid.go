@@ -1,26 +1,21 @@
 package ui
 
 import (
-	"fmt"
 	"gioui.org/f32"
-	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/unit"
 	"image"
-	"math"
 )
 
 type Grid struct {
 	Columns, Rows int
-	Width, Height int
 }
 
 type Cell func(i, j int, gtx C) D
 
-func (g *Grid) Layout(gtx C, cell Cell) D {
-	w := gtx.Metric.Px(unit.Dp(float32(g.Width)))
-	h := gtx.Metric.Px(unit.Dp(float32(g.Height)))
+func (g Grid) Layout(gtx C, cell Cell) D {
+	w := gtx.Constraints.Min.X
+	h := gtx.Constraints.Min.Y
 	columnWidth := w / g.Columns
 	rowHeight := h / g.Rows
 	size := image.Pt(columnWidth, rowHeight)
@@ -37,24 +32,4 @@ func (g *Grid) Layout(gtx C, cell Cell) D {
 	}
 	stack1.Load()
 	return D{Size: image.Pt(w, h)}
-}
-
-func (g *Grid) Event(gtx C) (p *int) {
-	columnWidth := g.Width / g.Columns
-	rowHeight := g.Height / g.Rows
-	for _, e := range gtx.Events(g) {
-		e, ok := e.(pointer.Event)
-		if !ok {
-			continue
-		}
-		switch e.Type {
-		case pointer.Press:
-			fmt.Println("click grid")
-			x := int(math.Floor(float64(int(e.Position.X) / columnWidth)))
-			y := int(math.Floor(float64(int(e.Position.Y) / rowHeight)))
-			n := y*g.Columns + x
-			p = &n
-		}
-	}
-	return p
 }
