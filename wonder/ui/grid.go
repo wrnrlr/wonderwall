@@ -11,7 +11,7 @@ type Grid struct {
 	Columns, Rows int
 }
 
-type Cell func(i, j int, gtx C) D
+type Cell func(i, j int, gtx C)
 
 func (g Grid) Layout(gtx C, cell Cell) D {
 	w := gtx.Constraints.Min.X
