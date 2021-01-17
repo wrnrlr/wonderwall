@@ -11,10 +11,6 @@ import (
 
 type Path []f32.Point
 
-type point [2]float32
-
-type circle [3]float32
-
 type rect [4]f32.Point
 
 func (r rect) hit(p f32.Point) bool {
@@ -70,14 +66,10 @@ func (l *Polyline) Bounds() f32.Rectangle {
 	return box
 }
 
-// Hit test
-
 func (l *Polyline) Offset(p f32.Point) Shape {
 	l.offset = p
 	return l
 }
-
-var red = color.NRGBA{R: 255, A: 255}
 
 func (l Polyline) Draw(gtx C) {
 	scale := gtx.Metric.PxPerDp
@@ -93,7 +85,7 @@ func (l Polyline) Draw(gtx C) {
 		}
 	}
 	style := clip.StrokeStyle{Width: width, Miter: 10, Cap: clip.RoundCap, Join: clip.RoundJoin}
-	paint.FillShape(gtx.Ops, red, clip.Stroke{Path: path.End(), Style: style}.Op())
+	paint.FillShape(gtx.Ops, l.Color, clip.Stroke{Path: path.End(), Style: style}.Op())
 }
 
 func (l *Polyline) Move(delta f32.Point) {
@@ -102,10 +94,6 @@ func (l *Polyline) Move(delta f32.Point) {
 	}
 	l.boxes = nil
 	l.rects = nil
-}
-
-func (l Polyline) drawPolyline(points []f32.Point, width float32, col color.NRGBA, gtx C) {
-
 }
 
 func (l *Polyline) Hit(p f32.Point) bool {
