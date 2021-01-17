@@ -112,7 +112,6 @@ func (p *WallListPage) layoutWallItem(gtx C, i int) D {
 	})
 	pointer.Rect(image.Rectangle{Max: dims.Size}).Add(gtx.Ops)
 	click.Add(gtx.Ops)
-	fill{green}.Layout(gtx)
 	return dims
 }
 
