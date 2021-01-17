@@ -17,7 +17,7 @@ func (r rect) hit(p f32.Point) bool {
 	return pointInTriangle(p, r[0], r[1], r[2]) || pointInTriangle(p, r[0], r[3], r[2])
 }
 
-type Polyline struct {
+type Line struct {
 	ID     string
 	Points Path
 	Color  color.NRGBA
@@ -27,8 +27,8 @@ type Polyline struct {
 	boxes  []f32.Rectangle
 }
 
-func NewPolyline(points []f32.Point, col color.NRGBA, width float32) *Polyline {
-	return &Polyline{
+func NewPolyline(points []f32.Point, col color.NRGBA, width float32) *Line {
+	return &Line{
 		ID:     xid.New().String(),
 		Points: points,
 		Color:  col,
@@ -36,7 +36,7 @@ func NewPolyline(points []f32.Point, col color.NRGBA, width float32) *Polyline {
 	}
 }
 
-func (l *Polyline) Bounds() f32.Rectangle {
+func (l *Line) Bounds() f32.Rectangle {
 	r := l.Width
 	if l.boxes == nil {
 		length := len(l.Points)
@@ -66,12 +66,12 @@ func (l *Polyline) Bounds() f32.Rectangle {
 	return box
 }
 
-func (l *Polyline) Offset(p f32.Point) Shape {
+func (l *Line) Offset(p f32.Point) Shape {
 	l.offset = p
 	return l
 }
 
-func (l Polyline) Draw(gtx C) {
+func (l Line) Draw(gtx C) {
 	scale := gtx.Metric.PxPerDp
 	width := l.Width * scale
 	defer op.Save(gtx.Ops).Load()
@@ -88,7 +88,7 @@ func (l Polyline) Draw(gtx C) {
 	paint.FillShape(gtx.Ops, l.Color, clip.Stroke{Path: path.End(), Style: style}.Op())
 }
 
-func (l *Polyline) Move(delta f32.Point) {
+func (l *Line) Move(delta f32.Point) {
 	for i, p := range l.Points {
 		l.Points[i] = p.Add(delta)
 	}
@@ -96,7 +96,7 @@ func (l *Polyline) Move(delta f32.Point) {
 	l.rects = nil
 }
 
-func (l *Polyline) Hit(p f32.Point) bool {
+func (l *Line) Hit(p f32.Point) bool {
 	for _, r := range l.rects {
 		if r.hit(p) {
 			return true
@@ -105,10 +105,10 @@ func (l *Polyline) Hit(p f32.Point) bool {
 	return false
 }
 
-func (l *Polyline) Eq(s2 Shape) bool {
+func (l *Line) Eq(s2 Shape) bool {
 	return false
 }
 
-func (l *Polyline) Identity() string {
+func (l *Line) Identity() string {
 	return l.ID
 }

@@ -15,7 +15,7 @@ type Pen struct {
 
 func (p *Pen) Draw(gtx C, width float32, col color.NRGBA) {
 	if p.events != nil {
-		shape.Polyline{Points: p.events, Width: width, Color: col}.Draw(gtx)
+		shape.Line{Points: p.events, Width: width, Color: col}.Draw(gtx)
 	}
 }
 
