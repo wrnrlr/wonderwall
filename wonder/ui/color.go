@@ -9,6 +9,7 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/unit"
 	"gioui.org/widget"
+	"github.com/Almanax/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
 )
@@ -95,7 +96,7 @@ func (cp *ColorPicker) layoutPanel(gtx C) D {
 		return Grid{Columns: 6, Rows: 5}.Layout(gtx, func(i, j int, gtx C) {
 			index := i*6 + j
 			cp.buttons[index].Layout(gtx)
-			Fill(gtx, Rgb(colorPalet[index]))
+			Fill(gtx, f32color.RGBAToNRGBA(Rgb(ColorPalet[index])))
 		})
 	})
 	hexinput := layout.Rigid(func(gtx C) D {
@@ -114,14 +115,14 @@ func (cp *ColorPicker) Event(gtx C) (col *color.RGBA) {
 	for i := range cp.buttons {
 		if cp.buttons[i].Clicked() {
 			fmt.Printf("Color grid clicked: \n")
-			cp.Color = Rgb(colorPalet[i])
+			cp.Color = f32color.RGBAToNRGBA(Rgb(ColorPalet[i]))
 		}
 	}
 	return col
 }
 
-var colorPalet = []uint32{
-	0x41B0F6, // lightblue
+var ColorPalet = []uint32{
+	0xaf0000, // lightblue
 	0x74FBEA, //
 	0x89F94F,
 	0xFFFC67,

@@ -379,12 +379,12 @@ func drawInk(gtx layout.Context, c widget.Press) {
 	paint.PaintOp{}.Add(gtx.Ops)
 }
 
-func Rgb(c uint32) color.NRGBA {
+func Rgb(c uint32) color.RGBA {
 	return Argb(0xff000000 | c)
 }
 
-func Argb(c uint32) color.NRGBA {
-	return color.NRGBA{A: uint8(c >> 24), R: uint8(c >> 16), G: uint8(c >> 8), B: uint8(c)}
+func Argb(c uint32) color.RGBA {
+	return color.RGBA{A: uint8(c >> 24), R: uint8(c >> 16), G: uint8(c >> 8), B: uint8(c)}
 }
 
 func Fill(gtx layout.Context, col color.NRGBA) layout.Dimensions {
