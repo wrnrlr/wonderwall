@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"gioui.org/f32"
 	"gioui.org/op"
+	"github.com/Almanax/wonderwall/wonder/colornames"
 	"github.com/Almanax/wonderwall/wonder/rtree"
 	orderedmap "github.com/wk8/go-ordered-map"
-	"image/color"
 )
 
 // A two-dimensional surface that extends infinitely far
@@ -35,20 +35,20 @@ func (p *Plane) View(gtx C) {
 	width, height := float32(cons.Max.X)/pxs, float32(cons.Max.Y)/pxs
 	p.Width, p.Height = width, height
 	center := f32.Pt(p.Offset.X+p.Width/2, p.Offset.Y+p.Height/2)
-	tr := f32.Affine2D{}.Offset(p.Offset).Scale(f32.Point{}, f32.Pt(p.Scale, p.Scale)) //.Offset(p.Center())
+	//tr := f32.Affine2D{}.Offset(p.Offset).Scale(f32.Point{}, f32.Pt(p.Scale, p.Scale)) //.Offset(p.Center())
 
 	//tr := p.GetTransform()
 	defer op.Save(gtx.Ops).Load()
-	op.Affine(tr).Add(gtx.Ops)
+	//op.Affine(tr).Add(gtx.Ops)
 
 	scaledWidth, scaledHeight := width*p.Scale, height*p.Scale
 	min := [2]float32{center.X - scaledWidth/2, center.Y - scaledHeight/2}
 	max := [2]float32{center.X + scaledWidth/2, center.Y + scaledHeight/2}
 
-	fmt.Printf("Window: %f,%f, Offset: %v, Scale: %f\n", p.Width, p.Height, p.Offset, p.Scale)
-	fmt.Printf("Min, Max: %v %v\n", min, max)
-	minr, maxr := p.Index.Bounds()
-	fmt.Printf("RTRee Min, Max: %v %v\n", minr, maxr)
+	//fmt.Printf("Window: %f,%f, Offset: %v, Scale: %f\n", p.Width, p.Height, p.Offset, p.Scale)
+	//fmt.Printf("Min, Max: %v %v\n", min, max)
+	//minr, maxr := p.Index.Bounds()
+	//fmt.Printf("RTRee Min, Max: %v %v\n", minr, maxr)
 
 	p.Index.Search(min, max, func(min, max [2]float32, key interface{}) bool {
 		value, _ := p.Elements.Get(key)
@@ -60,17 +60,15 @@ func (p *Plane) View(gtx C) {
 		return true
 	})
 
-	col := color.NRGBA{0xd3, 0xd3, 0xd3, 0xff}
 	for pair := p.Elements.Oldest(); pair != nil; pair = pair.Next() {
 		s, _ := pair.Value.(Shape)
-		Rectangle{s.Bounds(), nil, &col, float32(1)}.Draw(gtx)
+		Rectangle{s.Bounds(), nil, &colornames.Lightgreen, float32(1)}.Draw(gtx)
 	}
 }
 
 func (p Plane) Within(r f32.Rectangle) Group {
 	min, max := [2]float32{r.Min.X, r.Min.Y}, [2]float32{r.Max.X, r.Max.Y}
 	p.Index.Search(min, max, func(min [2]float32, max [2]float32, value interface{}) bool {
-
 		return false
 	})
 	return Group{}
