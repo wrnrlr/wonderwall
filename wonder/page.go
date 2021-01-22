@@ -6,6 +6,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"github.com/Almanax/wonderwall/wonder/f32color"
 	"github.com/Almanax/wonderwall/wonder/ui"
 	"image/color"
 	"math"
@@ -68,7 +69,7 @@ func (t *Transition) Layout(gtx layout.Context) layout.Dimensions {
 			NE:   radius, NW: radius, SE: radius, SW: radius,
 		}.Add(gtx.Ops)
 		op.Affine(off.Invert()).Add(gtx.Ops)
-		fill{ui.Rgb(0xffffff)}.Layout(gtx)
+		fill{f32color.RGBAToNRGBA(ui.Rgb(0xffffff))}.Layout(gtx)
 	}
 	return page.Layout(gtx)
 }
