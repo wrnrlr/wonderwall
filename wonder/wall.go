@@ -8,6 +8,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/wonder/shape"
 	"github.com/Almanax/wonderwall/wonder/ui"
@@ -36,6 +37,7 @@ type WallPage struct {
 
 func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 	theme := ui.MenuTheme(gofont.Collection())
+	plane := shape.NewPlane()
 	return &WallPage{
 		env:       env,
 		WallID:    wallID,
@@ -43,7 +45,7 @@ func NewWallPage(env *Env, wallID xid.ID) *WallPage {
 		selection: NewSelection(),
 		pen:       new(Pen),
 		text:      new(TextWriter),
-		plane:     shape.NewPlane(),
+		plane:     plane,
 	}
 }
 
@@ -85,13 +87,20 @@ func (p *WallPage) zoom(x float32) {
 
 func (p *WallPage) Layout(gtx C) D {
 	macro := op.Record(gtx.Ops)
+	cons := gtx.Constraints
+	toolbarSize := image.Point{cons.Max.X, gtx.Px(unit.Dp(50))}
+	gtx.Constraints = layout.Constraints{Min: toolbarSize, Max: toolbarSize}
 	d1 := p.toolbar.Layout(gtx)
-	toolbar := macro.Stop()
+	drawToolbar := macro.Stop()
+
+	gtx.Constraints = cons
+
 	stack := op.Save(gtx.Ops)
-	op.Offset(f32.Pt(0, float32(d1.Size.Y)))
+	op.Offset(f32.Pt(0, float32(toolbarSize.Y))).Add(gtx.Ops)
 	d2 := p.canvasLayout(gtx)
 	stack.Load()
-	toolbar.Add(gtx.Ops)
+
+	drawToolbar.Add(gtx.Ops)
 	return D{Size: image.Pt(d1.Size.X, d1.Size.Y+d2.Size.Y)}
 }
 
