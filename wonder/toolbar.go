@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/widget"
+	"github.com/Almanax/wonderwall/wonder/colornames"
 	"github.com/Almanax/wonderwall/wonder/ui"
 	"image"
 )
@@ -45,49 +48,45 @@ func NewToolbar(theme *ui.Theme) *Toolbar {
 
 func (t *Toolbar) Layout(gtx C) D {
 	t.events(gtx)
-	stack := layout.Stack{Alignment: layout.NW}
-	front := layout.Stacked(func(gtx C) D {
-		tools := layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}
-		back := layout.Rigid(func(gtx C) D {
+
+	macro := op.Record(gtx.Ops)
+	dims := layout.Flex{Axis: layout.Horizontal, Alignment: layout.Start}.Layout(gtx,
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.back, backIcon).Layout(gtx)
-		})
-		selection := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.selection, mouseIcon).Layout(gtx)
-		})
-		pen := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.pen, brushIcon).Layout(gtx)
-		})
-		text := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.text, textIcon).Layout(gtx)
-		})
-		image := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.image, imageIcon).Layout(gtx)
-		})
-		strokeSize := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return t.strokeSize.Layout(gtx)
-		})
-		clr := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return t.strokeColor.Layout(gtx)
-		})
-		remove := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.delete, deleteIcon).Layout(gtx)
-		})
-		undo := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.undo, undoIcon).Layout(gtx)
-		})
-		redo := layout.Rigid(func(gtx C) D {
+		}),
+		layout.Rigid(func(gtx C) D {
 			return ui.Item(t.theme, t.redo, redoIcon).Layout(gtx)
-		})
-		return tools.Layout(gtx, back, selection, pen, text, image, strokeSize, clr, remove, undo, redo)
-	})
-	backg := layout.Expanded(func(gtx C) D {
-		cs := gtx.Constraints
-		//dr := f32.Rectangle{Max: f32.Point{X: float32(cs.Max.X), Y: float32(cs.Min.Y)}}
-		paint.ColorOp{Color: t.theme.Color.Primary}.Add(gtx.Ops)
-		paint.PaintOp{}.Add(gtx.Ops)
-		return layout.Dimensions{Size: image.Point{X: cs.Max.X, Y: cs.Min.Y}}
-	})
-	return stack.Layout(gtx, backg, front)
+		}))
+	call := macro.Stop()
+
+	backgroundSize := image.Point{X: gtx.Constraints.Max.X, Y: dims.Size.Y}
+	paint.FillShape(gtx.Ops, colornames.Lightgreen, clip.Rect{Min: backgroundSize}.Op())
+	call.Add(gtx.Ops)
+	return layout.Dimensions{Size: backgroundSize}
 }
 
 func (t *Toolbar) events(gtx C) interface{} {
