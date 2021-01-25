@@ -7,11 +7,11 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"github.com/Almanax/wonderwall/wonder/shape"
+	"github.com/wrnrlr/wonderwall/wonder/shape"
 	"image/color"
 )
 
-var red = color.NRGBA{R: 255}
+var red = color.NRGBA{R: 255, A: 255}
 
 func main() {
 	go func() {
@@ -22,7 +22,7 @@ func main() {
 			switch e := e.(type) {
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
-				shape.NewPolyline([]f32.Point{{0, 0}, {100, 100}}, red, 10).Draw(gtx)
+				shape.NewPolyline([]f32.Point{{10, 10}, {100, 100}, {100, 10}, {10, 100}}, red, 10).Draw(gtx)
 				e.Frame(gtx.Ops)
 			}
 		}

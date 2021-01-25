@@ -3,7 +3,7 @@ package main
 import (
 	"gioui.org/layout"
 	"gioui.org/unit"
-	"github.com/Almanax/wonderwall/wonder/ui"
+	"github.com/wrnrlr/wonderwall/wonder/ui"
 )
 
 type UserPage struct {

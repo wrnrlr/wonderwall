@@ -4,7 +4,7 @@ import (
 	"gioui.org/f32"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
-	"github.com/Almanax/wonderwall/wonder/shape"
+	"github.com/wrnrlr/wonderwall/wonder/shape"
 	"image/color"
 )
 

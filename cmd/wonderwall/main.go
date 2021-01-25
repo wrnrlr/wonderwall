@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Almanax/wonderwall"
+	"github.com/wrnrlr/wonderwall"
 )
 
 func main() {

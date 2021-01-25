@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"gioui.org/f32"
 	"gioui.org/op"
-	"github.com/Almanax/wonderwall/wonder/colornames"
-	"github.com/Almanax/wonderwall/wonder/rtree"
 	orderedmap "github.com/wk8/go-ordered-map"
+	"github.com/wrnrlr/wonderwall/wonder/colornames"
+	"github.com/wrnrlr/wonderwall/wonder/rtree"
 )
 
 // A two-dimensional surface that extends infinitely far

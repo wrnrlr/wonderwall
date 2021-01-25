@@ -10,9 +10,9 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/Almanax/wonderwall/wonder/shape"
-	"github.com/Almanax/wonderwall/wonder/ui"
 	"github.com/rs/xid"
+	"github.com/wrnrlr/wonderwall/wonder/shape"
+	"github.com/wrnrlr/wonderwall/wonder/ui"
 	"image"
 )
 

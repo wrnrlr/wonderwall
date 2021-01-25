@@ -5,7 +5,7 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"github.com/Almanax/wonderwall/wonder/ui"
+	"github.com/wrnrlr/wonderwall/wonder/ui"
 )
 
 type Field struct {

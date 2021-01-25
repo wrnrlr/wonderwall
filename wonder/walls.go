@@ -7,7 +7,7 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"github.com/Almanax/wonderwall/wonder/ui"
+	"github.com/wrnrlr/wonderwall/wonder/ui"
 	"github.com/rs/xid"
 	"golang.org/x/exp/shiny/materialdesign/icons"
 	"image"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"gioui.org/f32"
-	"github.com/Almanax/wonderwall/wonder/shape"
+	"github.com/wrnrlr/wonderwall/wonder/shape"
 	"github.com/rs/xid"
 	"image"
 )

@@ -7,7 +7,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"github.com/Almanax/wonderwall/wonder/shape"
+	"github.com/wrnrlr/wonderwall/wonder/shape"
 )
 
 type Selection struct {

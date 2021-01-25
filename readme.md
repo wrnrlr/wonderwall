@@ -1,8 +1,14 @@
 ![](static/img/wonderwall-small.png)
 
-# Wonderwall
+## Run Server
 
-## Dev Server
+    go run cmd/wonderwall/main
+
+## Run App
+
+    go run wonder/main
+
+## Web build
 
 Install js dependencies
 
@@ -18,14 +24,9 @@ webpack --env.NODE_ENV=local --progress
 webpack --env.NODE_ENV=dev --env.production=false --progress
 ```
 
-# rainbox colors:
+## License
 
-* Green: 05CE7C
-* Light blue: 00B3E3
-* Red: FF4338
-* Yellow: FFC843
-* Orange: FF6B00
-* Purple: DA3AB3
+MIT
 
 ## Awesome Links
 
@@ -34,5 +35,4 @@ webpack --env.NODE_ENV=dev --env.production=false --progress
 * [Convert SVG to CSS background](https://yoksel.github.io/url-encoder/)
 * [Font Awesome Icons](https://fontawesome.com/icons?d=gallery)
 * [Konva Data Serialization](https://konvajs.org/docs/data_and_serialization/Best_Practices.html)
-
 * [rbang](https://github.com/tidwall/rbang), RTree for Tile38

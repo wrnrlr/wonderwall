@@ -1,6 +1,6 @@
 package main
 
-import "github.com/Almanax/wonderwall/wonder/shape"
+import "github.com/wrnrlr/wonderwall/wonder/shape"
 
 type Diff struct {
 	Prev []shape.Shape

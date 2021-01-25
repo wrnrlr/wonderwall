@@ -25,8 +25,8 @@ func main() {
 			switch e := e.(type) {
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
-				ui.Grid{Columns: 5, Rows: 5}.Layout(gtx, func(i, j int, gtx ui.C) layout.Dimensions {
-					return material.Label(th, unit.Sp(16), fmt.Sprintf("%d", i*5+j)).Layout(gtx)
+				ui.Grid{Columns: 5, Rows: 5}.Layout(gtx, func(i, j int, gtx ui.C) {
+					material.Label(th, unit.Sp(16), fmt.Sprintf("%d", i*5+j)).Layout(gtx)
 				})
 				e.Frame(gtx.Ops)
 			}

@@ -9,7 +9,7 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"github.com/Almanax/wonderwall/wonder/f32color"
+	"github.com/wrnrlr/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
 )
