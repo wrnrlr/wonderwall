@@ -1,4 +1,4 @@
-module github.com/Almanax/wonderwall
+module github.com/wrnrlr/wonderwall
 
 go 1.15
 
