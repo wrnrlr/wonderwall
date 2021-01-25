@@ -1,3 +1,5 @@
+![](static/img/wonderwall-small.png)
+
 # Wonderwall
 
 ## Dev Server
