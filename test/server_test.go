@@ -1,9 +1,9 @@
 package test
 
 import (
-	. "github.com/Almanax/wonderwall"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
+	. "github.com/wrnrlr/wonderwall"
 	"testing"
 )
 
@@ -26,7 +26,7 @@ var (
 	alicePassword        = Password([]byte("Password1234!"))
 	alicePasswordHash, _ = alicePassword.HashPassword()
 )
-var alice = User{xid.New(), aliceEmail, alicePasswordHash, "alice"}
+var alice = User{ID: xid.New(), Email: aliceEmail, PasswordHash: alicePasswordHash, Name: "alice"}
 
 type findUserByEmailReturnUser struct{}
 

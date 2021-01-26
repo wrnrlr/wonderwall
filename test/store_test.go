@@ -1,15 +1,15 @@
 package test
 
 import (
-	. "github.com/Almanax/wonderwall"
 	"github.com/dgraph-io/badger/v2"
 	"github.com/stretchr/testify/assert"
+	. "github.com/wrnrlr/wonderwall"
 	"testing"
 )
 
 func MemStore() *Store {
 	db, _ := badger.Open(badger.DefaultOptions("").WithInMemory(true))
-	return &Store{db}
+	return &Store{DB: db}
 }
 
 type obj struct{ ID string }

@@ -1,10 +1,10 @@
 package test
 
 import (
-	. "github.com/Almanax/wonderwall"
 	"github.com/dgraph-io/badger/v2"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
+	. "github.com/wrnrlr/wonderwall"
 	"testing"
 )
 
@@ -13,12 +13,12 @@ func mockStore() *Store {
 	if err != nil {
 		panic("failed to create test user")
 	}
-	return &Store{db}
+	return &Store{DB: db}
 }
 
 func mockUser(name, email, pass string) *User {
 	password, _ := Password(pass).HashPassword()
-	return &User{xid.New(), Email(email), password, name}
+	return &User{ID: xid.New(), Email: Email(email), PasswordHash: password, Name: name}
 }
 
 func TestUsers(t *testing.T) {
