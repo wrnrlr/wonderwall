@@ -7,7 +7,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
-	"github.com/Almanax/wonderwall/wonder/ui"
+	"github.com/wrnrlr/wonderwall/wonder/ui"
 	"image/color"
 )
 

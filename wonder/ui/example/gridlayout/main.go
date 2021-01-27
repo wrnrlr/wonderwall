@@ -9,7 +9,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"github.com/Almanax/wonderwall/wonder/ui"
+	"github.com/wrnrlr/wonderwall/wonder/ui"
 	"image/color"
 )
 
