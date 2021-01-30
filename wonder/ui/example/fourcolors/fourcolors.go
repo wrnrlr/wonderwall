@@ -1,5 +1,7 @@
 package main
 
+// https://bgrins.github.io/spectrum/#why
+
 import (
 	"gioui.org/app"
 	"gioui.org/f32"
@@ -49,7 +51,8 @@ func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(cp.layoutGradiants),
-			layout.Rigid(cp.layoutRainbow))
+			layout.Rigid(cp.layoutRainbow),
+			layout.Rigid(cp.layoutAlpha))
 	})
 }
 
@@ -122,6 +125,22 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 		color1 = color2
 	}
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
+}
+
+func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
+	w := gtx.Px(unit.Dp(200))
+	h := gtx.Px(unit.Dp(20))
+	defer op.Save(gtx.Ops).Load()
+	paint.LinearGradientOp{
+		Stop1:  f32.Point{float32(0), 0},
+		Stop2:  f32.Point{float32(w), 0},
+		Color1: color.NRGBA{G: 255, A: 0},
+		Color2: color.NRGBA{G: 255, A: 255},
+	}.Add(gtx.Ops)
+	dr := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: w, Y: h}}
+	clip.Rect(dr).Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
+	return layout.Dimensions{}
 }
 
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
