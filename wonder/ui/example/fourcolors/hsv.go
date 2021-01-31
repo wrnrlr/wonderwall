@@ -2,62 +2,59 @@
 
 package main
 
-import "image/color"
+import (
+	"image/color"
+)
 
 type HSVColor struct {
-	H uint8
-	S uint8
-	V uint8
+	H float32 // [0,1]
+	S float32 // [0,1]
+	V float32 // [0,360]
 }
 
 func HsvToRgb(hsv HSVColor) color.RGBA {
-	var rgb color.RGBA
-
-	var region, p, q, t uint8
-	var h, s, v, remainder uint16
-
-	if hsv.S == 0 {
-		rgb.R = hsv.V
-		rgb.G = hsv.V
-		rgb.B = hsv.V
-		return rgb
+	v := uint8(hsv.V * 255)
+	if hsv.S == 0.0 {
+		return color.RGBA{v, v, v, 0xff}
 	}
 
-	// convert to 16bit to prevent overflow
-	h = uint16(hsv.H)
-	s = uint16(hsv.S)
-	v = uint16(hsv.V)
+	hh := hsv.H
+	if hh >= 360.0 {
+		hh = 0.0
+	}
 
-	region = uint8(h / 43)
-	remainder = (h - uint16(region*43)) * 6
+	hh /= 60.0
+	i := int(hh)
+	ff := hh - float32(i)
+	p := uint8(hsv.V * (1 - hsv.S) * 255)
+	q := uint8(hsv.V * (1 - (hsv.S * ff)) * 255)
+	t := uint8(hsv.V * (1 - (hsv.S * (1 - ff))) * 255)
 
-	p = uint8((v * (255 - s)) >> 8)
-	q = uint8((v * (255 - ((s * remainder) >> 8))) >> 8)
-	t = uint8((v * (255 - ((255 - (255 - remainder)) >> 8))) >> 8)
-
-	switch region {
+	rgb := color.RGBA{A: 0xff}
+	switch i {
 	case 0:
-		rgb.R = uint8(v)
+		rgb.R = v
 		rgb.G = t
 		rgb.B = p
 	case 1:
 		rgb.R = q
-		rgb.G = uint8(v)
+		rgb.G = v
 		rgb.B = p
 	case 2:
 		rgb.R = p
-		rgb.G = uint8(v)
+		rgb.G = v
 		rgb.B = t
 	case 3:
 		rgb.R = p
 		rgb.G = q
-		rgb.B = uint8(v)
+		rgb.B = v
 	case 4:
 		rgb.R = t
 		rgb.G = p
-		rgb.B = uint8(v)
+		rgb.B = v
+	case 5:
 	default:
-		rgb.R = uint8(v)
+		rgb.R = v
 		rgb.G = p
 		rgb.B = q
 	}
@@ -71,24 +68,28 @@ func RgbToHsv(rgb color.NRGBA) HSVColor {
 	rgbMin := min(min(rgb.R, rgb.G), rgb.B)
 	rgbMax := max(max(rgb.R, rgb.G), rgb.B)
 
-	hsv.V = rgbMax
-	if hsv.V == 0 {
+	hsv.V = float32(rgbMax / 255)
+	delta := rgbMax - rgbMin
+	if delta < 0 {
 		return hsv
 	}
-
-	hsv.S = 255 * (rgbMax - rgbMin) / hsv.V
-	if hsv.S == 0 {
+	if rgbMax == 0 {
+		//hsv.H = NaN
 		return hsv
-	}
-
-	if rgbMax == rgb.R {
-		hsv.H = 0 + 43*(rgb.G-rgb.B)/(rgbMax-rgbMin)
-	} else if rgbMax == rgb.G {
-		hsv.H = 85 + 43*(rgb.B-rgb.R)/(rgbMax-rgbMin)
 	} else {
-		hsv.H = 171 + 43*(rgb.R-rgb.G)/(rgbMax-rgbMin)
+		hsv.S = float32(delta / rgbMax) // s
 	}
-
+	if rgb.R >= rgbMax {
+		hsv.H = float32((rgb.G - rgb.B) / delta)
+	} else if rgb.R >= rgbMax {
+		hsv.H = float32(2.0 + (rgb.B*255-rgb.R*255)/delta)
+	} else {
+		hsv.H = float32(4.0 + (rgb.R*255-rgb.G*255)/delta)
+	}
+	hsv.H *= 60
+	if hsv.H < 0 {
+		hsv.H += 360
+	}
 	return hsv
 }
 
