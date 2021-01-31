@@ -7,9 +7,9 @@ import (
 )
 
 type HSVColor struct {
-	H float32 // [0,1]
+	H float32 // [0,360]
 	S float32 // [0,1]
-	V float32 // [0,360]
+	V float32 // [0,1]
 }
 
 func HsvToRgb(hsv HSVColor) color.RGBA {
@@ -62,7 +62,6 @@ func HsvToRgb(hsv HSVColor) color.RGBA {
 }
 
 func RgbToHsv(rgb color.NRGBA) HSVColor {
-
 	var hsv HSVColor
 
 	rgbMin := min(min(rgb.R, rgb.G), rgb.B)
@@ -70,7 +69,7 @@ func RgbToHsv(rgb color.NRGBA) HSVColor {
 
 	hsv.V = float32(rgbMax / 255)
 	delta := rgbMax - rgbMin
-	if delta < 0 {
+	if delta == 0 {
 		return hsv
 	}
 	if rgbMax == 0 {
