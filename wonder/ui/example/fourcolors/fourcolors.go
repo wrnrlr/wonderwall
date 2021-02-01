@@ -3,6 +3,7 @@ package main
 // https://bgrins.github.io/spectrum/#why
 
 import (
+	"fmt"
 	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/io/system"
@@ -21,7 +22,7 @@ func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		//quarter := uint8(0x40)
-		colorPicker := &ColorPicker{}
+		colorPicker := &ColorPicker{square: &Position{}}
 		//white := f32color.RGBAToNRGBA(color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: quarter})
 		//black := f32color.RGBAToNRGBA(color.RGBA{A: quarter})
 		//transparent := f32color.RGBAToNRGBA(color.RGBA{A: 0xff})
@@ -31,6 +32,7 @@ func main() {
 			switch e := e.(type) {
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
+				colorPicker.Event()
 				colorPicker.Layout(gtx)
 				e.Frame(gtx.Ops)
 			}
@@ -40,9 +42,10 @@ func main() {
 }
 
 type ColorPicker struct {
-	input   widget.Editor
+	square  *Position
 	rainbow widget.Float
 	alfa    widget.Float
+	input   widget.Editor
 }
 
 var primary = f32color.RGBAToNRGBA(color.RGBA{G: 0xff, A: 0xff})
@@ -82,11 +85,15 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	}.Add(gtx.Ops)
 	clip.Rect(dr).Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
-
-	//p := f32.Point{X: 100, Y: 75}
-	//drawCircle(p, gtx)
-
 	stack.Load()
+
+	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
+	cp.square.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
+	p := cp.square.Pos()
+	fmt.Printf("Pos: %v\n", p)
+
+	drawCircle(p, gtx)
+
 	return layout.Dimensions{Size: dr.Max}
 }
 
@@ -146,11 +153,18 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	return layout.Dimensions{}
 }
 
+func (cp *ColorPicker) Event() {
+	if cp.rainbow.Changed() {
+	}
+	if cp.alfa.Changed() {
+	}
+}
+
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
 
 func drawCircle(p f32.Point, gtx layout.Context) {
-	width := float32(2)
-	r := float32(5)
+	width := float32(1.5)
+	r := float32(15)
 	w, h := r*2, r*2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
@@ -172,8 +186,7 @@ func drawCircle(p f32.Point, gtx layout.Context) {
 	path.Cube(f32.Point{X: +r * c, Y: 0}, f32.Point{X: +r, Y: -r + r*c}, f32.Point{X: +r, Y: -r})   // SE
 	path.Cube(f32.Point{X: 0, Y: -r * c}, f32.Point{X: -(r - r*c), Y: -r}, f32.Point{X: -r, Y: -r}) // NE
 	path.Cube(f32.Point{X: -r * c, Y: 0}, f32.Point{X: -r, Y: r - r*c}, f32.Point{X: -r, Y: r})     // NW
-	path.Close()
-	//clip.Rect{Max: image.Point{X: int(p.X + w), Y: int(p.Y + h)}}.Op()
+	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
 	paint.ColorOp{Color: color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 }
