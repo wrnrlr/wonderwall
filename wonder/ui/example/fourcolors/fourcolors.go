@@ -105,23 +105,28 @@ var colors = []color.NRGBA{red, yellow, green, cyan, skyblue, blue, purple, mage
 func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	w := gtx.Px(unit.Dp(200))
 	h := gtx.Px(unit.Dp(20))
-
-	w2 := w / (len(colors) - 1)
-	offsetX := 0
-	color1 := colors[0]
-	for _, color2 := range colors[1:] {
+	stepCount := 9
+	stepWidth := float32(w / (stepCount - 1))
+	step := uint8((256 / stepCount) - 1)
+	value := uint8(0)
+	offsetX := float32(0)
+	color1 := f32color.RGBAToNRGBA(HsvToRgb(HSVColor{H: 0, S: 1, V: 1}))
+	for i := 1; i < stepCount; i++ {
+		//nr := uint(i)
+		color2 := f32color.RGBAToNRGBA(HsvToRgb(HSVColor{H: float32(i * 60), S: 1, V: 1}))
 		stack := op.Save(gtx.Ops)
 		paint.LinearGradientOp{
-			Stop1:  f32.Point{float32(offsetX), 0},
-			Stop2:  f32.Point{float32(offsetX + w2), 0},
+			Stop1:  f32.Point{offsetX, 0},
+			Stop2:  f32.Point{offsetX + stepWidth, 0},
 			Color1: color1,
 			Color2: color2,
 		}.Add(gtx.Ops)
-		dr := image.Rectangle{Min: image.Point{X: offsetX, Y: 0}, Max: image.Point{X: offsetX + w2, Y: h}}
+		dr := image.Rectangle{Min: image.Point{X: int(offsetX), Y: 0}, Max: image.Point{X: int(offsetX + stepWidth), Y: h}}
 		clip.Rect(dr).Add(gtx.Ops)
 		paint.PaintOp{}.Add(gtx.Ops)
 		stack.Load()
-		offsetX += w2
+		offsetX += stepWidth
+		value += step
 		color1 = color2
 	}
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
