@@ -6,10 +6,22 @@ import (
 	"image/color"
 )
 
+// HSV Color model
 type HSVColor struct {
-	H float32 // [0,360]
-	S float32 // [0,1]
-	V float32 // [0,1]
+	// Hue is the color portion of the model, expressed as a number from 0 to 360 degrees:
+	// Red falls between 0 and 60 degrees.
+	// Yellow falls between 61 and 120 degrees.
+	// Green falls between 121 and 180 degrees.
+	// Cyan falls between 181 and 240 degrees.
+	// Blue falls between 241 and 300 degrees.
+	// Magenta falls between 301 and 360 degrees.
+	H float32
+	// Saturation describes the amount of gray in a particular color, from 0 to 1.
+	// Reducing this component toward zero introduces more gray and produces a faded effect.
+	S float32
+	// Value works in conjunction with saturation and describes the brightness or intensity of the color,
+	//from 0 to 1, where 0 is completely black, and q is the brightest and reveals the most color.
+	V float32
 }
 
 func HsvToRgb(hsv HSVColor) color.RGBA {
