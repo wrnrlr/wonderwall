@@ -61,7 +61,7 @@ func HsvToRgb(hsv HSVColor) color.RGBA {
 	return rgb
 }
 
-func RgbToHsv(rgb color.NRGBA) HSVColor {
+func RgbToHsv(rgb color.RGBA) HSVColor {
 	var hsv HSVColor
 
 	rgbMin := min(min(rgb.R, rgb.G), rgb.B)
