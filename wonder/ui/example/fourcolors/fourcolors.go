@@ -19,6 +19,7 @@ import (
 	"github.com/wrnrlr/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
+	"math"
 )
 
 var th *material.Theme
@@ -158,6 +159,10 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(20))
+
+	gtx.Constraints = layout.Exact(image.Point{w, h})
+	drawCheckerboard(gtx)
+
 	col1 := cp.RGBA()
 	col2 := col1
 	col1.A = 0x00
@@ -237,5 +242,29 @@ func drawCircle(p f32.Point, radius, width float32, gtx layout.Context) {
 	path.Cube(f32.Point{X: -radius * c, Y: 0}, f32.Point{X: -radius, Y: radius - radius*c}, f32.Point{X: -radius, Y: radius})     // NW
 	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
 	paint.ColorOp{Color: color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}}.Add(gtx.Ops)
+	paint.PaintOp{}.Add(gtx.Ops)
+}
+
+func drawCheckerboard(gtx layout.Context) {
+	w := gtx.Constraints.Max.X
+	h := gtx.Constraints.Max.Y
+	size := h / 2
+	defer op.Save(gtx.Ops).Load()
+	var path clip.Path
+	path.Begin(gtx.Ops)
+	count := int(math.Ceil(float64(w / size)))
+	for i := 0; i < count; i++ {
+		offset := 0
+		if math.Mod(float64(i), 2) == 0 {
+			offset += size
+		}
+		path.MoveTo(f32.Point{X: float32(i * size), Y: float32(offset)})
+		path.Line(f32.Point{X: float32(size)})
+		path.Line(f32.Point{Y: float32(size)})
+		path.Line(f32.Point{X: float32(-size)})
+		path.Line(f32.Point{Y: float32(-size)})
+	}
+	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
+	paint.ColorOp{Color: color.NRGBA{R: 0xef, G: 0xef, B: 0xef, A: 0xff}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 }
