@@ -22,7 +22,10 @@ func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		//quarter := uint8(0x40)
-		colorPicker := &ColorPicker{square: &Position{}}
+		colorPicker := &ColorPicker{
+			square:  &Position{},
+			rainbow: &widget.Float{Axis: layout.Horizontal},
+			alfa:    &widget.Float{Axis: layout.Horizontal}}
 		//white := f32color.RGBAToNRGBA(color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: quarter})
 		//black := f32color.RGBAToNRGBA(color.RGBA{A: quarter})
 		//transparent := f32color.RGBAToNRGBA(color.RGBA{A: 0xff})
@@ -43,9 +46,9 @@ func main() {
 
 type ColorPicker struct {
 	square  *Position
-	rainbow widget.Float
-	alfa    widget.Float
-	input   widget.Editor
+	rainbow *widget.Float
+	alfa    *widget.Float
+	input   *widget.Editor
 }
 
 var primary = f32color.RGBAToNRGBA(color.RGBA{G: 0xff, A: 0xff})
@@ -91,8 +94,7 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	cp.square.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
 	p := cp.square.Pos()
 	fmt.Printf("Pos: %v\n", p)
-
-	drawCircle(p, gtx)
+	drawCircle(p, float32(10), unit.Dp(1).V, gtx)
 
 	return layout.Dimensions{Size: dr.Max}
 }
@@ -134,6 +136,13 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 		offsetX += stepWidth
 		dr = image.Rectangle{Min: image.Point{X: int(offsetX), Y: 0}, Max: image.Point{X: int(offsetX + stepWidth), Y: h}}
 	}
+
+	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
+	cp.rainbow.Layout(gtx, 1, 0, 1)
+	x := cp.rainbow.Pos()
+	fmt.Printf("rainbow x: %v\n", x)
+	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
+
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
 
@@ -150,6 +159,13 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	dr := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: w, Y: h}}
 	clip.Rect(dr).Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
+
+	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
+	cp.alfa.Layout(gtx, 1, 0, 1)
+	x := cp.alfa.Pos()
+	fmt.Printf("rainbow x: %v\n", x)
+	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
+
 	return layout.Dimensions{}
 }
 
@@ -162,30 +178,28 @@ func (cp *ColorPicker) Event() {
 
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
 
-func drawCircle(p f32.Point, gtx layout.Context) {
-	width := float32(1.5)
-	r := float32(15)
-	w, h := r*2, r*2
+func drawCircle(p f32.Point, radius, width float32, gtx layout.Context) {
+	w, h := radius*2, radius*2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
 	path.Begin(gtx.Ops)
 	path.Move(f32.Point{X: p.X, Y: p.Y})
-	path.Move(f32.Point{X: w / 4 * 3, Y: r / 2})
-	path.Cube(f32.Point{X: 0, Y: r * c}, f32.Point{X: -r + r*c, Y: r}, f32.Point{X: -r, Y: r})    // SE
-	path.Cube(f32.Point{X: -r * c, Y: 0}, f32.Point{X: -r, Y: -r + r*c}, f32.Point{X: -r, Y: -r}) // SW
-	path.Cube(f32.Point{X: 0, Y: -r * c}, f32.Point{X: r - r*c, Y: -r}, f32.Point{X: r, Y: -r})   // NW
-	path.Cube(f32.Point{X: r * c, Y: 0}, f32.Point{X: r, Y: r - r*c}, f32.Point{X: r, Y: r})      // NE
-	path.Move(f32.Point{X: -w, Y: -r})                                                            // Return to origin
-	scale := (r - width*2) / r
+	path.Move(f32.Point{X: w / 4 * 3, Y: radius / 2})
+	path.Cube(f32.Point{X: 0, Y: radius * c}, f32.Point{X: -radius + radius*c, Y: radius}, f32.Point{X: -radius, Y: radius})    // SE
+	path.Cube(f32.Point{X: -radius * c, Y: 0}, f32.Point{X: -radius, Y: -radius + radius*c}, f32.Point{X: -radius, Y: -radius}) // SW
+	path.Cube(f32.Point{X: 0, Y: -radius * c}, f32.Point{X: radius - radius*c, Y: -radius}, f32.Point{X: radius, Y: -radius})   // NW
+	path.Cube(f32.Point{X: radius * c, Y: 0}, f32.Point{X: radius, Y: radius - radius*c}, f32.Point{X: radius, Y: radius})      // NE
+	path.Move(f32.Point{X: -w, Y: -radius})                                                                                     // Return to origin
+	scale := (radius - width*2) / radius
 	path.Move(f32.Point{X: w * (1 - scale) * .5, Y: h * (1 - scale) * .5})
 	w *= scale
 	h *= scale
-	r *= scale
-	path.Move(f32.Point{X: 0, Y: h - r})
-	path.Cube(f32.Point{X: 0, Y: r * c}, f32.Point{X: +r - r*c, Y: r}, f32.Point{X: +r, Y: r})      // SW
-	path.Cube(f32.Point{X: +r * c, Y: 0}, f32.Point{X: +r, Y: -r + r*c}, f32.Point{X: +r, Y: -r})   // SE
-	path.Cube(f32.Point{X: 0, Y: -r * c}, f32.Point{X: -(r - r*c), Y: -r}, f32.Point{X: -r, Y: -r}) // NE
-	path.Cube(f32.Point{X: -r * c, Y: 0}, f32.Point{X: -r, Y: r - r*c}, f32.Point{X: -r, Y: r})     // NW
+	radius *= scale
+	path.Move(f32.Point{X: 0, Y: h - radius})
+	path.Cube(f32.Point{X: 0, Y: radius * c}, f32.Point{X: +radius - radius*c, Y: radius}, f32.Point{X: +radius, Y: radius})      // SW
+	path.Cube(f32.Point{X: +radius * c, Y: 0}, f32.Point{X: +radius, Y: -radius + radius*c}, f32.Point{X: +radius, Y: -radius})   // SE
+	path.Cube(f32.Point{X: 0, Y: -radius * c}, f32.Point{X: -(radius - radius*c), Y: -radius}, f32.Point{X: -radius, Y: -radius}) // NE
+	path.Cube(f32.Point{X: -radius * c, Y: 0}, f32.Point{X: -radius, Y: radius - radius*c}, f32.Point{X: -radius, Y: radius})     // NW
 	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
 	paint.ColorOp{Color: color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
