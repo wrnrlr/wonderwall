@@ -29,10 +29,10 @@ func main() {
 		th = material.NewTheme(gofont.Collection())
 		//quarter := uint8(0x40)
 		colorPicker := &ColorPicker{
-			square:  &Position{},
-			rainbow: &widget.Float{Axis: layout.Horizontal},
-			alfa:    &widget.Float{Axis: layout.Horizontal},
-			input:   &widget.Editor{Alignment: text.Middle, SingleLine: true}}
+			square: &Position{},
+			hue:    &widget.Float{Axis: layout.Horizontal},
+			alfa:   &widget.Float{Axis: layout.Horizontal},
+			input:  &widget.Editor{Alignment: text.Middle, SingleLine: true}}
 		//white := f32color.RGBAToNRGBA(color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: quarter})
 		//black := f32color.RGBAToNRGBA(color.RGBA{A: quarter})
 		//transparent := f32color.RGBAToNRGBA(color.RGBA{A: 0xff})
@@ -52,13 +52,13 @@ func main() {
 }
 
 type ColorPicker struct {
-	square  *Position
-	rainbow *widget.Float
-	alfa    *widget.Float
-	input   *widget.Editor
-}
+	square *Position
+	hue    *widget.Float
+	alfa   *widget.Float
+	input  *widget.Editor
 
-var primary = f32color.RGBAToNRGBA(color.RGBA{G: 0xff, A: 0xff})
+	color HSVColor
+}
 
 func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -77,6 +77,7 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(120))
 	dr := image.Rectangle{Max: image.Point{X: w, Y: h}}
+	primary := f32color.RGBAToNRGBA(HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: 1, V: 1}))
 	stack := op.Save(gtx.Ops)
 	topRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Min.Y)}
 	//bottomLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Max.Y)}
@@ -103,7 +104,6 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.square.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
 	p := cp.square.Pos()
-	fmt.Printf("Pos: %v\n", p)
 	drawCircle(p, float32(10), unit.Dp(1).V, gtx)
 
 	return layout.Dimensions{Size: dr.Max}
@@ -148,9 +148,8 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	}
 
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
-	cp.rainbow.Layout(gtx, 1, 0, 1)
-	x := cp.rainbow.Pos()
-	fmt.Printf("rainbow x: %v\n", x)
+	cp.hue.Layout(gtx, 1, 0, 1)
+	x := cp.hue.Pos()
 	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
@@ -159,12 +158,16 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(20))
+	col1 := cp.RGBA()
+	col2 := col1
+	col1.A = 0x00
+	col2.A = 0xff
 	defer op.Save(gtx.Ops).Load()
 	paint.LinearGradientOp{
 		Stop1:  f32.Point{float32(0), 0},
 		Stop2:  f32.Point{float32(w), 0},
-		Color1: color.NRGBA{G: 255, A: 0},
-		Color2: color.NRGBA{G: 255, A: 255},
+		Color1: f32color.RGBAToNRGBA(col1),
+		Color2: f32color.RGBAToNRGBA(col2),
 	}.Add(gtx.Ops)
 	dr := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: w, Y: h}}
 	clip.Rect(dr).Add(gtx.Ops)
@@ -173,7 +176,6 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.alfa.Layout(gtx, 1, 0, 1)
 	x := cp.alfa.Pos()
-	fmt.Printf("rainbow x: %v\n", x)
 	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
@@ -185,10 +187,26 @@ func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
 	return es.Layout(gtx)
 }
 
+func (cp *ColorPicker) RGBA() color.RGBA {
+	fmt.Printf("%v, %v, %v\n", cp.hue.Value, cp.square.Y, cp.square.X)
+	return HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.square.X, V: 1 - cp.square.Y})
+}
+
+func (cp *ColorPicker) setText() {
+	rgba := cp.RGBA()
+	r, g, b, a := rgba.RGBA()
+	cp.input.SetText(fmt.Sprintf("%x%x%x%x", int(r), int(g), int(b), int(a)))
+}
+
 func (cp *ColorPicker) Event() {
-	if cp.rainbow.Changed() {
+	if cp.square.Changed() {
+		cp.setText()
+	}
+	if cp.hue.Changed() {
+		cp.setText()
 	}
 	if cp.alfa.Changed() {
+		cp.setText()
 	}
 	cp.input.Events()
 }
