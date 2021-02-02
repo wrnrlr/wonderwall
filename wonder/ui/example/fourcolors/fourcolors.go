@@ -6,26 +6,33 @@ import (
 	"fmt"
 	"gioui.org/app"
 	"gioui.org/f32"
+	"gioui.org/font/gofont"
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
+	"gioui.org/widget/material"
 	"github.com/wrnrlr/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
 )
 
+var th *material.Theme
+
 func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
+		th = material.NewTheme(gofont.Collection())
 		//quarter := uint8(0x40)
 		colorPicker := &ColorPicker{
 			square:  &Position{},
 			rainbow: &widget.Float{Axis: layout.Horizontal},
-			alfa:    &widget.Float{Axis: layout.Horizontal}}
+			alfa:    &widget.Float{Axis: layout.Horizontal},
+			input:   &widget.Editor{Alignment: text.Middle, SingleLine: true}}
 		//white := f32color.RGBAToNRGBA(color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: quarter})
 		//black := f32color.RGBAToNRGBA(color.RGBA{A: quarter})
 		//transparent := f32color.RGBAToNRGBA(color.RGBA{A: 0xff})
@@ -59,7 +66,10 @@ func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(cp.layoutGradiants),
 			layout.Rigid(cp.layoutRainbow),
-			layout.Rigid(cp.layoutAlpha))
+			layout.Rigid(cp.layoutAlpha),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return cp.layoutTextInput(gtx)
+			}))
 	})
 }
 
@@ -166,7 +176,13 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	fmt.Printf("rainbow x: %v\n", x)
 	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
 
-	return layout.Dimensions{}
+	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
+}
+
+func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
+	es := material.Editor(th, cp.input, "hex")
+	es.Font = text.Font{Variant: "Mono"}
+	return es.Layout(gtx)
 }
 
 func (cp *ColorPicker) Event() {
@@ -174,6 +190,7 @@ func (cp *ColorPicker) Event() {
 	}
 	if cp.alfa.Changed() {
 	}
+	cp.input.Events()
 }
 
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
