@@ -29,11 +29,7 @@ func main() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		th = material.NewTheme(gofont.Collection())
 		//quarter := uint8(0x40)
-		colorPicker := &ColorPicker{
-			square: &Position{},
-			hue:    &widget.Float{Axis: layout.Horizontal},
-			alfa:   &widget.Float{Axis: layout.Horizontal},
-			input:  &widget.Editor{Alignment: text.Middle, SingleLine: true}}
+		colorPicker := NewColorPicker()
 		//white := f32color.RGBAToNRGBA(color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: quarter})
 		//black := f32color.RGBAToNRGBA(color.RGBA{A: quarter})
 		//transparent := f32color.RGBAToNRGBA(color.RGBA{A: 0xff})
@@ -50,6 +46,16 @@ func main() {
 		}
 	}()
 	app.Main()
+}
+
+func NewColorPicker() *ColorPicker {
+	cp := &ColorPicker{
+		square: &Position{},
+		hue:    &widget.Float{Axis: layout.Horizontal},
+		alfa:   &widget.Float{Axis: layout.Horizontal},
+		input:  &widget.Editor{Alignment: text.Middle, SingleLine: true}}
+	cp.SetColor(color.RGBA{R: 255, A: 255})
+	return cp
 }
 
 type ColorPicker struct {
@@ -190,6 +196,14 @@ func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
 	es := material.Editor(th, cp.input, "hex")
 	es.Font = text.Font{Variant: "Mono"}
 	return es.Layout(gtx)
+}
+
+func (cp *ColorPicker) SetColor(rgb color.RGBA) {
+	hsv := RgbToHsv(rgb)
+	cp.square.Y = hsv.H
+	cp.square.X = hsv.S
+	cp.hue.Value = hsv.H
+	cp.setText()
 }
 
 func (cp *ColorPicker) RGBA() color.RGBA {
