@@ -105,7 +105,7 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.square.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
 	p := cp.square.Pos()
-	drawCircle(p, float32(10), unit.Dp(1).V, gtx)
+	drawCircle(p, 10, 1, gtx)
 
 	return layout.Dimensions{Size: dr.Max}
 }
@@ -151,7 +151,7 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.hue.Layout(gtx, 1, 0, 1)
 	x := cp.hue.Pos()
-	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
+	drawCircle(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
@@ -181,7 +181,7 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.alfa.Layout(gtx, 1, 0, 1)
 	x := cp.alfa.Pos()
-	drawCircle(f32.Point{x, float32(h/2 - 5)}, float32(10), unit.Dp(1).V, gtx)
+	drawCircle(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
@@ -219,6 +219,10 @@ func (cp *ColorPicker) Event() {
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
 
 func drawCircle(p f32.Point, radius, width float32, gtx layout.Context) {
+	radius = float32(gtx.Px(unit.Dp(radius)))
+	width = float32(gtx.Px(unit.Dp(width)))
+	p.X -= radius - width*4
+	p.Y -= radius - width*5
 	w, h := radius*2, radius*2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
