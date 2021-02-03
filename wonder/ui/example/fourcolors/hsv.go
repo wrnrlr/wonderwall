@@ -67,7 +67,6 @@ func HsvToRgb(hsv HSVColor) color.RGBA {
 		rgb.G = p
 		rgb.B = v
 	case 5:
-	default:
 		rgb.R = v
 		rgb.G = p
 		rgb.B = q
@@ -78,10 +77,10 @@ func HsvToRgb(hsv HSVColor) color.RGBA {
 func RgbToHsv(rgb color.RGBA) HSVColor {
 	var hsv HSVColor
 
-	rgbMin := min(min(rgb.R, rgb.G), rgb.B)
-	rgbMax := max(max(rgb.R, rgb.G), rgb.B)
+	rgbMin := float32(min(min(rgb.R, rgb.G), rgb.B))
+	rgbMax := float32(max(max(rgb.R, rgb.G), rgb.B))
 
-	hsv.V = float32(rgbMax / 255)
+	hsv.V = rgbMax / 255
 	delta := rgbMax - rgbMin
 	if delta == 0 {
 		return hsv
@@ -90,14 +89,15 @@ func RgbToHsv(rgb color.RGBA) HSVColor {
 		//hsv.H = NaN
 		return hsv
 	} else {
-		hsv.S = float32(delta / rgbMax) // s
+		hsv.S = delta / rgbMax // s
 	}
-	if rgb.R >= rgbMax {
-		hsv.H = float32((rgb.G - rgb.B) / delta)
-	} else if rgb.R >= rgbMax {
-		hsv.H = float32(2.0 + (rgb.B*255-rgb.R*255)/delta)
+	r, g, b := float32(rgb.R), float32(rgb.G), float32(rgb.B)
+	if r == rgbMax {
+		hsv.H = (g - b) / delta
+	} else if g == rgbMax {
+		hsv.H = 2.0 + (b-r)/delta
 	} else {
-		hsv.H = float32(4.0 + (rgb.R*255-rgb.G*255)/delta)
+		hsv.H = 4.0 + (r-g)/delta
 	}
 	hsv.H *= 60
 	if hsv.H < 0 {

@@ -203,6 +203,7 @@ func (cp *ColorPicker) SetColor(rgb color.RGBA) {
 	cp.square.Y = hsv.H
 	cp.square.X = hsv.S
 	cp.hue.Value = hsv.H
+	cp.alfa.Value = float32(rgb.A / 255)
 	cp.setText()
 }
 
