@@ -28,11 +28,7 @@ func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		th = material.NewTheme(gofont.Collection())
-		//quarter := uint8(0x40)
 		colorPicker := NewColorPicker()
-		//white := f32color.RGBAToNRGBA(color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: quarter})
-		//black := f32color.RGBAToNRGBA(color.RGBA{A: quarter})
-		//transparent := f32color.RGBAToNRGBA(color.RGBA{A: 0xff})
 		var ops op.Ops
 		for {
 			e := <-w.Events()
@@ -59,6 +55,7 @@ func NewColorPicker() *ColorPicker {
 }
 
 type ColorPicker struct {
+	// Encode color saturation on X-axis and color value on y-axis.
 	tone  *Position
 	hue   *widget.Float
 	alfa  *widget.Float
@@ -111,7 +108,7 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.tone.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
 	p := cp.tone.Pos()
-	drawCircle(p, 10, 1, gtx)
+	drawControl(p, 10, 1, gtx)
 
 	return layout.Dimensions{Size: dr.Max}
 }
@@ -121,9 +118,7 @@ var (
 	yellow  = color.RGBA{R: 255, G: 255, A: 255}
 	green   = color.RGBA{G: 255, A: 255}
 	cyan    = color.RGBA{G: 255, B: 255, A: 255}
-	skyblue = color.RGBA{G: 127, B: 255, A: 255}
 	blue    = color.RGBA{B: 255, A: 255}
-	purple  = color.RGBA{R: 127, G: 0, B: 255, A: 255}
 	magenta = color.RGBA{R: 255, B: 255, A: 255}
 )
 
@@ -157,7 +152,7 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.hue.Layout(gtx, 1, 0, 1)
 	x := cp.hue.Pos()
-	drawCircle(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
+	drawControl(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
@@ -184,10 +179,10 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	clip.Rect(dr).Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 
-	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
+	//gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	cp.alfa.Layout(gtx, 1, 0, 1)
 	x := cp.alfa.Pos()
-	drawCircle(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
+	drawControl(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
@@ -200,8 +195,8 @@ func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
 
 func (cp *ColorPicker) SetColor(rgb color.RGBA) {
 	hsv := RgbToHsv(rgb)
-	cp.tone.Y = hsv.H
 	cp.tone.X = hsv.S
+	cp.tone.Y = 1 - hsv.V
 	cp.hue.Value = hsv.H
 	cp.alfa.Value = float32(rgb.A / 255)
 	cp.setText()
@@ -233,11 +228,18 @@ func (cp *ColorPicker) Event() {
 
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
 
-func drawCircle(p f32.Point, radius, width float32, gtx layout.Context) {
-	radius = float32(gtx.Px(unit.Dp(radius)))
-	width = float32(gtx.Px(unit.Dp(width)))
+func drawControl(p f32.Point, radius, width float32, gtx layout.Context) {
+	width = float32(gtx.Px(unit.Dp(width))) / 2
+	radius = float32(gtx.Px(unit.Dp(radius))) - width
 	p.X -= radius - width*4
-	p.Y -= radius - width*5
+	p.Y -= radius - width*9
+	drawCircle(p, radius, width, color.NRGBA{A: 0xff}, gtx)
+	p.X += width * 2
+	p.Y += width * 2
+	drawCircle(p, radius, width, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, gtx)
+}
+
+func drawCircle(p f32.Point, radius, width float32, col color.NRGBA, gtx layout.Context) {
 	w, h := radius*2, radius*2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
@@ -260,7 +262,10 @@ func drawCircle(p f32.Point, radius, width float32, gtx layout.Context) {
 	path.Cube(f32.Point{X: 0, Y: -radius * c}, f32.Point{X: -(radius - radius*c), Y: -radius}, f32.Point{X: -radius, Y: -radius}) // NE
 	path.Cube(f32.Point{X: -radius * c, Y: 0}, f32.Point{X: -radius, Y: radius - radius*c}, f32.Point{X: -radius, Y: radius})     // NW
 	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
-	paint.ColorOp{Color: color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}}.Add(gtx.Ops)
+	cons := gtx.Constraints
+	dr := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: cons.Max.X, Y: cons.Max.Y}}
+	clip.Rect(dr).Add(gtx.Ops)
+	paint.ColorOp{Color: col}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 }
 
