@@ -50,19 +50,19 @@ func main() {
 
 func NewColorPicker() *ColorPicker {
 	cp := &ColorPicker{
-		square: &Position{},
-		hue:    &widget.Float{Axis: layout.Horizontal},
-		alfa:   &widget.Float{Axis: layout.Horizontal},
-		input:  &widget.Editor{Alignment: text.Middle, SingleLine: true}}
+		tone:  &Position{},
+		hue:   &widget.Float{Axis: layout.Horizontal},
+		alfa:  &widget.Float{Axis: layout.Horizontal},
+		input: &widget.Editor{Alignment: text.Middle, SingleLine: true}}
 	cp.SetColor(color.RGBA{R: 255, A: 255})
 	return cp
 }
 
 type ColorPicker struct {
-	square *Position
-	hue    *widget.Float
-	alfa   *widget.Float
-	input  *widget.Editor
+	tone  *Position
+	hue   *widget.Float
+	alfa  *widget.Float
+	input *widget.Editor
 
 	color HSVColor
 }
@@ -109,8 +109,8 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	stack.Load()
 
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
-	cp.square.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
-	p := cp.square.Pos()
+	cp.tone.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
+	p := cp.tone.Pos()
 	drawCircle(p, 10, 1, gtx)
 
 	return layout.Dimensions{Size: dr.Max}
@@ -200,16 +200,16 @@ func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
 
 func (cp *ColorPicker) SetColor(rgb color.RGBA) {
 	hsv := RgbToHsv(rgb)
-	cp.square.Y = hsv.H
-	cp.square.X = hsv.S
+	cp.tone.Y = hsv.H
+	cp.tone.X = hsv.S
 	cp.hue.Value = hsv.H
 	cp.alfa.Value = float32(rgb.A / 255)
 	cp.setText()
 }
 
 func (cp *ColorPicker) RGBA() color.RGBA {
-	fmt.Printf("%v, %v, %v\n", cp.hue.Value, cp.square.Y, cp.square.X)
-	return HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.square.X, V: 1 - cp.square.Y})
+	fmt.Printf("%v, %v, %v\n", cp.hue.Value, cp.tone.Y, cp.tone.X)
+	return HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.tone.X, V: 1 - cp.tone.Y})
 }
 
 func (cp *ColorPicker) setText() {
@@ -219,7 +219,7 @@ func (cp *ColorPicker) setText() {
 }
 
 func (cp *ColorPicker) Event() {
-	if cp.square.Changed() {
+	if cp.tone.Changed() {
 		cp.setText()
 	}
 	if cp.hue.Changed() {
