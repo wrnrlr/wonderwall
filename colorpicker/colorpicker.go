@@ -16,6 +16,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/component"
 	"github.com/wrnrlr/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
@@ -49,7 +50,9 @@ func NewColorPicker() *ColorPicker {
 		tone:  &Position{},
 		hue:   &widget.Float{Axis: layout.Horizontal},
 		alfa:  &widget.Float{Axis: layout.Horizontal},
-		input: &widget.Editor{Alignment: text.Middle, SingleLine: true}}
+		input: &widget.Editor{Alignment: text.Middle, SingleLine: true},
+		hexField: &component.TextField{
+			Editor: widget.Editor{Alignment: text.Middle, SingleLine: true}}}
 	cp.SetColor(color.RGBA{R: 255, A: 255})
 	return cp
 }
@@ -61,10 +64,12 @@ type ColorPicker struct {
 	alfa  *widget.Float
 	input *widget.Editor
 
+	hexField *component.TextField
+
 	color HSVColor
 }
 
-func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
+func (cp *ColorPicker) Layout(gtx layout.Context, th material.Theme) layout.Dimensions {
 	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
