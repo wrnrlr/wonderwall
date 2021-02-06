@@ -73,7 +73,8 @@ func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
 			layout.Rigid(cp.layoutAlpha),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return cp.layoutTextInput(gtx)
-			}))
+			}),
+			layout.Rigid(cp.layoutRgbaInput))
 	})
 }
 
@@ -188,9 +189,7 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 }
 
 func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
-	es := material.Editor(th, cp.input, "hex")
-	es.Font = text.Font{Variant: "Mono"}
-	return es.Layout(gtx)
+	return cp.layoutHexInput(gtx)
 }
 
 func (cp *ColorPicker) SetColor(rgb color.RGBA) {
@@ -224,6 +223,27 @@ func (cp *ColorPicker) Event() {
 		cp.setText()
 	}
 	cp.input.Events()
+}
+
+func (cp *ColorPicker) layoutHexInput(gtx layout.Context) layout.Dimensions {
+	es := material.Editor(th, cp.input, "hex")
+	es.Font = text.Font{Variant: "Mono"}
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
+		layout.Rigid(material.Label(th, unit.Sp(14), "Hex").Layout),
+		layout.Rigid(es.Layout))
+}
+
+func (cp *ColorPicker) layoutRgbaInput(gtx layout.Context) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
+		layout.Rigid(material.Label(th, unit.Sp(14), "R").Layout),
+		layout.Rigid(material.Label(th, unit.Sp(14), "G").Layout),
+		layout.Rigid(material.Label(th, unit.Sp(14), "B").Layout))
+}
+
+func (cp *ColorPicker) layoutHsvaInput(gtx layout.Context) layout.Dimensions {
+	es := material.Editor(th, cp.input, "hex")
+	es.Font = text.Font{Variant: "Mono"}
+	return es.Layout(gtx)
 }
 
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
