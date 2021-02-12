@@ -1,6 +1,6 @@
 // Implementation of HSV colorspace
 
-package main
+package colorpicker
 
 import (
 	"image/color"

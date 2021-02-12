@@ -1,13 +1,10 @@
-package main
+package colorpicker
 
 // https://bgrins.github.io/spectrum/#why
 
 import (
 	"fmt"
-	"gioui.org/app"
 	"gioui.org/f32"
-	"gioui.org/font/gofont"
-	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -22,34 +19,13 @@ import (
 	"math"
 )
 
-var th *material.Theme
-
-func main() {
-	go func() {
-		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
-		th = material.NewTheme(gofont.Collection())
-		colorPicker := NewColorPicker()
-		var ops op.Ops
-		for {
-			e := <-w.Events()
-			switch e := e.(type) {
-			case system.FrameEvent:
-				gtx := layout.NewContext(&ops, e)
-				colorPicker.Event()
-				colorPicker.Layout(gtx, th)
-				e.Frame(gtx.Ops)
-			}
-		}
-	}()
-	app.Main()
-}
-
-func NewColorPicker() *ColorPicker {
+func NewColorPicker(th *material.Theme) *ColorPicker {
 	cp := &ColorPicker{
 		tone:  &Position{},
 		hue:   &widget.Float{Axis: layout.Horizontal},
 		alfa:  &widget.Float{Axis: layout.Horizontal},
-		input: &widget.Editor{Alignment: text.Middle, SingleLine: true}}
+		input: &widget.Editor{Alignment: text.Middle, SingleLine: true},
+		theme: th}
 	cp.SetColor(color.RGBA{R: 255, A: 255})
 	return cp
 }
@@ -62,6 +38,7 @@ type ColorPicker struct {
 	input *widget.Editor
 
 	color HSVColor
+	theme *material.Theme
 }
 
 func (cp *ColorPicker) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -228,13 +205,13 @@ func (cp *ColorPicker) layoutHexInput(gtx layout.Context) layout.Dimensions {
 
 func (cp *ColorPicker) layoutRgbaInput(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
-		layout.Rigid(material.Label(th, unit.Sp(14), "R").Layout),
-		layout.Rigid(material.Label(th, unit.Sp(14), "G").Layout),
-		layout.Rigid(material.Label(th, unit.Sp(14), "B").Layout))
+		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "R").Layout),
+		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "G").Layout),
+		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "B").Layout))
 }
 
 func (cp *ColorPicker) layoutHsvaInput(gtx layout.Context) layout.Dimensions {
-	es := material.Editor(th, cp.input, "hex")
+	es := material.Editor(cp.theme, cp.input, "hex")
 	es.Font = text.Font{Variant: "Mono"}
 	return es.Layout(gtx)
 }
