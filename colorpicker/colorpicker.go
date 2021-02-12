@@ -180,6 +180,10 @@ func (cp *ColorPicker) RGBA() color.RGBA {
 	return HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.tone.X, V: 1 - cp.tone.Y})
 }
 
+func (cp *ColorPicker) NRGBA() color.NRGBA {
+	return f32color.RGBAToNRGBA(cp.RGBA())
+}
+
 func (cp *ColorPicker) setText() {
 	rgba := cp.RGBA()
 	r, g, b, a := rgba.RGBA()
