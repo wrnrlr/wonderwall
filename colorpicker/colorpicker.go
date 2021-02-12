@@ -16,7 +16,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"gioui.org/x/component"
 	"github.com/wrnrlr/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
@@ -37,7 +36,7 @@ func main() {
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
 				colorPicker.Event()
-				colorPicker.Layout(gtx)
+				colorPicker.Layout(gtx, th)
 				e.Frame(gtx.Ops)
 			}
 		}
@@ -50,9 +49,7 @@ func NewColorPicker() *ColorPicker {
 		tone:  &Position{},
 		hue:   &widget.Float{Axis: layout.Horizontal},
 		alfa:  &widget.Float{Axis: layout.Horizontal},
-		input: &widget.Editor{Alignment: text.Middle, SingleLine: true},
-		hexField: &component.TextField{
-			Editor: widget.Editor{Alignment: text.Middle, SingleLine: true}}}
+		input: &widget.Editor{Alignment: text.Middle, SingleLine: true}}
 	cp.SetColor(color.RGBA{R: 255, A: 255})
 	return cp
 }
@@ -64,21 +61,16 @@ type ColorPicker struct {
 	alfa  *widget.Float
 	input *widget.Editor
 
-	hexField *component.TextField
-
 	color HSVColor
 }
 
-func (cp *ColorPicker) Layout(gtx layout.Context, th material.Theme) layout.Dimensions {
+func (cp *ColorPicker) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(cp.layoutGradiants),
 			layout.Rigid(cp.layoutRainbow),
 			layout.Rigid(cp.layoutAlpha),
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return cp.layoutTextInput(gtx)
-			}),
 			layout.Rigid(cp.layoutRgbaInput))
 	})
 }
@@ -231,11 +223,7 @@ func (cp *ColorPicker) Event() {
 }
 
 func (cp *ColorPicker) layoutHexInput(gtx layout.Context) layout.Dimensions {
-	es := material.Editor(th, cp.input, "hex")
-	es.Font = text.Font{Variant: "Mono"}
-	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
-		layout.Rigid(material.Label(th, unit.Sp(14), "Hex").Layout),
-		layout.Rigid(es.Layout))
+	return layout.Dimensions{}
 }
 
 func (cp *ColorPicker) layoutRgbaInput(gtx layout.Context) layout.Dimensions {
