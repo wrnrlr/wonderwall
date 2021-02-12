@@ -41,7 +41,7 @@ type ColorPicker struct {
 	theme *material.Theme
 }
 
-func (cp *ColorPicker) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -208,10 +208,15 @@ func (cp *ColorPicker) layoutHexInput(gtx layout.Context) layout.Dimensions {
 }
 
 func (cp *ColorPicker) layoutRgbaInput(gtx layout.Context) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
+	macro := op.Record(gtx.Ops)
+	dims := layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
 		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "R").Layout),
 		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "G").Layout),
 		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "B").Layout))
+	call := macro.Stop()
+	paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, clip.Rect{Max: dims.Size}.Op())
+	call.Add(gtx.Ops)
+	return dims
 }
 
 func (cp *ColorPicker) layoutHsvaInput(gtx layout.Context) layout.Dimensions {
@@ -266,6 +271,7 @@ func drawCircle(p f32.Point, radius, width float32, col color.NRGBA, gtx layout.
 func drawCheckerboard(gtx layout.Context) {
 	w := gtx.Constraints.Max.X
 	h := gtx.Constraints.Max.Y
+	paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, clip.Rect{Max: gtx.Constraints.Max}.Op())
 	size := h / 2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
