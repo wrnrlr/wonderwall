@@ -32,8 +32,12 @@ type ColorField struct {
 	theme        *material.Theme
 }
 
+const goldenRatio = 1.618
+
 func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
-	size := image.Point{X: 200, Y: 40}
+	h := int(2.3 * float32(gtx.Metric.Px(cf.theme.TextSize)))
+	w := int(float32(h) * goldenRatio)
+	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
 	dims := material.ButtonLayoutStyle{
 		Background:   cf.picker.NRGBA(),
@@ -45,10 +49,10 @@ func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
 		})
 	})
 	if cf.active {
-		call := op.Record(gtx.Ops)
-		op.Offset(f32.Point{Y: float32(size.Y)}).Add(gtx.Ops)
+		macro := op.Record(gtx.Ops)
+		op.Offset(f32.Point{Y: float32(dims.Size.Y)}).Add(gtx.Ops)
 		cf.picker.Layout(gtx)
-		op.Defer(gtx.Ops, call.Stop())
+		op.Defer(gtx.Ops, macro.Stop())
 	}
 	return dims
 }
