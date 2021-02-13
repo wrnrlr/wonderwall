@@ -42,14 +42,12 @@ type ColorPicker struct {
 }
 
 func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
-	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			layout.Rigid(cp.layoutGradiants),
-			layout.Rigid(cp.layoutRainbow),
-			layout.Rigid(cp.layoutAlpha),
-			layout.Rigid(cp.layoutRgbaInput))
-	})
+	gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(cp.layoutGradiants),
+		layout.Rigid(cp.layoutRainbow),
+		layout.Rigid(cp.layoutAlpha),
+		layout.Rigid(cp.layoutRgbaInput))
 }
 
 func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
