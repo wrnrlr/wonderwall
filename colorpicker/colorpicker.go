@@ -21,11 +21,15 @@ import (
 
 func NewColorPicker(th *material.Theme) *ColorPicker {
 	cp := &ColorPicker{
-		tone:  &Position{},
-		hue:   &widget.Float{Axis: layout.Horizontal},
-		alfa:  &widget.Float{Axis: layout.Horizontal},
-		input: &widget.Editor{Alignment: text.Middle, SingleLine: true},
-		theme: th}
+		tone:      &Position{},
+		hue:       &widget.Float{Axis: layout.Horizontal},
+		alfa:      &widget.Float{Axis: layout.Horizontal},
+		input:     &widget.Editor{Alignment: text.Middle, SingleLine: true},
+		toggle:    &widget.Clickable{},
+		hexEditor: &HexEditor{th, &widget.Editor{SingleLine: true}},
+		rgbEditor: &RgbEditor{th, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}},
+		hsvEditor: &HsvEditor{th, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}},
+		theme:     th}
 	cp.SetColor(color.RGBA{R: 255, A: 255})
 	return cp
 }
@@ -37,8 +41,14 @@ type ColorPicker struct {
 	alfa  *widget.Float
 	input *widget.Editor
 
-	color HSVColor
-	theme *material.Theme
+	hexEditor *HexEditor
+	rgbEditor *RgbEditor
+	hsvEditor *HsvEditor
+
+	inputType int
+	toggle    *widget.Clickable
+	color     HSVColor
+	theme     *material.Theme
 }
 
 func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
@@ -47,7 +57,7 @@ func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
 		layout.Rigid(cp.layoutGradiants),
 		layout.Rigid(cp.layoutRainbow),
 		layout.Rigid(cp.layoutAlpha),
-		layout.Rigid(cp.layoutRgbaInput))
+		layout.Rigid(cp.layoutTextInput))
 }
 
 func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
@@ -161,7 +171,27 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 }
 
 func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
-	return cp.layoutHexInput(gtx)
+	macro := op.Record(gtx.Ops)
+	var w layout.Widget
+	switch cp.inputType {
+	case 0:
+		w = cp.hexEditor.Layout
+	case 1:
+		w = cp.rgbEditor.Layout
+	default:
+		w = cp.hsvEditor.Layout
+	}
+	dims := layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return material.Clickable(gtx, cp.toggle, func(gtx layout.Context) layout.Dimensions {
+				return toggleIcon.Layout(gtx, cp.theme.TextSize)
+			})
+		}),
+		layout.Flexed(1, w))
+	call := macro.Stop()
+	paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, clip.Rect{Max: dims.Size}.Op())
+	call.Add(gtx.Ops)
+	return dims
 }
 
 func (cp *ColorPicker) SetColor(rgb color.RGBA) {
@@ -199,28 +229,9 @@ func (cp *ColorPicker) Event() {
 		cp.setText()
 	}
 	cp.input.Events()
-}
-
-func (cp *ColorPicker) layoutHexInput(gtx layout.Context) layout.Dimensions {
-	return layout.Dimensions{}
-}
-
-func (cp *ColorPicker) layoutRgbaInput(gtx layout.Context) layout.Dimensions {
-	macro := op.Record(gtx.Ops)
-	dims := layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
-		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "R").Layout),
-		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "G").Layout),
-		layout.Rigid(material.Label(cp.theme, unit.Sp(14), "B").Layout))
-	call := macro.Stop()
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, clip.Rect{Max: dims.Size}.Op())
-	call.Add(gtx.Ops)
-	return dims
-}
-
-func (cp *ColorPicker) layoutHsvaInput(gtx layout.Context) layout.Dimensions {
-	es := material.Editor(cp.theme, cp.input, "hex")
-	es.Font = text.Font{Variant: "Mono"}
-	return es.Layout(gtx)
+	for range cp.toggle.Clicks() {
+		cp.inputType = int(math.Mod(float64(cp.inputType+1), 3))
+	}
 }
 
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
