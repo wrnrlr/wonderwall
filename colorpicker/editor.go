@@ -29,12 +29,12 @@ type RgbEditor struct {
 
 func (e *RgbEditor) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "R").Layout),
-		layout.Flexed(1/3, material.Editor(e.theme, e.r, "").Layout),
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "G").Layout),
-		layout.Flexed(1/3, material.Editor(e.theme, e.g, "").Layout),
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "B").Layout),
-		layout.Flexed(1/3, material.Editor(e.theme, e.b, "").Layout))
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "R ").Layout),
+		layout.Flexed(1, material.Editor(e.theme, e.r, "").Layout),
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "G ").Layout),
+		layout.Flexed(1, material.Editor(e.theme, e.g, "").Layout),
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "B ").Layout),
+		layout.Flexed(1, material.Editor(e.theme, e.b, "").Layout))
 }
 
 type HsvEditor struct {
@@ -46,10 +46,10 @@ type HsvEditor struct {
 
 func (e *HsvEditor) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "H").Layout),
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "H ").Layout),
 		layout.Flexed(1, material.Editor(e.theme, e.h, "").Layout),
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "S").Layout),
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "S ").Layout),
 		layout.Flexed(1, material.Editor(e.theme, e.s, "").Layout),
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "V").Layout),
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "V ").Layout),
 		layout.Flexed(1, material.Editor(e.theme, e.v, "").Layout))
 }

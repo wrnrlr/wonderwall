@@ -181,10 +181,10 @@ func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
 	default:
 		w = cp.hsvEditor.Layout
 	}
-	dims := layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+	dims := layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return material.Clickable(gtx, cp.toggle, func(gtx layout.Context) layout.Dimensions {
-				return toggleIcon.Layout(gtx, cp.theme.TextSize)
+				return toggleIcon.Layout(gtx, unit.Dp(30))
 			})
 		}),
 		layout.Flexed(1, w))
