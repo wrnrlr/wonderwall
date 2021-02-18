@@ -12,7 +12,7 @@ import (
 
 func NewColorField(th *material.Theme) *ColorField {
 	return &ColorField{
-		Dropdown:     layout.NW,
+		Dropdown:     layout.SW,
 		CornerRadius: unit.Dp(4),
 		Inset: layout.Inset{
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
