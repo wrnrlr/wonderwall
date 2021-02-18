@@ -63,3 +63,7 @@ func (cf *ColorField) Event() {
 	}
 	cf.picker.Event()
 }
+
+func (cf *ColorField) Click() {
+	cf.clicker.Click()
+}
