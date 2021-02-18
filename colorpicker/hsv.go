@@ -6,10 +6,10 @@ import (
 	"image/color"
 )
 
-// HSV is a cylindrical color model that remaps the RGB primary colors
+// HSV is a cylindrical rgb model that remaps the RGB primary colors
 // into dimensions that are easier for humans to understand.
 type HSVColor struct {
-	// H stands for hue and is the color portion of the model,
+	// H stands for hue and is the rgb portion of the model,
 	// expressed as a number from 0 to 360 degrees:
 	// Red falls between 0 and 60 degrees.
 	// Yellow falls between 61 and 120 degrees.
@@ -18,18 +18,18 @@ type HSVColor struct {
 	// Blue falls between 241 and 300 degrees.
 	// Magenta falls between 301 and 360 degrees.
 	H float32
-	// S stands for saturation and describes the amount of gray in a particular color,from 0 to 1.
+	// S stands for saturation and describes the amount of gray in a particular rgb,from 0 to 1.
 	// Reducing this component toward zero introduces more gray and produces a faded effect.
 	S float32
-	// V stands for value and works in conjunction with saturation and describes the brightness or intensity of the color,
-	// from 0 to 1, where 0 is completely black, and 1 is the brightest and reveals the most color.
+	// V stands for value and works in conjunction with saturation and describes the brightness or intensity of the rgb,
+	// from 0 to 1, where 0 is completely black, and 1 is the brightest and reveals the most rgb.
 	V float32
 }
 
-func HsvToRgb(hsv HSVColor) color.RGBA {
+func HsvToRgb(hsv HSVColor) color.NRGBA {
 	v := uint8(hsv.V * 255)
 	if hsv.S == 0.0 {
-		return color.RGBA{v, v, v, 0xff}
+		return color.NRGBA{R: v, G: v, B: v, A: 0xff}
 	}
 
 	hh := hsv.H
@@ -44,7 +44,7 @@ func HsvToRgb(hsv HSVColor) color.RGBA {
 	q := uint8(hsv.V * (1 - (hsv.S * ff)) * 255)
 	t := uint8(hsv.V * (1 - (hsv.S * (1 - ff))) * 255)
 
-	rgb := color.RGBA{A: 0xff}
+	rgb := color.NRGBA{A: 0xff}
 	switch i {
 	case 0:
 		rgb.R = v
@@ -74,7 +74,7 @@ func HsvToRgb(hsv HSVColor) color.RGBA {
 	return rgb
 }
 
-func RgbToHsv(rgb color.RGBA) HSVColor {
+func RgbToHsv(rgb color.NRGBA) HSVColor {
 	var hsv HSVColor
 
 	rgbMin := float32(min(min(rgb.R, rgb.G), rgb.B))
