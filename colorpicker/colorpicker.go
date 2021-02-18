@@ -9,7 +9,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -20,26 +19,25 @@ import (
 )
 
 func NewColorPicker(th *material.Theme) *ColorPicker {
+	col := color.NRGBA{R: 255, A: 255}
 	cp := &ColorPicker{
 		tone:      &Position{},
 		hue:       &widget.Float{Axis: layout.Horizontal},
 		alfa:      &widget.Float{Axis: layout.Horizontal},
-		input:     &widget.Editor{Alignment: text.Middle, SingleLine: true},
 		toggle:    &widget.Clickable{},
-		hexEditor: &HexEditor{th, &widget.Editor{SingleLine: true}},
-		rgbEditor: &RgbEditor{th, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}},
-		hsvEditor: &HsvEditor{th, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}, &widget.Editor{SingleLine: true}},
+		hexEditor: &HexEditor{theme: th, hex: &widget.Editor{SingleLine: true}},
+		rgbEditor: &RgbEditor{theme: th, r: &widget.Editor{SingleLine: true}, g: &widget.Editor{SingleLine: true}, b: &widget.Editor{SingleLine: true}},
+		hsvEditor: &HsvEditor{theme: th, h: &widget.Editor{SingleLine: true}, s: &widget.Editor{SingleLine: true}, v: &widget.Editor{SingleLine: true}},
 		theme:     th}
-	cp.SetColor(color.RGBA{R: 255, A: 255})
+	cp.SetColor(col)
 	return cp
 }
 
 type ColorPicker struct {
-	// Encode color saturation on X-axis and color value on y-axis.
-	tone  *Position
-	hue   *widget.Float
-	alfa  *widget.Float
-	input *widget.Editor
+	// Encode hsv saturation on X-axis and hsv value on y-axis.
+	tone *Position
+	hue  *widget.Float
+	alfa *widget.Float
 
 	hexEditor *HexEditor
 	rgbEditor *RgbEditor
@@ -47,7 +45,8 @@ type ColorPicker struct {
 
 	inputType int
 	toggle    *widget.Clickable
-	color     HSVColor
+	hsv       HSVColor
+	color     color.NRGBA
 	theme     *material.Theme
 }
 
@@ -64,7 +63,7 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(120))
 	dr := image.Rectangle{Max: image.Point{X: w, Y: h}}
-	primary := f32color.RGBAToNRGBA(HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: 1, V: 1}))
+	primary := HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: 1, V: 1})
 	stack := op.Save(gtx.Ops)
 	topRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Min.Y)}
 	//bottomLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Max.Y)}
@@ -155,8 +154,8 @@ func (cp *ColorPicker) layoutAlpha(gtx layout.Context) layout.Dimensions {
 	paint.LinearGradientOp{
 		Stop1:  f32.Point{float32(0), 0},
 		Stop2:  f32.Point{float32(w), 0},
-		Color1: f32color.RGBAToNRGBA(col1),
-		Color2: f32color.RGBAToNRGBA(col2),
+		Color1: col1,
+		Color2: col2,
 	}.Add(gtx.Ops)
 	dr := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: w, Y: h}}
 	clip.Rect(dr).Add(gtx.Ops)
@@ -194,42 +193,75 @@ func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
 	return dims
 }
 
-func (cp *ColorPicker) SetColor(rgb color.RGBA) {
+func (cp *ColorPicker) SetColor(rgb color.NRGBA) {
+	cp.setColor(rgb)
+	cp.hexEditor.SetColor(rgb)
+	cp.rgbEditor.SetColor(rgb)
+	cp.hsvEditor.SetColor(rgb)
+}
+
+func (cp *ColorPicker) setColor(rgb color.NRGBA) {
 	hsv := RgbToHsv(rgb)
 	cp.tone.X = hsv.S
 	cp.tone.Y = 1 - hsv.V
 	cp.hue.Value = hsv.H
 	cp.alfa.Value = float32(rgb.A / 255)
-	cp.setText()
 }
 
-func (cp *ColorPicker) RGBA() color.RGBA {
+func (cp *ColorPicker) RGBA() color.NRGBA {
 	fmt.Printf("%v, %v, %v\n", cp.hue.Value, cp.tone.Y, cp.tone.X)
-	return HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.tone.X, V: 1 - cp.tone.Y})
+	rgb := HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.tone.X, V: 1 - cp.tone.Y})
+	//rgb.A = byte(cp.alfa.Value * 255)
+	return rgb
 }
 
-func (cp *ColorPicker) NRGBA() color.NRGBA {
-	return f32color.RGBAToNRGBA(cp.RGBA())
-}
-
-func (cp *ColorPicker) setText() {
-	rgba := cp.RGBA()
-	r, g, b, a := rgba.RGBA()
-	cp.input.SetText(fmt.Sprintf("%x%x%x%x", int(r), int(g), int(b), int(a)))
-}
-
-func (cp *ColorPicker) Event() {
+func (cp *ColorPicker) Changed() bool {
+	changed := false
 	if cp.tone.Changed() {
-		cp.setText()
+		cp.hsv.S = cp.tone.X
+		cp.hsv.V = 1 - cp.tone.Y
+		col := cp.RGBA()
+		cp.hexEditor.SetColor(col)
+		cp.rgbEditor.SetColor(col)
+		cp.hsvEditor.SetColor(col)
 	}
 	if cp.hue.Changed() {
-		cp.setText()
+		changed = true
+		cp.hsv.H = cp.hue.Value * 360
+		col := cp.RGBA()
+		cp.hexEditor.SetColor(col)
+		cp.rgbEditor.SetColor(col)
+		cp.hsvEditor.SetColor(col)
 	}
-	if cp.alfa.Changed() {
-		cp.setText()
+	//if cp.alfa.Changed() {
+	//	col := cp.RGBA()
+	//	cp.hexEditor.SetColor(col)
+	//	cp.rgbEditor.SetColor(col)
+	//	cp.hsvEditor.SetColor(col)
+	//}
+	if cp.hexEditor.Changed() {
+		changed = true
+		col := cp.hexEditor.Color()
+		cp.setColor(col)
+		cp.rgbEditor.SetColor(col)
+		cp.hsvEditor.SetColor(col)
 	}
-	cp.input.Events()
+	if cp.rgbEditor.Changed() {
+		changed = true
+		col := cp.hexEditor.Color()
+		cp.setColor(col)
+		cp.hexEditor.SetColor(col)
+		cp.hsvEditor.SetColor(col)
+	}
+	if cp.hsvEditor.Changed() {
+		changed = true
+		col := cp.hexEditor.Color()
+		cp.setColor(col)
+		cp.hexEditor.SetColor(col)
+		cp.rgbEditor.SetColor(col)
+	}
 	for range cp.toggle.Clicks() {
 		cp.inputType = int(math.Mod(float64(cp.inputType+1), 3))
 	}
+	return changed
 }

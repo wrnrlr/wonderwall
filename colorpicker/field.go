@@ -42,7 +42,7 @@ func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
 	dims1 := material.ButtonLayoutStyle{
-		Background:   cf.picker.NRGBA(),
+		Background:   cf.picker.RGBA(),
 		CornerRadius: cf.CornerRadius,
 		Button:       cf.clicker,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -75,7 +75,7 @@ func (cf *ColorField) Event() {
 	for range cf.clicker.Clicks() {
 		cf.active = !cf.active
 	}
-	cf.picker.Event()
+	cf.picker.Changed()
 }
 
 func (cf *ColorField) Click() {
