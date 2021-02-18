@@ -12,6 +12,7 @@ import (
 
 func NewColorField(th *material.Theme) *ColorField {
 	return &ColorField{
+		Dropdown:     layout.NW,
 		CornerRadius: unit.Dp(4),
 		Inset: layout.Inset{
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
@@ -24,6 +25,7 @@ func NewColorField(th *material.Theme) *ColorField {
 }
 
 type ColorField struct {
+	Dropdown     layout.Direction
 	CornerRadius unit.Value
 	Inset        layout.Inset
 	clicker      *widget.Clickable
@@ -39,7 +41,7 @@ func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
 	w := int(float32(h) * goldenRatio)
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
-	dims := material.ButtonLayoutStyle{
+	dims1 := material.ButtonLayoutStyle{
 		Background:   cf.picker.NRGBA(),
 		CornerRadius: cf.CornerRadius,
 		Button:       cf.clicker,
@@ -50,11 +52,23 @@ func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
 	})
 	if cf.active {
 		macro := op.Record(gtx.Ops)
-		op.Offset(f32.Point{Y: float32(dims.Size.Y)}).Add(gtx.Ops)
-		cf.picker.Layout(gtx)
-		op.Defer(gtx.Ops, macro.Stop())
+		dims2 := cf.picker.Layout(gtx)
+		var offset f32.Point
+		switch cf.Dropdown {
+		case layout.NE:
+			offset = f32.Point{X: float32(dims1.Size.X - dims2.Size.X), Y: float32(-dims2.Size.Y)}
+		case layout.SE:
+			offset = f32.Point{X: float32(dims1.Size.X - dims2.Size.X), Y: float32(dims1.Size.Y)}
+		case layout.SW:
+			offset = f32.Point{Y: float32(dims1.Size.Y)}
+		case layout.NW:
+			offset = f32.Point{Y: float32(-dims2.Size.Y)}
+		}
+		call := macro.Stop()
+		op.Offset(offset).Add(gtx.Ops)
+		op.Defer(gtx.Ops, call)
 	}
-	return dims
+	return dims1
 }
 
 func (cf *ColorField) Event() {
