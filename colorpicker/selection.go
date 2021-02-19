@@ -10,8 +10,8 @@ import (
 	"image"
 )
 
-func NewColorField(th *material.Theme) *ColorField {
-	return &ColorField{
+func NewColorSelection(th *material.Theme) *ColorSelection {
+	return &ColorSelection{
 		Dropdown:     layout.SW,
 		CornerRadius: unit.Dp(4),
 		Inset: layout.Inset{
@@ -24,7 +24,7 @@ func NewColorField(th *material.Theme) *ColorField {
 	}
 }
 
-type ColorField struct {
+type ColorSelection struct {
 	Dropdown     layout.Direction
 	CornerRadius unit.Value
 	Inset        layout.Inset
@@ -36,7 +36,7 @@ type ColorField struct {
 
 const goldenRatio = 1.618
 
-func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
+func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 	h := int(2.3 * float32(gtx.Metric.Px(cf.theme.TextSize)))
 	w := int(float32(h) * goldenRatio)
 	size := image.Point{X: w, Y: int(h)}
@@ -71,13 +71,13 @@ func (cf *ColorField) Layout(gtx layout.Context) layout.Dimensions {
 	return dims1
 }
 
-func (cf *ColorField) Event() {
+func (cf *ColorSelection) Event() {
 	for range cf.clicker.Clicks() {
 		cf.active = !cf.active
 	}
 	cf.picker.Changed()
 }
 
-func (cf *ColorField) Click() {
+func (cf *ColorSelection) Click() {
 	cf.clicker.Click()
 }
