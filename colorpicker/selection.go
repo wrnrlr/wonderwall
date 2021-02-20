@@ -8,6 +8,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"image"
+	"image/color"
 )
 
 func NewColorSelection(th *material.Theme) *ColorSelection {
@@ -80,4 +81,16 @@ func (cf *ColorSelection) Event() {
 
 func (cf *ColorSelection) Click() {
 	cf.clicker.Click()
+}
+
+func (cf *ColorSelection) SetColor(col color.NRGBA) {
+	cf.picker.SetColor(col)
+}
+
+func (cf *ColorSelection) Color() color.NRGBA {
+	return cf.picker.color
+}
+
+func (cf *ColorSelection) Changed() bool {
+	return cf.picker.Changed()
 }
