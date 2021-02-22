@@ -3,7 +3,6 @@ package colorpicker
 // https://bgrins.github.io/spectrum/#why
 
 import (
-	"encoding/hex"
 	"fmt"
 	"gioui.org/f32"
 	"gioui.org/layout"
@@ -21,13 +20,8 @@ import (
 func NewColorPicker(th *material.Theme) *ColorPicker {
 	col := color.NRGBA{R: 255, A: 255}
 	cp := &ColorPicker{
-		tone: &Position{},
-		hue:  &widget.Float{Axis: layout.Horizontal},
-		alfa: &AlphaSlider{slider: widget.Float{Axis: layout.Horizontal}, color: col},
-		editor: NewToggle(&widget.Clickable{},
-			&HexEditor{theme: th, hex: newHexField(widget.Editor{SingleLine: true}, hex.EncodeToString([]byte{col.R, col.G, col.B}))},
-			&RgbEditor{theme: th, r: &byteField{Editor: widget.Editor{SingleLine: true}}, g: &byteField{Editor: widget.Editor{SingleLine: true}}, b: &byteField{Editor: widget.Editor{SingleLine: true}}},
-			&HsvEditor{theme: th, h: &degreeField{Editor: widget.Editor{SingleLine: true}}, s: &percentageField{Editor: widget.Editor{SingleLine: true}}, v: &percentageField{Editor: widget.Editor{SingleLine: true}}}),
+		tone:  &Position{},
+		hue:   &widget.Float{Axis: layout.Horizontal},
 		theme: th}
 	cp.SetColor(col)
 	return cp
@@ -35,24 +29,17 @@ func NewColorPicker(th *material.Theme) *ColorPicker {
 
 type ColorPicker struct {
 	// Encode hsv saturation on X-axis and hsv value on y-axis.
-	tone *Position
-	hue  *widget.Float
-	alfa *AlphaSlider
-
-	editor *Toggle
-
+	tone  *Position
+	hue   *widget.Float
 	hsv   HSVColor
 	color color.NRGBA
 	theme *material.Theme
 }
 
 func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
-	gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(cp.layoutGradiants),
-		layout.Rigid(cp.layoutRainbow),
-		layout.Rigid(cp.alfa.Layout),
-		layout.Rigid(cp.layoutTextInput))
+		layout.Rigid(cp.layoutRainbow))
 }
 
 func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
@@ -62,7 +49,6 @@ func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	primary := HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: 1, V: 1})
 	stack := op.Save(gtx.Ops)
 	topRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Min.Y)}
-	//bottomLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Max.Y)}
 	topLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Min.Y)}
 	bottomRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Max.Y)}
 	paint.LinearGradientOp{
@@ -135,13 +121,8 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
 
-func (cp *ColorPicker) layoutTextInput(gtx layout.Context) layout.Dimensions {
-	return cp.editor.Layout(gtx)
-}
-
 func (cp *ColorPicker) SetColor(col color.NRGBA) {
 	cp.setColor(col)
-	cp.editor.SetColor(col)
 }
 
 func (cp *ColorPicker) setColor(rgb color.NRGBA) {
@@ -164,23 +145,10 @@ func (cp *ColorPicker) Changed() bool {
 	if cp.tone.Changed() {
 		cp.hsv.S = cp.tone.X
 		cp.hsv.V = 1 - cp.tone.Y
-		col := cp.Color()
-		cp.editor.SetColor(col)
 	}
 	if cp.hue.Changed() {
 		changed = true
 		cp.hsv.H = cp.hue.Value * 360
-		col := cp.Color()
-		cp.editor.SetColor(col)
-	}
-	if cp.alfa.Changed() {
-		col := cp.Color()
-		cp.editor.SetColor(col)
-	}
-	if cp.editor.Changed() {
-		changed = true
-		col := cp.editor.Color()
-		cp.setColor(col)
 	}
 	return changed
 }

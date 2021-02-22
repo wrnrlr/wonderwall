@@ -4,10 +4,15 @@ import (
 	"encoding/hex"
 	"gioui.org/layout"
 	"gioui.org/unit"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"image/color"
 	"strconv"
 )
+
+func NewHexEditor(th *material.Theme) *HexEditor {
+	return &HexEditor{theme: th, hex: newHexField(widget.Editor{SingleLine: true}, "")}
+}
 
 type HexEditor struct {
 	theme *material.Theme
@@ -26,13 +31,17 @@ func (e *HexEditor) Color() color.NRGBA {
 }
 
 func (e *HexEditor) SetColor(col color.NRGBA) {
-	s := hex.EncodeToString([]byte{col.R, col.G, col.B})
-	e.hex.SetText(s)
-	e.Changed()
+	//s := hex.EncodeToString([]byte{col.R, col.G, col.B})
+	//e.hex.SetText(s)
+	//e.Changed()
 }
 
 func (e *HexEditor) Changed() bool {
 	return e.hex.Changed()
+}
+
+func NewRgbEditor(th *material.Theme) *RgbEditor {
+	return &RgbEditor{theme: th, r: &byteField{Editor: widget.Editor{SingleLine: true}}, g: &byteField{Editor: widget.Editor{SingleLine: true}}, b: &byteField{Editor: widget.Editor{SingleLine: true}}}
 }
 
 type RgbEditor struct {
@@ -62,14 +71,18 @@ func (e *RgbEditor) SetColor(col color.NRGBA) {
 	e.rgb.G = col.G
 	e.rgb.B = col.B
 	e.rgb.A = col.A
-	e.r.SetText(strconv.Itoa(int(col.R)))
-	e.g.SetText(strconv.Itoa(int(col.G)))
-	e.b.SetText(strconv.Itoa(int(col.B)))
-	e.Changed()
+	//e.r.SetText(strconv.Itoa(int(col.R)))
+	//e.g.SetText(strconv.Itoa(int(col.G)))
+	//e.b.SetText(strconv.Itoa(int(col.B)))
+	//e.Changed()
 }
 
 func (e *RgbEditor) Color() color.NRGBA {
 	return e.rgb
+}
+
+func NewHsvEditor(th *material.Theme) *HsvEditor {
+	return &HsvEditor{theme: th, h: &degreeField{Editor: widget.Editor{SingleLine: true}}, s: &percentageField{Editor: widget.Editor{SingleLine: true}}, v: &percentageField{Editor: widget.Editor{SingleLine: true}}}
 }
 
 type HsvEditor struct {
@@ -103,10 +116,10 @@ func (e *HsvEditor) SetColor(col color.NRGBA) {
 	e.hsv.H = hsv.H
 	e.hsv.S = hsv.S
 	e.hsv.V = hsv.V
-	e.h.SetText(strconv.Itoa(int(hsv.H)))
-	e.s.SetText(strconv.Itoa(int(hsv.S * 100)))
-	e.v.SetText(strconv.Itoa(int(hsv.V * 100)))
-	e.Changed()
+	//e.h.SetText(strconv.Itoa(int(hsv.H)))
+	//e.s.SetText(strconv.Itoa(int(hsv.S * 100)))
+	//e.v.SetText(strconv.Itoa(int(hsv.V * 100)))
+	//e.Changed()
 }
 
 func parseHex(s string) ([]byte, bool) {

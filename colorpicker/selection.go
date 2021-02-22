@@ -11,7 +11,8 @@ import (
 	"image/color"
 )
 
-func NewColorSelection(th *material.Theme) *ColorSelection {
+func NewColorSelection(th *material.Theme, inputs ...ColorInput) *ColorSelection {
+	mux := &Mux{inputs: inputs}
 	return &ColorSelection{
 		Dropdown:     layout.SW,
 		CornerRadius: unit.Dp(4),
@@ -19,8 +20,8 @@ func NewColorSelection(th *material.Theme) *ColorSelection {
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
 			Left: unit.Dp(12), Right: unit.Dp(12),
 		},
+		Input:   mux,
 		clicker: &widget.Clickable{},
-		picker:  NewColorPicker(th),
 		theme:   th,
 	}
 }
@@ -29,8 +30,8 @@ type ColorSelection struct {
 	Dropdown     layout.Direction
 	CornerRadius unit.Value
 	Inset        layout.Inset
+	Input        ColorInput
 	clicker      *widget.Clickable
-	picker       *ColorPicker
 	active       bool
 	theme        *material.Theme
 }
@@ -43,7 +44,7 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
 	dims1 := material.ButtonLayoutStyle{
-		Background:   cf.picker.RGBA(),
+		Background:   cf.Input.Color(),
 		CornerRadius: cf.CornerRadius,
 		Button:       cf.clicker,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -52,8 +53,9 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 		})
 	})
 	if cf.active {
+		gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 		macro := op.Record(gtx.Ops)
-		dims2 := cf.picker.Layout(gtx)
+		dims2 := cf.Input.Layout(gtx)
 		var offset f32.Point
 		switch cf.Dropdown {
 		case layout.NE:
@@ -76,7 +78,7 @@ func (cf *ColorSelection) Event() {
 	for range cf.clicker.Clicks() {
 		cf.active = !cf.active
 	}
-	cf.picker.Changed()
+	cf.Input.Changed()
 }
 
 func (cf *ColorSelection) Click() {
@@ -84,13 +86,13 @@ func (cf *ColorSelection) Click() {
 }
 
 func (cf *ColorSelection) SetColor(col color.NRGBA) {
-	cf.picker.SetColor(col)
+	cf.Input.SetColor(col)
 }
 
 func (cf *ColorSelection) Color() color.NRGBA {
-	return cf.picker.color
+	return cf.Input.Color()
 }
 
 func (cf *ColorSelection) Changed() bool {
-	return cf.picker.Changed()
+	return cf.Input.Changed()
 }

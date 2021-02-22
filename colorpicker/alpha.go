@@ -12,6 +12,10 @@ import (
 	"image/color"
 )
 
+func NewAlphaSlider() *AlphaSlider {
+	return &AlphaSlider{}
+}
+
 type AlphaSlider struct {
 	slider widget.Float
 	color  color.NRGBA

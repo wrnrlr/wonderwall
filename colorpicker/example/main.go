@@ -7,8 +7,10 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/Almanax/wonderwall/colorpicker"
+	"image/color"
 )
 
 var th *material.Theme
@@ -17,15 +19,55 @@ func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		th = material.NewTheme(gofont.Collection())
-		colorPicker := colorpicker.NewColorPicker(th)
+		colorPicker1 := colorpicker.NewColorPicker(th)
+		colorField := colorpicker.NewColorSelection(th,
+			colorpicker.NewColorPicker(th),
+			colorpicker.NewAlphaSlider(),
+			colorpicker.NewToggle(&widget.Clickable{},
+				colorpicker.NewHexEditor(th),
+				colorpicker.NewRgbEditor(th),
+				colorpicker.NewHsvEditor(th)))
+		colorField.SetColor(color.NRGBA{R: 255, A: 255})
+		colorEditors := colorpicker.NewMux(
+			colorpicker.NewHexEditor(th),
+			colorpicker.NewRgbEditor(th),
+			colorpicker.NewHsvEditor(th))
+		colorEditors.SetColor(color.NRGBA{G: 255, A: 255})
+		alphaSlider := colorpicker.NewAlphaSlider()
+		alphaSlider.SetColor(color.NRGBA{G: 255, A: 255})
+		btn := &widget.Clickable{}
 		var ops op.Ops
 		for {
 			e := <-w.Events()
 			switch e := e.(type) {
 			case system.FrameEvent:
+				colorPicker1.Changed()
+				colorField.Event()
 				gtx := layout.NewContext(&ops, e)
-				colorPicker.Event()
-				colorPicker.Layout(gtx, th)
+				layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(material.H2(th, "Color Inputs").Layout),
+					layout.Rigid(material.H3(th, "ColorSelection").Layout),
+					layout.Rigid(material.Body1(th, "Click on color fields to show and hide a colorpicker.").Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.UniformInset(unit.Dp(4)).Layout(gtx,
+							func(gtx layout.Context) layout.Dimensions {
+								return layout.Flex{Alignment: layout.Baseline}.Layout(gtx,
+									layout.Rigid(material.Label(th, unit.Sp(16), " Color: ").Layout),
+									layout.Rigid(colorField.Layout),
+									layout.Rigid(material.Button(th, btn, "Button").Layout))
+							})
+					}),
+					layout.Rigid(material.H3(th, "ColorPicker").Layout),
+					layout.Rigid(material.Body1(th, "The color picker component can be used on its own.").Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.UniformInset(unit.Dp(4)).Layout(gtx, colorPicker1.Layout)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return colorEditors.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return alphaSlider.Layout(gtx)
+					}))
 				e.Frame(gtx.Ops)
 			}
 		}

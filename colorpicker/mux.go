@@ -2,10 +2,12 @@ package colorpicker
 
 import (
 	"gioui.org/layout"
-	"gioui.org/unit"
-	"image"
 	"image/color"
 )
+
+func NewMux(inputs ...ColorInput) *Mux {
+	return &Mux{inputs: inputs}
+}
 
 type Mux struct {
 	inputs []ColorInput
@@ -13,7 +15,6 @@ type Mux struct {
 }
 
 func (m *Mux) Layout(gtx layout.Context) layout.Dimensions {
-	gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 	var children []layout.FlexChild
 	for _, input := range m.inputs {
 		children = append(children, layout.Rigid(input.Layout))
@@ -33,11 +34,21 @@ func (m *Mux) SetColor(col color.NRGBA) {
 }
 
 func (m *Mux) Changed() bool {
+	index := -1
 	changed := false
-	for _, input := range m.inputs {
+	for i, input := range m.inputs {
 		if input.Changed() {
+			index = i
 			changed = true
 			m.color = input.Color()
+		}
+		if changed {
+			input.SetColor(m.color)
+		}
+	}
+	if index > 1 {
+		for _, input := range m.inputs[:index-1] {
+			input.SetColor(m.color)
 		}
 	}
 	return changed
