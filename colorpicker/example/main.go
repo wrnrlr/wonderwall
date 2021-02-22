@@ -19,9 +19,9 @@ func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		th = material.NewTheme(gofont.Collection())
-		colorPicker1 := colorpicker.NewColorPicker(th)
+		colorPicker1 := colorpicker.NewPicker(th)
 		colorField := colorpicker.NewColorSelection(th,
-			colorpicker.NewColorPicker(th),
+			colorpicker.NewPicker(th),
 			colorpicker.NewAlphaSlider(),
 			colorpicker.NewToggle(&widget.Clickable{},
 				colorpicker.NewHexEditor(th),
@@ -57,7 +57,7 @@ func main() {
 									layout.Rigid(material.Button(th, btn, "Button").Layout))
 							})
 					}),
-					layout.Rigid(material.H3(th, "ColorPicker").Layout),
+					layout.Rigid(material.H3(th, "Picker").Layout),
 					layout.Rigid(material.Body1(th, "The color picker component can be used on its own.").Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return layout.UniformInset(unit.Dp(4)).Layout(gtx, colorPicker1.Layout)

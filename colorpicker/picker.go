@@ -17,9 +17,9 @@ import (
 	"image/color"
 )
 
-func NewColorPicker(th *material.Theme) *ColorPicker {
+func NewPicker(th *material.Theme) *Picker {
 	col := color.NRGBA{R: 255, A: 255}
-	cp := &ColorPicker{
+	cp := &Picker{
 		tone:  &Position{},
 		hue:   &widget.Float{Axis: layout.Horizontal},
 		theme: th}
@@ -27,7 +27,7 @@ func NewColorPicker(th *material.Theme) *ColorPicker {
 	return cp
 }
 
-type ColorPicker struct {
+type Picker struct {
 	// Encode hsv saturation on X-axis and hsv value on y-axis.
 	tone  *Position
 	hue   *widget.Float
@@ -36,13 +36,13 @@ type ColorPicker struct {
 	theme *material.Theme
 }
 
-func (cp *ColorPicker) Layout(gtx layout.Context) layout.Dimensions {
+func (cp *Picker) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(cp.layoutGradiants),
 		layout.Rigid(cp.layoutRainbow))
 }
 
-func (cp *ColorPicker) layoutGradiants(gtx layout.Context) layout.Dimensions {
+func (cp *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(120))
 	dr := image.Rectangle{Max: image.Point{X: w, Y: h}}
@@ -88,7 +88,7 @@ var (
 
 var colors = []color.RGBA{red, yellow, green, cyan, blue, magenta, red}
 
-func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
+func (cp *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(20))
 	stepCount := len(colors)
@@ -121,11 +121,11 @@ func (cp *ColorPicker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
 
-func (cp *ColorPicker) SetColor(col color.NRGBA) {
+func (cp *Picker) SetColor(col color.NRGBA) {
 	cp.setColor(col)
 }
 
-func (cp *ColorPicker) setColor(rgb color.NRGBA) {
+func (cp *Picker) setColor(rgb color.NRGBA) {
 	hsv := RgbToHsv(rgb)
 	cp.tone.X = hsv.S
 	cp.tone.Y = 1 - hsv.V
@@ -133,14 +133,14 @@ func (cp *ColorPicker) setColor(rgb color.NRGBA) {
 	//cp.alfa.Value = float32(rgb.A / 255)
 }
 
-func (cp *ColorPicker) Color() color.NRGBA {
+func (cp *Picker) Color() color.NRGBA {
 	fmt.Printf("%v, %v, %v\n", cp.hue.Value, cp.tone.Y, cp.tone.X)
 	rgb := HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.tone.X, V: 1 - cp.tone.Y})
 	//rgb.A = byte(cp.alfa.Value * 255)
 	return rgb
 }
 
-func (cp *ColorPicker) Changed() bool {
+func (cp *Picker) Changed() bool {
 	changed := false
 	if cp.tone.Changed() {
 		cp.hsv.S = cp.tone.X
