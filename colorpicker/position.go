@@ -1,7 +1,6 @@
 package colorpicker
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/gesture"
 	"gioui.org/io/pointer"
@@ -30,7 +29,6 @@ func (p *Position) Layout(gtx layout.Context, pointerMargin int, min, max f32.Po
 		if e.Type == pointer.Press || e.Type == pointer.Drag {
 			de = &e
 		}
-		fmt.Printf("pointer event: %v\n", e)
 	}
 
 	x, y := p.X, p.Y
@@ -70,7 +68,6 @@ func (p *Position) Layout(gtx layout.Context, pointerMargin int, min, max f32.Po
 }
 
 func (p *Position) setValue(x, y float32, min, max f32.Point) {
-	fmt.Printf("set values %f %f", x, y)
 	//if min > max {
 	//	min, max = max, min
 	//} ??
