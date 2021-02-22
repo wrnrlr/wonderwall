@@ -37,13 +37,12 @@ func (m *Mux) Changed() bool {
 	index := -1
 	changed := false
 	for i, input := range m.inputs {
-		if input.Changed() {
+		if changed {
+			input.SetColor(m.color)
+		} else if input.Changed() {
 			index = i
 			changed = true
 			m.color = input.Color()
-		}
-		if changed {
-			input.SetColor(m.color)
 		}
 	}
 	if index > 1 {

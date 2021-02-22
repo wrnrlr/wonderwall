@@ -30,7 +30,7 @@ type ColorSelection struct {
 	Dropdown     layout.Direction
 	CornerRadius unit.Value
 	Inset        layout.Inset
-	Input        ColorInput
+	Input        *Mux
 	clicker      *widget.Clickable
 	active       bool
 	theme        *material.Theme

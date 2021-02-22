@@ -18,12 +18,10 @@ import (
 )
 
 func NewPicker(th *material.Theme) *Picker {
-	col := color.NRGBA{R: 255, A: 255}
 	cp := &Picker{
 		tone:  &Position{},
 		hue:   &widget.Float{Axis: layout.Horizontal},
 		theme: th}
-	cp.SetColor(col)
 	return cp
 }
 
@@ -143,6 +141,7 @@ func (cp *Picker) Color() color.NRGBA {
 func (cp *Picker) Changed() bool {
 	changed := false
 	if cp.tone.Changed() {
+		changed = true
 		cp.hsv.S = cp.tone.X
 		cp.hsv.V = 1 - cp.tone.Y
 	}
