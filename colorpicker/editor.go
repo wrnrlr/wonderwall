@@ -31,9 +31,9 @@ func (e *HexEditor) Color() color.NRGBA {
 }
 
 func (e *HexEditor) SetColor(col color.NRGBA) {
-	//s := hex.EncodeToString([]byte{col.R, col.G, col.B})
-	//e.hex.SetText(s)
-	//e.Changed()
+	s := hex.EncodeToString([]byte{col.R, col.G, col.B})
+	e.color = col
+	e.hex.SetText(s)
 }
 
 func (e *HexEditor) Changed() bool {
@@ -67,14 +67,14 @@ func (e *RgbEditor) Changed() bool {
 }
 
 func (e *RgbEditor) SetColor(col color.NRGBA) {
+	e.rgb = col
 	e.rgb.R = col.R
 	e.rgb.G = col.G
 	e.rgb.B = col.B
 	e.rgb.A = col.A
-	//e.r.SetText(strconv.Itoa(int(col.R)))
-	//e.g.SetText(strconv.Itoa(int(col.G)))
-	//e.b.SetText(strconv.Itoa(int(col.B)))
-	//e.Changed()
+	e.r.SetText(strconv.Itoa(int(col.R)))
+	e.g.SetText(strconv.Itoa(int(col.G)))
+	e.b.SetText(strconv.Itoa(int(col.B)))
 }
 
 func (e *RgbEditor) Color() color.NRGBA {
@@ -116,10 +116,9 @@ func (e *HsvEditor) SetColor(col color.NRGBA) {
 	e.hsv.H = hsv.H
 	e.hsv.S = hsv.S
 	e.hsv.V = hsv.V
-	//e.h.SetText(strconv.Itoa(int(hsv.H)))
-	//e.s.SetText(strconv.Itoa(int(hsv.S * 100)))
-	//e.v.SetText(strconv.Itoa(int(hsv.V * 100)))
-	//e.Changed()
+	e.h.SetText(strconv.Itoa(int(hsv.H)))
+	e.s.SetText(strconv.Itoa(int(hsv.S * 100)))
+	e.v.SetText(strconv.Itoa(int(hsv.V * 100)))
 }
 
 func parseHex(s string) ([]byte, bool) {
