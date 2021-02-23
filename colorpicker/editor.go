@@ -11,7 +11,7 @@ import (
 )
 
 func NewHexEditor(th *material.Theme) *HexEditor {
-	return &HexEditor{theme: th, hex: newHexField(widget.Editor{SingleLine: true}, "")}
+	return &HexEditor{theme: th, hex: newHexField(th, widget.Editor{SingleLine: true})}
 }
 
 type HexEditor struct {
@@ -22,8 +22,8 @@ type HexEditor struct {
 
 func (e *HexEditor) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround}.Layout(gtx,
-		layout.Rigid(material.Label(e.theme, unit.Sp(14), "Hex").Layout),
-		layout.Flexed(1, material.Editor(e.theme, &e.hex.Editor, "").Layout))
+		layout.Rigid(material.Label(e.theme, unit.Sp(14), "Hex ").Layout),
+		layout.Flexed(1, e.hex.Layout))
 }
 
 func (e *HexEditor) Color() color.NRGBA {
@@ -31,9 +31,8 @@ func (e *HexEditor) Color() color.NRGBA {
 }
 
 func (e *HexEditor) SetColor(col color.NRGBA) {
-	s := hex.EncodeToString([]byte{col.R, col.G, col.B})
 	e.color = col
-	e.hex.SetText(s)
+	e.hex.SetHex([]byte{col.R, col.G, col.B})
 }
 
 func (e *HexEditor) Changed() bool {

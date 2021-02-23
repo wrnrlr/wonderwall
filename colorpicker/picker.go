@@ -144,8 +144,7 @@ func (cp *Picker) Changed() bool {
 		changed = true
 		cp.hsv.S = cp.tone.X
 		cp.hsv.V = 1 - cp.tone.Y
-	}
-	if cp.hue.Changed() {
+	} else if cp.hue.Changed() {
 		changed = true
 		cp.hsv.H = cp.hue.Value * 360
 	}

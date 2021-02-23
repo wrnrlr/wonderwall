@@ -1,42 +1,48 @@
 package colorpicker
 
-import "gioui.org/widget"
+import (
+	"encoding/hex"
+	"gioui.org/layout"
+	"gioui.org/widget"
+	"gioui.org/widget/material"
+)
 
-func newHexField(editor widget.Editor, value string) *hexField {
-	newValue, ok := parseHex(value)
-	he := &hexField{Editor: editor, old: newValue}
-	if ok {
-		he.SetText(value)
-	}
-	he.Changed()
+func newHexField(theme *material.Theme, editor widget.Editor) *hexField {
+	he := &hexField{theme: theme, editor: editor}
 	return he
 }
 
 type hexField struct {
-	widget.Editor
+	theme   *material.Theme
+	editor  widget.Editor
+	value   []byte
 	Invalid bool
-	old     []byte
 }
 
 func (ed *hexField) Changed() bool {
-	s := ed.Editor.Text()
-	newValue, ok := parseHex(s)
-	if !ok {
+	s := ed.editor.Text()
+	newValue, err := hex.DecodeString(ed.editor.Text())
+	if len(s) != 0 && err != nil {
 		return false
 	}
-	changed := bytesEqual(newValue, ed.old)
-	ed.old = newValue
+	changed := !bytesEqual(newValue, ed.value)
+	if changed {
+		ed.value = newValue
+	}
 	return changed
 }
 
-// SetText sets editor content without marking the editor changed.
-func (ed *hexField) SetText(s string) {
-	newValue, ok := parseHex(s)
-	if !ok {
-		return
-	}
-	ed.old = newValue
-	ed.Editor.SetText(s)
+func (ed *hexField) SetHex(v []byte) {
+	ed.value = v
+	ed.editor.SetText(hex.EncodeToString(v))
+}
+
+func (ed *hexField) Hex() []byte {
+	return ed.value
+}
+
+func (ed *hexField) Layout(gtx layout.Context) layout.Dimensions {
+	return material.Editor(ed.theme, &ed.editor, "").Layout(gtx)
 }
 
 type byteField struct {
