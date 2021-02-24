@@ -27,6 +27,7 @@ func (s *AlphaSlider) Color() color.NRGBA {
 
 func (s *AlphaSlider) SetColor(col color.NRGBA) {
 	s.color = col
+	s.slider.Value = float32(s.color.A / 255)
 }
 
 func (s *AlphaSlider) Layout(gtx layout.Context) layout.Dimensions {
