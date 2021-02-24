@@ -7,7 +7,7 @@ import (
 
 func TestInputSetColor(t *testing.T) {
 	red := color.NRGBA{R: 0xff, A: 0xff}
-	inputs := []ColorInput{
+	for _, in := range []ColorInput{
 		NewPicker(nil),
 		NewAlphaSlider(),
 		NewHexEditor(nil),
@@ -16,8 +16,7 @@ func TestInputSetColor(t *testing.T) {
 		NewToggle(nil, NewHexEditor(nil)),
 		NewColorSelection(nil),
 		NewMux(),
-	}
-	for _, in := range inputs {
+	} {
 		if in.Changed() {
 			t.Fail()
 		}

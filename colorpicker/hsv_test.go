@@ -8,7 +8,7 @@ import (
 )
 
 func TestRgbHsvConversion(t *testing.T) {
-	rgbHsvs := []struct {
+	for _, v := range []struct {
 		rgb color.NRGBA
 		hsv HSVColor
 	}{
@@ -30,8 +30,7 @@ func TestRgbHsvConversion(t *testing.T) {
 		{color.NRGBA{B: 0x7f, A: 0xff}, HSVColor{H: 240, S: 1, V: .5}},                        // navy
 		{color.NRGBA{R: 0xfd, G: 0x01, B: 0xc7, A: 0xff}, HSVColor{H: 313, S: .996, V: .992}}, // pink
 		{color.NRGBA{R: 0xff, G: 0x7f, B: 0x00, A: 0xff}, HSVColor{H: 30, S: 1, V: 1}},        // orange
-	}
-	for _, v := range rgbHsvs {
+	} {
 		testHsvToRgb(v.hsv, RgbToHsv(v.rgb))
 		testRgbToHsv(v.rgb, HsvToRgb(v.hsv))
 	}
