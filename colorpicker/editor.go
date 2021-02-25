@@ -130,7 +130,20 @@ func (e *HsvEditor) Color() color.NRGBA {
 }
 
 func (e *HsvEditor) Changed() bool {
-	return e.h.Changed() || e.s.Changed() || e.v.Changed()
+	changed := false
+	if e.h.Changed() {
+		changed = true
+		e.hsv.H = float32(e.h.Degree())
+	}
+	if e.s.Changed() {
+		changed = true
+		e.hsv.S = float32(e.s.Percentage() / 100)
+	}
+	if e.v.Changed() {
+		changed = true
+		e.hsv.V = float32(e.v.Percentage() / 100)
+	}
+	return changed
 }
 
 func (e *HsvEditor) SetColor(col color.NRGBA) {
@@ -165,17 +178,17 @@ func parseByte(s string) (byte, bool) {
 func parseDegree(s string) (int, bool) {
 	i, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		return int(i), false
+		return 0, false
 	}
-	return 0, true
+	return int(i), true
 }
 
 func parsePercentage(s string) (int, bool) {
 	i, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		return int(i), false
+		return 0, false
 	}
-	return 0, true
+	return int(i), true
 }
 
 func bytesEqual(a, b []byte) bool {

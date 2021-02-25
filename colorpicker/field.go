@@ -102,17 +102,15 @@ func (ed *percentageField) Percentage() int {
 type degreeField struct {
 	editor  widget.Editor
 	Invalid bool
-
-	old int
+	old     int
 }
 
 func (ed *degreeField) Changed() bool {
 	newText := ed.editor.Text()
-	i, ok := parseDegree(newText)
+	degree, ok := parseDegree(newText)
 	if !ok {
 		return false
 	}
-	degree := int(i)
 	changed := degree != ed.old
 	ed.old = degree
 	return changed
@@ -123,6 +121,7 @@ func (ed *degreeField) SetDegree(d int) {
 	ed.old = d
 	ed.editor.SetText(strconv.Itoa(d))
 }
+
 func (ed *degreeField) Degree() int {
 	return ed.old
 }
