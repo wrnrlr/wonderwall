@@ -73,13 +73,13 @@ func (ed *byteField) Byte() byte {
 }
 
 type percentageField struct {
-	widget.Editor
+	editor  widget.Editor
 	Invalid bool
 	old     int
 }
 
 func (ed *percentageField) Changed() bool {
-	newText := ed.Editor.Text()
+	newText := ed.editor.Text()
 	newInt, ok := parsePercentage(newText)
 	if !ok {
 		return false
@@ -90,13 +90,13 @@ func (ed *percentageField) Changed() bool {
 }
 
 // SetText sets editor content without marking the editor changed.
-func (ed *percentageField) SetText(s string) {
-	newInt, ok := parsePercentage(s)
-	if !ok {
-		return
-	}
-	ed.old = newInt
-	ed.Editor.SetText(s)
+func (ed *percentageField) SetPercentage(p int) {
+	ed.old = p
+	ed.editor.SetText(strconv.Itoa(p))
+}
+
+func (ed *percentageField) Percentage() int {
+	return ed.old
 }
 
 type degreeField struct {

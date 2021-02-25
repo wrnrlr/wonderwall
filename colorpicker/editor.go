@@ -103,8 +103,8 @@ func (e *RgbEditor) Color() color.NRGBA {
 func NewHsvEditor(th *material.Theme) *HsvEditor {
 	return &HsvEditor{theme: th,
 		h: &degreeField{Editor: widget.Editor{SingleLine: true}},
-		s: &percentageField{Editor: widget.Editor{SingleLine: true}},
-		v: &percentageField{Editor: widget.Editor{SingleLine: true}}}
+		s: &percentageField{editor: widget.Editor{SingleLine: true}},
+		v: &percentageField{editor: widget.Editor{SingleLine: true}}}
 }
 
 type HsvEditor struct {
@@ -120,9 +120,9 @@ func (e *HsvEditor) Layout(gtx layout.Context) layout.Dimensions {
 		layout.Rigid(material.Label(e.theme, unit.Sp(14), "H ").Layout),
 		layout.Flexed(1, material.Editor(e.theme, &e.h.Editor, "").Layout),
 		layout.Rigid(material.Label(e.theme, unit.Sp(14), "S ").Layout),
-		layout.Flexed(1, material.Editor(e.theme, &e.s.Editor, "").Layout),
+		layout.Flexed(1, material.Editor(e.theme, &e.s.editor, "").Layout),
 		layout.Rigid(material.Label(e.theme, unit.Sp(14), "V ").Layout),
-		layout.Flexed(1, material.Editor(e.theme, &e.v.Editor, "").Layout))
+		layout.Flexed(1, material.Editor(e.theme, &e.v.editor, "").Layout))
 }
 
 func (e *HsvEditor) Color() color.NRGBA {
@@ -139,8 +139,8 @@ func (e *HsvEditor) SetColor(col color.NRGBA) {
 	e.hsv.S = hsv.S
 	e.hsv.V = hsv.V
 	e.h.SetText(strconv.Itoa(int(hsv.H)))
-	e.s.SetText(strconv.Itoa(int(hsv.S * 100)))
-	e.v.SetText(strconv.Itoa(int(hsv.V * 100)))
+	e.s.SetPercentage(int(hsv.S * 100))
+	e.v.SetPercentage(int(hsv.V * 100))
 }
 
 func parseHex(s string) ([]byte, bool) {
