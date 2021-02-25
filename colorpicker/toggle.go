@@ -26,6 +26,7 @@ type Toggle struct {
 }
 
 func (t *Toggle) Layout(gtx layout.Context) layout.Dimensions {
+	t.events()
 	w := t.options[t.index].Layout
 	macro := op.Record(gtx.Ops)
 	dims := layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -52,7 +53,6 @@ func (t *Toggle) SetColor(col color.NRGBA) {
 }
 
 func (t *Toggle) Changed() bool {
-	t.events()
 	return t.options[t.index].Changed()
 }
 
