@@ -3,7 +3,6 @@ package colorpicker
 // https://bgrins.github.io/spectrum/#why
 
 import (
-	"fmt"
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -12,7 +11,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/wrnrlr/wonderwall/wonder/f32color"
 	"image"
 	"image/color"
 )
@@ -30,7 +28,7 @@ type Picker struct {
 	tone  *Position
 	hue   *widget.Float
 	hsv   HSVColor
-	color color.NRGBA
+	alpha byte
 	theme *material.Theme
 }
 
@@ -44,7 +42,7 @@ func (cp *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(120))
 	dr := image.Rectangle{Max: image.Point{X: w, Y: h}}
-	primary := HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: 1, V: 1})
+	primary := HsvToRgb(cp.hsv)
 	stack := op.Save(gtx.Ops)
 	topRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Min.Y)}
 	topLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Min.Y)}
@@ -76,15 +74,15 @@ func (cp *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 }
 
 var (
-	red     = color.RGBA{R: 255, A: 255}
-	yellow  = color.RGBA{R: 255, G: 255, A: 255}
-	green   = color.RGBA{G: 255, A: 255}
-	cyan    = color.RGBA{G: 255, B: 255, A: 255}
-	blue    = color.RGBA{B: 255, A: 255}
-	magenta = color.RGBA{R: 255, B: 255, A: 255}
+	red     = color.NRGBA{R: 255, A: 255}
+	yellow  = color.NRGBA{R: 255, G: 255, A: 255}
+	green   = color.NRGBA{G: 255, A: 255}
+	cyan    = color.NRGBA{G: 255, B: 255, A: 255}
+	blue    = color.NRGBA{B: 255, A: 255}
+	magenta = color.NRGBA{R: 255, B: 255, A: 255}
 )
 
-var colors = []color.RGBA{red, yellow, green, cyan, blue, magenta, red}
+var colors = []color.NRGBA{red, yellow, green, cyan, blue, magenta, red}
 
 func (cp *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
@@ -92,10 +90,9 @@ func (cp *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	stepCount := len(colors)
 	stepWidth := float32(w / (stepCount - 1))
 	offsetX := float32(0)
-	color1 := f32color.RGBAToNRGBA(colors[0])
+	color1 := colors[0]
 	dr := image.Rectangle{Max: image.Point{X: int(stepWidth), Y: h}}
-	for _, col := range colors[1:] {
-		color2 := f32color.RGBAToNRGBA(col)
+	for _, color2 := range colors[1:] {
 		stack := op.Save(gtx.Ops)
 		paint.LinearGradientOp{
 			Stop1:  f32.Point{offsetX, 0},
@@ -120,22 +117,17 @@ func (cp *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 }
 
 func (cp *Picker) SetColor(col color.NRGBA) {
-	cp.setColor(col)
-}
-
-func (cp *Picker) setColor(rgb color.NRGBA) {
-	hsv := RgbToHsv(rgb)
-	cp.tone.X = hsv.S
-	cp.tone.Y = 1 - hsv.V
-	cp.hue.Value = hsv.H
-	//cp.alfa.Value = float32(rgb.A / 255)
+	cp.hsv = RgbToHsv(col)
+	cp.tone.X = cp.hsv.S
+	cp.tone.Y = 1 - cp.hsv.V
+	cp.hue.Value = cp.hsv.H / 360
+	cp.alpha = col.A
 }
 
 func (cp *Picker) Color() color.NRGBA {
-	fmt.Printf("%v, %v, %v\n", cp.hue.Value, cp.tone.Y, cp.tone.X)
-	rgb := HsvToRgb(HSVColor{H: cp.hue.Value * 360, S: cp.tone.X, V: 1 - cp.tone.Y})
-	//rgb.A = byte(cp.alfa.Value * 255)
-	return rgb
+	col := HsvToRgb(cp.hsv)
+	col.A = cp.alpha
+	return col
 }
 
 func (cp *Picker) Changed() bool {
