@@ -100,14 +100,14 @@ func (ed *percentageField) Percentage() int {
 }
 
 type degreeField struct {
-	widget.Editor
+	editor  widget.Editor
 	Invalid bool
 
 	old int
 }
 
 func (ed *degreeField) Changed() bool {
-	newText := ed.Editor.Text()
+	newText := ed.editor.Text()
 	i, ok := parseDegree(newText)
 	if !ok {
 		return false
@@ -119,11 +119,10 @@ func (ed *degreeField) Changed() bool {
 }
 
 // SetText sets editor content without marking the editor changed.
-func (ed *degreeField) SetText(s string) {
-	degree, ok := parseDegree(s)
-	if !ok {
-		return
-	}
-	ed.old = degree
-	ed.Editor.SetText(s)
+func (ed *degreeField) SetDegree(d int) {
+	ed.old = d
+	ed.editor.SetText(strconv.Itoa(d))
+}
+func (ed *degreeField) Degree() int {
+	return ed.old
 }
