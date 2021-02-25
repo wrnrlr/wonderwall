@@ -39,12 +39,13 @@ type ColorSelection struct {
 const goldenRatio = 1.618
 
 func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
+	cf.event()
 	h := int(2.3 * float32(gtx.Metric.Px(cf.theme.TextSize)))
 	w := int(float32(h) * goldenRatio)
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
 	dims1 := material.ButtonLayoutStyle{
-		Background:   cf.Input.Color(),
+		Background:   cf.Color(),
 		CornerRadius: cf.CornerRadius,
 		Button:       cf.clicker,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -74,13 +75,13 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 	return dims1
 }
 
-func (cf *ColorSelection) Event() {
+func (cf *ColorSelection) event() {
 	for range cf.clicker.Clicks() {
 		cf.active = !cf.active
 	}
-	cf.Input.Changed()
 }
 
+// Click programmatically
 func (cf *ColorSelection) Click() {
 	cf.clicker.Click()
 }
