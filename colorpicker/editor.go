@@ -36,11 +36,22 @@ func (e *HexEditor) SetColor(col color.NRGBA) {
 }
 
 func (e *HexEditor) Changed() bool {
-	return e.hex.Changed()
+	if !e.hex.Changed() {
+		return false
+	}
+	b := e.hex.Hex()
+	if len(b) < 3 {
+		return false
+	}
+	e.color.R, e.color.G, e.color.B = b[0], b[1], b[2]
+	return true
 }
 
 func NewRgbEditor(th *material.Theme) *RgbEditor {
-	return &RgbEditor{theme: th, r: &byteField{Editor: widget.Editor{SingleLine: true}}, g: &byteField{Editor: widget.Editor{SingleLine: true}}, b: &byteField{Editor: widget.Editor{SingleLine: true}}}
+	return &RgbEditor{theme: th,
+		r: &byteField{Editor: widget.Editor{SingleLine: true}},
+		g: &byteField{Editor: widget.Editor{SingleLine: true}},
+		b: &byteField{Editor: widget.Editor{SingleLine: true}}}
 }
 
 type RgbEditor struct {
@@ -67,10 +78,6 @@ func (e *RgbEditor) Changed() bool {
 
 func (e *RgbEditor) SetColor(col color.NRGBA) {
 	e.rgb = col
-	e.rgb.R = col.R
-	e.rgb.G = col.G
-	e.rgb.B = col.B
-	e.rgb.A = col.A
 	e.r.SetText(strconv.Itoa(int(col.R)))
 	e.g.SetText(strconv.Itoa(int(col.G)))
 	e.b.SetText(strconv.Itoa(int(col.B)))
@@ -81,7 +88,10 @@ func (e *RgbEditor) Color() color.NRGBA {
 }
 
 func NewHsvEditor(th *material.Theme) *HsvEditor {
-	return &HsvEditor{theme: th, h: &degreeField{Editor: widget.Editor{SingleLine: true}}, s: &percentageField{Editor: widget.Editor{SingleLine: true}}, v: &percentageField{Editor: widget.Editor{SingleLine: true}}}
+	return &HsvEditor{theme: th,
+		h: &degreeField{Editor: widget.Editor{SingleLine: true}},
+		s: &percentageField{Editor: widget.Editor{SingleLine: true}},
+		v: &percentageField{Editor: widget.Editor{SingleLine: true}}}
 }
 
 type HsvEditor struct {
