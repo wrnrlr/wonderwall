@@ -49,9 +49,9 @@ func (e *HexEditor) Changed() bool {
 
 func NewRgbEditor(th *material.Theme) *RgbEditor {
 	return &RgbEditor{theme: th,
-		r: &byteField{Editor: widget.Editor{SingleLine: true}},
-		g: &byteField{Editor: widget.Editor{SingleLine: true}},
-		b: &byteField{Editor: widget.Editor{SingleLine: true}}}
+		r: &byteField{editor: widget.Editor{SingleLine: true}},
+		g: &byteField{editor: widget.Editor{SingleLine: true}},
+		b: &byteField{editor: widget.Editor{SingleLine: true}}}
 }
 
 type RgbEditor struct {
@@ -65,22 +65,35 @@ type RgbEditor struct {
 func (e *RgbEditor) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceAround, Alignment: layout.Baseline}.Layout(gtx,
 		layout.Rigid(material.Label(e.theme, unit.Sp(14), "R ").Layout),
-		layout.Flexed(1, material.Editor(e.theme, &e.r.Editor, "").Layout),
+		layout.Flexed(1, material.Editor(e.theme, &e.r.editor, "").Layout),
 		layout.Rigid(material.Label(e.theme, unit.Sp(14), "G ").Layout),
-		layout.Flexed(1, material.Editor(e.theme, &e.g.Editor, "").Layout),
+		layout.Flexed(1, material.Editor(e.theme, &e.g.editor, "").Layout),
 		layout.Rigid(material.Label(e.theme, unit.Sp(14), "B ").Layout),
-		layout.Flexed(1, material.Editor(e.theme, &e.b.Editor, "").Layout))
+		layout.Flexed(1, material.Editor(e.theme, &e.b.editor, "").Layout))
 }
 
 func (e *RgbEditor) Changed() bool {
-	return e.r.Changed() || e.g.Changed() || e.b.Changed()
+	changed := false
+	if e.r.Changed() {
+		changed = true
+		e.rgb.R = e.r.Byte()
+	}
+	if e.g.Changed() {
+		changed = true
+		e.rgb.G = e.g.Byte()
+	}
+	if e.b.Changed() {
+		changed = true
+		e.rgb.B = e.b.Byte()
+	}
+	return changed
 }
 
 func (e *RgbEditor) SetColor(col color.NRGBA) {
 	e.rgb = col
-	e.r.SetText(strconv.Itoa(int(col.R)))
-	e.g.SetText(strconv.Itoa(int(col.G)))
-	e.b.SetText(strconv.Itoa(int(col.B)))
+	e.r.SetByte(col.R)
+	e.g.SetByte(col.G)
+	e.b.SetByte(col.B)
 }
 
 func (e *RgbEditor) Color() color.NRGBA {

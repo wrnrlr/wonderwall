@@ -5,6 +5,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"strconv"
 )
 
 func newHexField(theme *material.Theme, editor widget.Editor) *hexField {
@@ -46,13 +47,13 @@ func (ed *hexField) Layout(gtx layout.Context) layout.Dimensions {
 }
 
 type byteField struct {
-	widget.Editor
+	editor  widget.Editor
 	Invalid bool
 	old     byte
 }
 
 func (ed *byteField) Changed() bool {
-	newText := ed.Editor.Text()
+	newText := ed.editor.Text()
 	newByte, ok := parseByte(newText)
 	if !ok {
 		return false
@@ -62,13 +63,13 @@ func (ed *byteField) Changed() bool {
 	return changed
 }
 
-func (ed *byteField) SetText(s string) {
-	newByte, ok := parseByte(s)
-	if !ok {
-		return
-	}
-	ed.old = newByte
-	ed.Editor.SetText(s)
+func (ed *byteField) SetByte(b byte) {
+	ed.old = b
+	ed.editor.SetText(strconv.FormatUint(uint64(b), 10))
+}
+
+func (ed *byteField) Byte() byte {
+	return ed.old
 }
 
 type percentageField struct {
