@@ -36,14 +36,13 @@ type ColorSelection struct {
 	theme        *material.Theme
 }
 
-const goldenRatio = 1.618
-
 func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 	cf.event()
 	h := int(2.3 * float32(gtx.Metric.Px(cf.theme.TextSize)))
-	w := int(float32(h) * goldenRatio)
+	w := int(float32(h) * 1.5)
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
+	drawCheckerboard(gtx)
 	dims1 := widget.Border{Color: lightgrey, CornerRadius: cf.CornerRadius, Width: unit.Sp(1)}.
 		Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return material.ButtonLayoutStyle{
