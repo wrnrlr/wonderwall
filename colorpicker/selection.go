@@ -44,15 +44,18 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 	w := int(float32(h) * goldenRatio)
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
-	dims1 := material.ButtonLayoutStyle{
-		Background:   cf.Color(),
-		CornerRadius: cf.CornerRadius,
-		Button:       cf.clicker,
-	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return cf.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return material.Label(cf.theme, unit.Sp(16), "").Layout(gtx)
+	dims1 := widget.Border{Color: lightgrey, CornerRadius: cf.CornerRadius, Width: unit.Sp(1)}.
+		Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return material.ButtonLayoutStyle{
+				Background:   cf.Color(),
+				CornerRadius: cf.CornerRadius,
+				Button:       cf.clicker,
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return cf.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return material.Label(cf.theme, cf.theme.TextSize, "").Layout(gtx)
+				})
+			})
 		})
-	})
 	if cf.active {
 		gtx.Constraints = layout.Exact(image.Point{X: gtx.Px(unit.Dp(210)), Y: gtx.Px(unit.Dp(200))})
 		macro := op.Record(gtx.Ops)
