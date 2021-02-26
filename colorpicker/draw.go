@@ -58,7 +58,7 @@ func drawCircle(p f32.Point, radius, width float32, col color.NRGBA, gtx layout.
 func drawCheckerboard(gtx layout.Context) {
 	w := gtx.Constraints.Max.X
 	h := gtx.Constraints.Max.Y
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, clip.Rect{Max: gtx.Constraints.Max}.Op())
+	paint.FillShape(gtx.Ops, white, clip.Rect{Max: gtx.Constraints.Max}.Op())
 	size := h / 2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
@@ -76,7 +76,7 @@ func drawCheckerboard(gtx layout.Context) {
 		path.Line(f32.Point{Y: float32(-size)})
 	}
 	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
-	paint.ColorOp{Color: color.NRGBA{R: 0xef, G: 0xef, B: 0xef, A: 0xff}}.Add(gtx.Ops)
+	paint.ColorOp{Color: lightgrey}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 }
 
@@ -87,6 +87,9 @@ var (
 	cyan    = color.NRGBA{G: 255, B: 255, A: 255}
 	blue    = color.NRGBA{B: 255, A: 255}
 	magenta = color.NRGBA{R: 255, B: 255, A: 255}
+
+	white     = color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
+	lightgrey = color.NRGBA{R: 0xef, G: 0xef, B: 0xef, A: 0xff}
 )
 
 var rainbowColors = []color.NRGBA{red, yellow, green, cyan, blue, magenta, red}
