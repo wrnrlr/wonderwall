@@ -32,17 +32,17 @@ type Picker struct {
 	theme *material.Theme
 }
 
-func (cp *Picker) Layout(gtx layout.Context) layout.Dimensions {
+func (p *Picker) Layout(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(cp.layoutGradiants),
-		layout.Rigid(cp.layoutRainbow))
+		layout.Rigid(p.layoutGradiants),
+		layout.Rigid(p.layoutRainbow))
 }
 
-func (cp *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
+func (p *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(120))
 	dr := image.Rectangle{Max: image.Point{X: w, Y: h}}
-	primary := HsvToRgb(cp.hsv)
+	primary := HsvToRgb(p.hsv)
 	stack := op.Save(gtx.Ops)
 	topRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Min.Y)}
 	topLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Min.Y)}
@@ -66,9 +66,8 @@ func (cp *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	stack.Load()
 
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
-	cp.tone.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
-	p := cp.tone.Pos()
-	drawControl(p, 10, 1, gtx)
+	p.tone.Layout(gtx, 1, f32.Point{}, f32.Point{X: 1, Y: 1})
+	drawControl(p.tone.Pos(), 10, 1, gtx)
 
 	return layout.Dimensions{Size: dr.Max}
 }
@@ -84,7 +83,7 @@ var (
 
 var colors = []color.NRGBA{red, yellow, green, cyan, blue, magenta, red}
 
-func (cp *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
+func (p *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(20))
 	stepCount := len(colors)
@@ -109,36 +108,35 @@ func (cp *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	}
 
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
-	cp.hue.Layout(gtx, 1, 0, 1)
-	x := cp.hue.Pos()
-	drawControl(f32.Point{x, float32(h / 2)}, 10, 1, gtx)
+	p.hue.Layout(gtx, 1, 0, 1)
+	drawControl(f32.Point{p.hue.Pos(), float32(h / 2)}, 10, 1, gtx)
 
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
 
-func (cp *Picker) SetColor(col color.NRGBA) {
-	cp.hsv = RgbToHsv(col)
-	cp.tone.X = cp.hsv.S
-	cp.tone.Y = 1 - cp.hsv.V
-	cp.hue.Value = cp.hsv.H / 360
-	cp.alpha = col.A
+func (p *Picker) SetColor(col color.NRGBA) {
+	p.hsv = RgbToHsv(col)
+	p.tone.X = p.hsv.S
+	p.tone.Y = 1 - p.hsv.V
+	p.hue.Value = p.hsv.H / 360
+	p.alpha = col.A
 }
 
-func (cp *Picker) Color() color.NRGBA {
-	col := HsvToRgb(cp.hsv)
-	col.A = cp.alpha
+func (p *Picker) Color() color.NRGBA {
+	col := HsvToRgb(p.hsv)
+	col.A = p.alpha
 	return col
 }
 
-func (cp *Picker) Changed() bool {
+func (p *Picker) Changed() bool {
 	changed := false
-	if cp.tone.Changed() {
+	if p.tone.Changed() {
 		changed = true
-		cp.hsv.S = cp.tone.X
-		cp.hsv.V = 1 - cp.tone.Y
-	} else if cp.hue.Changed() {
+		p.hsv.S = p.tone.X
+		p.hsv.V = 1 - p.tone.Y
+	} else if p.hue.Changed() {
 		changed = true
-		cp.hsv.H = cp.hue.Value * 360
+		p.hsv.H = p.hue.Value * 360
 	}
 	return changed
 }
