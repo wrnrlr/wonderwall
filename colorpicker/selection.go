@@ -43,7 +43,7 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 	size := image.Point{X: w, Y: int(h)}
 	gtx.Constraints = layout.Exact(size)
 	drawCheckerboard(gtx)
-	dims1 := widget.Border{Color: lightgrey, CornerRadius: cf.CornerRadius, Width: unit.Sp(1)}.
+	dims1 := widget.Border{Color: lightgrey, CornerRadius: cf.CornerRadius, Width: unit.Dp(1)}.
 		Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return material.ButtonLayoutStyle{
 				Background:   cf.Color(),
@@ -51,7 +51,7 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 				Button:       cf.clicker,
 			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return cf.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return material.Label(cf.theme, cf.theme.TextSize, "").Layout(gtx)
+					return material.Label(cf.theme, cf.theme.TextSize, " ").Layout(gtx)
 				})
 			})
 		})
