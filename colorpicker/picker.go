@@ -42,7 +42,7 @@ func (p *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(120))
 	dr := image.Rectangle{Max: image.Point{X: w, Y: h}}
-	primary := HsvToRgb(p.hsv)
+	primary := HsvToRgb(HSVColor{p.hue.Value * 360, 1, 1})
 	stack := op.Save(gtx.Ops)
 	topRight := f32.Point{X: float32(dr.Max.X), Y: float32(dr.Min.Y)}
 	topLeft := f32.Point{X: float32(dr.Min.X), Y: float32(dr.Min.Y)}
@@ -76,11 +76,9 @@ func (p *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(20))
 	drawRainbow(gtx)
-
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	p.hue.Layout(gtx, 1, 0, 1)
 	drawControl(f32.Point{p.hue.Pos(), float32(h / 2)}, 10, 1, gtx)
-
 	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
 }
 
