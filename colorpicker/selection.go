@@ -50,7 +50,7 @@ func (cf *ColorSelection) Layout(gtx layout.Context) layout.Dimensions {
 		Button:       cf.clicker,
 	}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return cf.Inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return layout.Dimensions{Size: gtx.Constraints.Max}
+			return material.Label(cf.theme, unit.Sp(16), "").Layout(gtx)
 		})
 	})
 	if cf.active {
