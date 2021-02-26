@@ -79,3 +79,39 @@ func drawCheckerboard(gtx layout.Context) {
 	paint.ColorOp{Color: color.NRGBA{R: 0xef, G: 0xef, B: 0xef, A: 0xff}}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 }
+
+var (
+	red     = color.NRGBA{R: 255, A: 255}
+	yellow  = color.NRGBA{R: 255, G: 255, A: 255}
+	green   = color.NRGBA{G: 255, A: 255}
+	cyan    = color.NRGBA{G: 255, B: 255, A: 255}
+	blue    = color.NRGBA{B: 255, A: 255}
+	magenta = color.NRGBA{R: 255, B: 255, A: 255}
+)
+
+var rainbowColors = []color.NRGBA{red, yellow, green, cyan, blue, magenta, red}
+
+func drawRainbow(gtx layout.Context) layout.Dimensions {
+	w := gtx.Constraints.Max.X
+	h := gtx.Px(unit.Dp(20))
+	stepCount := len(rainbowColors)
+	stepWidth := float32(w / (stepCount - 1))
+	offsetX := float32(0)
+	color1 := rainbowColors[0]
+	for _, color2 := range rainbowColors[1:] {
+		stack := op.Save(gtx.Ops)
+		paint.LinearGradientOp{
+			Stop1:  f32.Point{offsetX, 0},
+			Stop2:  f32.Point{offsetX + stepWidth, 0},
+			Color1: color1,
+			Color2: color2,
+		}.Add(gtx.Ops)
+		dr := image.Rectangle{Min: image.Point{X: int(offsetX), Y: 0}, Max: image.Point{X: int(offsetX + stepWidth), Y: h}}
+		clip.Rect(dr).Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
+		stack.Load()
+		color1 = color2
+		offsetX += stepWidth
+	}
+	return layout.Dimensions{Size: image.Point{X: w, Y: h}}
+}

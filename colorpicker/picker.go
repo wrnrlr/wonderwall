@@ -72,40 +72,10 @@ func (p *Picker) layoutGradiants(gtx layout.Context) layout.Dimensions {
 	return layout.Dimensions{Size: dr.Max}
 }
 
-var (
-	red     = color.NRGBA{R: 255, A: 255}
-	yellow  = color.NRGBA{R: 255, G: 255, A: 255}
-	green   = color.NRGBA{G: 255, A: 255}
-	cyan    = color.NRGBA{G: 255, B: 255, A: 255}
-	blue    = color.NRGBA{B: 255, A: 255}
-	magenta = color.NRGBA{R: 255, B: 255, A: 255}
-)
-
-var colors = []color.NRGBA{red, yellow, green, cyan, blue, magenta, red}
-
 func (p *Picker) layoutRainbow(gtx layout.Context) layout.Dimensions {
 	w := gtx.Constraints.Max.X
 	h := gtx.Px(unit.Dp(20))
-	stepCount := len(colors)
-	stepWidth := float32(w / (stepCount - 1))
-	offsetX := float32(0)
-	color1 := colors[0]
-	dr := image.Rectangle{Max: image.Point{X: int(stepWidth), Y: h}}
-	for _, color2 := range colors[1:] {
-		stack := op.Save(gtx.Ops)
-		paint.LinearGradientOp{
-			Stop1:  f32.Point{offsetX, 0},
-			Stop2:  f32.Point{offsetX + stepWidth, 0},
-			Color1: color1,
-			Color2: color2,
-		}.Add(gtx.Ops)
-		clip.Rect(dr).Add(gtx.Ops)
-		paint.PaintOp{}.Add(gtx.Ops)
-		stack.Load()
-		color1 = color2
-		offsetX += stepWidth
-		dr = image.Rectangle{Min: image.Point{X: int(offsetX), Y: 0}, Max: image.Point{X: int(offsetX + stepWidth), Y: h}}
-	}
+	drawRainbow(gtx)
 
 	gtx.Constraints = layout.Exact(image.Point{X: w, Y: h})
 	p.hue.Layout(gtx, 1, 0, 1)
