@@ -15,39 +15,28 @@ import (
 const c = 0.55228475 // 4*(sqrt(2)-1)/3
 
 func drawControl(p f32.Point, radius, width float32, gtx layout.Context) {
-	width = float32(gtx.Px(unit.Dp(width))) / 2
+	width = float32(gtx.Px(unit.Dp(width)))
 	radius = float32(gtx.Px(unit.Dp(radius))) - width
-	p.X -= radius - width*4
-	p.Y -= radius - width*9
+	p.X -= radius - width*2
+	p.Y -= radius - width*4
 	drawCircle(p, radius, width, color.NRGBA{A: 0xff}, gtx)
-	p.X += width * 2
-	p.Y += width * 2
+	p.X += width
+	p.Y += width
 	drawCircle(p, radius, width, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, gtx)
 }
 
-func drawCircle(p f32.Point, radius, width float32, col color.NRGBA, gtx layout.Context) {
-	w, h := radius*2, radius*2
+func drawCircle(p f32.Point, r, width float32, col color.NRGBA, gtx layout.Context) {
+	w := r * 2
 	defer op.Save(gtx.Ops).Load()
 	var path clip.Path
 	path.Begin(gtx.Ops)
 	path.Move(f32.Point{X: p.X, Y: p.Y})
-	path.Move(f32.Point{X: w / 4 * 3, Y: radius / 2})
-	path.Cube(f32.Point{X: 0, Y: radius * c}, f32.Point{X: -radius + radius*c, Y: radius}, f32.Point{X: -radius, Y: radius})    // SE
-	path.Cube(f32.Point{X: -radius * c, Y: 0}, f32.Point{X: -radius, Y: -radius + radius*c}, f32.Point{X: -radius, Y: -radius}) // SW
-	path.Cube(f32.Point{X: 0, Y: -radius * c}, f32.Point{X: radius - radius*c, Y: -radius}, f32.Point{X: radius, Y: -radius})   // NW
-	path.Cube(f32.Point{X: radius * c, Y: 0}, f32.Point{X: radius, Y: radius - radius*c}, f32.Point{X: radius, Y: radius})      // NE
-	path.Move(f32.Point{X: -w, Y: -radius})                                                                                     // Return to origin
-	scale := (radius - width*2) / radius
-	path.Move(f32.Point{X: w * (1 - scale) * .5, Y: h * (1 - scale) * .5})
-	w *= scale
-	h *= scale
-	radius *= scale
-	path.Move(f32.Point{X: 0, Y: h - radius})
-	path.Cube(f32.Point{X: 0, Y: radius * c}, f32.Point{X: +radius - radius*c, Y: radius}, f32.Point{X: +radius, Y: radius})      // SW
-	path.Cube(f32.Point{X: +radius * c, Y: 0}, f32.Point{X: +radius, Y: -radius + radius*c}, f32.Point{X: +radius, Y: -radius})   // SE
-	path.Cube(f32.Point{X: 0, Y: -radius * c}, f32.Point{X: -(radius - radius*c), Y: -radius}, f32.Point{X: -radius, Y: -radius}) // NE
-	path.Cube(f32.Point{X: -radius * c, Y: 0}, f32.Point{X: -radius, Y: radius - radius*c}, f32.Point{X: -radius, Y: radius})     // NW
-	clip.Outline{Path: path.End()}.Op().Add(gtx.Ops)
+	path.Move(f32.Point{X: w / 4 * 3, Y: r / 2})
+	path.Cube(f32.Point{X: 0, Y: r * c}, f32.Point{X: -r + r*c, Y: r}, f32.Point{X: -r, Y: r})    // SE
+	path.Cube(f32.Point{X: -r * c, Y: 0}, f32.Point{X: -r, Y: -r + r*c}, f32.Point{X: -r, Y: -r}) // SW
+	path.Cube(f32.Point{X: 0, Y: -r * c}, f32.Point{X: r - r*c, Y: -r}, f32.Point{X: r, Y: -r})   // NW
+	path.Cube(f32.Point{X: r * c, Y: 0}, f32.Point{X: r, Y: r - r*c}, f32.Point{X: r, Y: r})      // NE
+	clip.Stroke{Path: path.End(), Style: clip.StrokeStyle{Width: width}}.Op().Add(gtx.Ops)
 	cons := gtx.Constraints
 	dr := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: cons.Max.X, Y: cons.Max.Y}}
 	clip.Rect(dr).Add(gtx.Ops)
