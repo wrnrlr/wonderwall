@@ -19,7 +19,6 @@ func main() {
 	go func() {
 		w := app.NewWindow(app.Size(unit.Dp(800), unit.Dp(700)))
 		th = material.NewTheme(gofont.Collection())
-		colorPicker1 := colorpicker.NewPicker(th)
 		colorField := colorpicker.NewColorSelection(th,
 			colorpicker.NewPicker(th),
 			colorpicker.NewAlphaSlider(),
@@ -27,22 +26,22 @@ func main() {
 				colorpicker.NewHexEditor(th),
 				colorpicker.NewRgbEditor(th),
 				colorpicker.NewHsvEditor(th)))
-		colorField.SetColor(color.NRGBA{R: 255, A: 255})
+		colorField.SetColor(color.NRGBA{G: 255, A: 255})
 		colorEditors := colorpicker.NewMux(
+			colorpicker.NewPicker(th),
 			colorpicker.NewHexEditor(th),
 			colorpicker.NewRgbEditor(th),
-			colorpicker.NewHsvEditor(th))
-		colorEditors.SetColor(color.NRGBA{G: 255, A: 255})
-		alphaSlider := colorpicker.NewAlphaSlider()
-		alphaSlider.SetColor(color.NRGBA{G: 255, A: 255})
+			colorpicker.NewHsvEditor(th),
+			colorpicker.NewAlphaSlider())
+		colorEditors.SetColor(color.NRGBA{B: 255, A: 255})
 		btn := &widget.Clickable{}
 		var ops op.Ops
 		for {
 			e := <-w.Events()
 			switch e := e.(type) {
 			case system.FrameEvent:
-				colorPicker1.Changed()
-				colorField.Event()
+				colorField.Changed()
+				colorEditors.Changed()
 				gtx := layout.NewContext(&ops, e)
 				layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(material.H2(th, "Color Inputs").Layout),
@@ -60,13 +59,7 @@ func main() {
 					layout.Rigid(material.H3(th, "Picker").Layout),
 					layout.Rigid(material.Body1(th, "The color picker component can be used on its own.").Layout),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return layout.UniformInset(unit.Dp(4)).Layout(gtx, colorPicker1.Layout)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return colorEditors.Layout(gtx)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return alphaSlider.Layout(gtx)
 					}))
 				e.Frame(gtx.Ops)
 			}
