@@ -32,7 +32,13 @@ func main() {
 			switch e := ev.(type) {
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
-				toolbar.Layout(gtx)
+				bg := layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+					return layout.Dimensions{Size: gtx.Constraints.Max}
+				})
+				fg := layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+					return toolbar.Layout(gtx)
+				})
+				layout.Stack{Alignment: layout.E}.Layout(gtx, bg, fg)
 				e.Frame(gtx.Ops)
 			}
 		}
