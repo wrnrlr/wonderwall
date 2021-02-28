@@ -27,7 +27,7 @@ func (m *ToolMenu) layoutMenu(gtx layout.Context) layout.Dimensions {
 	for _, t := range m.tools {
 		children = append(children, t.Icon(gtx, unit.Dp(36)))
 	}
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
+	return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx, children...)
 }
 
 func (m *ToolMenu) layoutOptions(gtx layout.Context) layout.Dimensions {
