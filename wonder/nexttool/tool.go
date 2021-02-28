@@ -1,10 +1,11 @@
 package nexttool
 
 import (
-	"gioui.org/widget"
+	"gioui.org/layout"
+	"gioui.org/unit"
 )
 
 type Tool interface {
-	Icon() *widget.Icon
+	Icon(gtx layout.Context, sz unit.Value) layout.FlexChild
 	Event()
 }
