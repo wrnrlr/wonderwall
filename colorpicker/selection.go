@@ -11,10 +11,10 @@ import (
 	"image/color"
 )
 
-func NewColorSelection(th *material.Theme, inputs ...ColorInput) *ColorSelection {
+func NewColorSelection(th *material.Theme, drop layout.Direction, inputs ...ColorInput) *ColorSelection {
 	mux := &Mux{inputs: inputs}
 	return &ColorSelection{
-		Dropdown:     layout.SW,
+		Dropdown:     drop,
 		CornerRadius: unit.Dp(4),
 		Inset: layout.Inset{
 			Top: unit.Dp(10), Bottom: unit.Dp(10),
