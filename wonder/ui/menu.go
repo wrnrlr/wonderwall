@@ -378,28 +378,3 @@ func drawInk(gtx layout.Context, c widget.Press) {
 	}.Add(gtx.Ops)
 	paint.PaintOp{}.Add(gtx.Ops)
 }
-
-func Rgb(c uint32) color.RGBA {
-	return Argb(0xff000000 | c)
-}
-
-func Argb(c uint32) color.RGBA {
-	return color.RGBA{A: uint8(c >> 24), R: uint8(c >> 16), G: uint8(c >> 8), B: uint8(c)}
-}
-
-func Fill(gtx layout.Context, col color.NRGBA) layout.Dimensions {
-	cs := gtx.Constraints
-	paint.FillShape(gtx.Ops, col, clip.Rect{Max: cs.Max}.Op())
-	return layout.Dimensions{Size: cs.Min}
-}
-
-// mulAlpha scales all color components by alpha/255.
-func mulAlpha(c color.NRGBA, alpha uint8) color.NRGBA {
-	a := uint16(alpha)
-	return color.NRGBA{
-		A: uint8(uint16(c.A) * a / 255),
-		R: uint8(uint16(c.R) * a / 255),
-		G: uint8(uint16(c.G) * a / 255),
-		B: uint8(uint16(c.B) * a / 255),
-	}
-}
