@@ -1,4 +1,4 @@
-module github.com/Almanax/wonderwall/colorpicker
+module github.com/wrnrlr/wonderwall/colorpicker
 
 go 1.16
 
