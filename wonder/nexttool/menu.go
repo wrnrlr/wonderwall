@@ -39,7 +39,7 @@ type Arrange struct {
 }
 
 func (t *Arrange) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(mouseIcon, sz)
+	return menuItem(&t.btn, mouseIcon, sz)
 }
 
 func (t *Arrange) Event() {}
@@ -49,7 +49,7 @@ type Selection struct {
 }
 
 func (t *Selection) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(selectionIcon, sz)
+	return menuItem(&t.btn, selectionIcon, sz)
 }
 
 func (t *Selection) Event() {}
@@ -59,7 +59,7 @@ type Brush struct {
 }
 
 func (t *Brush) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(brushIcon, sz)
+	return menuItem(&t.btn, brushIcon, sz)
 }
 
 func (t *Brush) Event() {}
@@ -69,7 +69,7 @@ type Pen struct {
 }
 
 func (t *Pen) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(penIcon, sz)
+	return menuItem(&t.btn, penIcon, sz)
 }
 
 func (t *Pen) Event() {}
@@ -79,7 +79,7 @@ type Text struct {
 }
 
 func (t *Text) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(textIcon, sz)
+	return menuItem(&t.btn, textIcon, sz)
 }
 
 func (t *Text) Event() {}
@@ -89,7 +89,7 @@ type Image struct {
 }
 
 func (t *Image) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(imageIcon, sz)
+	return menuItem(&t.btn, imageIcon, sz)
 }
 
 func (t *Image) Event() {}
@@ -99,7 +99,7 @@ type Shape struct {
 }
 
 func (t *Shape) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(shapeIcon, sz)
+	return menuItem(&t.btn, shapeIcon, sz)
 }
 
 func (t *Shape) Event() {}
@@ -109,13 +109,15 @@ type Zoom struct {
 }
 
 func (t *Zoom) Icon(gtx layout.Context, sz unit.Value) layout.FlexChild {
-	return menuItem(zoomIcon, sz)
+	return menuItem(&t.btn, zoomIcon, sz)
 }
 
 func (t *Zoom) Event() {}
 
-func menuItem(ic *widget.Icon, sz unit.Value) layout.FlexChild {
+func menuItem(btn *widget.Clickable, ic *widget.Icon, sz unit.Value) layout.FlexChild {
 	return layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		return ic.Layout(gtx, sz)
+		return material.Clickable(gtx, btn, func(gtx layout.Context) layout.Dimensions {
+			return ic.Layout(gtx, sz)
+		})
 	})
 }
